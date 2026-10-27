@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE - patch field shape</title>
+<style>
+  :root { --fg:#1d232a; --muted:#5d6874; --bg:#f7f8fa; --card:#fff; --line:#dfe3e8; --accent:#2f6fd6; --bad:#c2372f; --good:#2a8a4a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:1280px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:16px; margin:28px 0 10px; }
+  p { margin:6px 0; }
+  .muted { color:var(--muted); }
+  .banner { background:#fff4d6; border:1px solid #f0d58a; padding:8px 12px; border-radius:6px; margin:12px 0; font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .grid4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  select, input, button { font:inherit; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button:disabled { opacity:.4; cursor:default; }
+  pre { margin:6px 0 0; padding:8px; background:#f2f4f7; border-radius:6px; font:12px/1.45 ui-monospace, Consolas, monospace; white-space:pre-wrap; word-break:break-word; }
+  .tag { display:inline-block; font-size:12px; padding:1px 8px; border-radius:10px; background:#e9eef7; color:var(--accent); }
+  .err { color:var(--bad); font-weight:600; }
+  .ok { color:var(--good); font-weight:600; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .tabs button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .steps { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .steps button { text-align:left; }
+  .steps button.done { background:#eef7f0; border-color:#bfe0c8; }
+  .changed { outline:2px solid #f0b429; }
+  label { font-size:13px; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Patch field shape — which one reads and behaves best?</h1>
+  <p class="muted">Q15 of the period file grilling (issue #5). The period file now nests one object per section inside each month (<code>months["2026-09"].water.mainMeter</code>). A save-queue patch (ADR 0004) must name both the section and the key. This demo runs every action through four candidate patch shapes side by side, so you can compare how each patch looks, how it is queued, and how each one catches a broken patch.</p>
+  <div class="banner">PROTOTYPE — throwaway. In-memory only, nothing is saved. The field list is a subset of the Q7 inventory.</div>
+
+  <h2>Free play</h2>
+  <div class="card">
+    <div class="row">
+      <label>Month <select id="month"></select></label>
+      <label>Section <select id="section"></select></label>
+      <label>Key <select id="key"></select></label>
+      <label>Value <input id="value" size="10" value="540.2"></label>
+      <button class="primary" id="btnType">Type value (blur)</button>
+      <button id="btnEmpty">Empty the cell</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnDrain">Drain the queue (one PUT)</button>
+      <button id="btnRemote">Other device writes, then drain (409 &gt; rebase)</button>
+      <button id="btnReset">Reset</button>
+    </div>
+    <p id="lastAction" class="muted" style="margin-top:8px"></p>
+  </div>
+
+  <h2>Guided walkthroughs</h2>
+  <div class="card">
+    <div class="tabs" id="tabs"></div>
+    <div id="scenario"></div>
+  </div>
+
+  <h2>Patch shapes, side by side</h2>
+  <div class="grid4" id="shapes"></div>
+
+  <h2>Local copy of the period file</h2>
+  <div class="card">
+    <p id="sameFiles"></p>
+    <pre id="file"></pre>
+  </div>
+  <h2>Remote file (data repo)</h2>
+  <div class="card"><pre id="remote"></pre></div>
+</main>
+
+<script>
+// ---------- Portable module: pure, no DOM ----------
+const PatchModel = (() => {
+  const FIRST_MONTH = "2026-09";
+  const CATALOGUE = {
+    common: { readingDate: {}, landlordOccupants: {}, tenantOccupants: {}, chargeAdvanceReceived: {} },
+    water: { mainMeter: {}, mainMeterPrevious: { firstMonthOnly: true }, pricePerM3: {} },
+    electricity: { tariffMode: {}, mainBase: {} },
+    softener: { description: {}, quantity: {}, unitPrice: {} },
+    internet: { billedAmount: {} },
+  };
+  const ID_TO_PATH = {};
+  for (const s in CATALOGUE) for (const k in CATALOGUE[s]) ID_TO_PATH[s + k[0].toUpperCase() + k.slice(1)] = [s, k];
+
+  const SHAPES = {
+    dot: {
+      title: "a. Dot path in field",
+      make: (period, month, s, k, value) => ({ period, month, field: `${s}.${k}`, value }),
+      resolve: p => {
+        if (typeof p.field !== "string") return { error: "field is not a string" };
+        const parts = p.field.split(".");
+        if (parts.length !== 2) return { error: `"${p.field}" has ${parts.length} parts, expected section.key` };
+        return { section: parts[0], key: parts[1] };
+      },
+      cellId: p => `${p.month}|${p.field}`,
+    },
+    split: {
+      title: "b. Separate section property",
+      make: (period, month, s, k, value) => ({ period, month, section: s, field: k, value }),
+      resolve: p => (typeof p.section === "string" && typeof p.field === "string")
+        ? { section: p.section, key: p.field } : { error: "section or field missing" },
+      cellId: p => `${p.month}|${p.section}|${p.field}`,
+    },
+    array: {
+      title: "c. Path array in field",
+      make: (period, month, s, k, value) => ({ period, month, field: [s, k], value }),
+      resolve: p => (Array.isArray(p.field) && p.field.length === 2)
+        ? { section: p.field[0], key: p.field[1] } : { error: `field ${JSON.stringify(p.field)} is not [section, key]` },
+      cellId: p => `${p.month}|${JSON.stringify(p.field)}`,
+    },
+    id: {
+      title: "d. Flat catalogue id, mapped to section.key",
+      make: (period, month, s, k, value) => ({ period, month, field: s + k[0].toUpperCase() + k.slice(1), value }),
+      resolve: p => ID_TO_PATH[p.field]
+        ? { section: ID_TO_PATH[p.field][0], key: ID_TO_PATH[p.field][1] } : { error: `"${p.field}" is not a known field id` },
+      cellId: p => `${p.month}|${p.field}`,
+    },
+  };
+
+  function validate(patch, shape) {
+    const r = SHAPES[shape].resolve(patch);
+    if (r.error) return r;
+    if (!CATALOGUE[r.section]) return { error: `unknown section "${r.section}"` };
+    const def = CATALOGUE[r.section][r.key];
+    if (!def) return { error: `unknown key "${r.key}" in section "${r.section}"` };
+    if (def.firstMonthOnly && patch.month !== FIRST_MONTH) return { error: `${r.key} is allowed in the first month only` };
+    return r;
+  }
+
+  const clone = o => JSON.parse(JSON.stringify(o));
+
+  // Q4 + Q17: null removes the key, then the empty section, then the empty month.
+  function applyPatch(file, patch, shape) {
+    const r = validate(patch, shape);
+    if (r.error) return { file, error: r.error };
+    const f = clone(file);
+    const months = f.months;
+    if (patch.value === null) {
+      const sec = months[patch.month]?.[r.section];
+      if (sec) {
+        delete sec[r.key];
+        if (!Object.keys(sec).length) delete months[patch.month][r.section];
+        if (!Object.keys(months[patch.month]).length) delete months[patch.month];
+      }
+    } else {
+      months[patch.month] ??= {};
+      months[patch.month][r.section] ??= {};
+      months[patch.month][r.section][r.key] = patch.value;
+    }
+    return { file: f };
+  }
+
+  // A second edit of the same cell replaces the queued one.
+  function enqueue(queue, patch, shape) {
+    const id = SHAPES[shape].cellId(patch);
+    return [...queue.filter(p => SHAPES[shape].cellId(p) !== id), patch];
+  }
+
+  function applyAll(file, queue, shape) {
+    let f = file; const errors = [];
+    for (const p of queue) { const r = applyPatch(f, p, shape); if (r.error) errors.push(r.error); else f = r.file; }
+    return { file: f, errors };
+  }
+
+  function commitLine(queue, shape) {
+    return queue.map(p => { const r = SHAPES[shape].resolve(p);
+      const where = r.error ? "?" : `${r.section}.${r.key}`;
+      return `${p.month} ${where} = ${p.value === null ? "(emptied)" : JSON.stringify(p.value)}`; }).join("; ");
+  }
+
+  return { CATALOGUE, SHAPES, FIRST_MONTH, validate, applyPatch, enqueue, applyAll, commitLine, clone };
+})();
+
+// ---------- Throwaway page ----------
+const M = PatchModel;
+const PERIOD = "2026-2027";
+const INITIAL = {
+  schemaVersion: 1, period: PERIOD,
+  settings: { monthlyChargeAdvance: 70, heatPumpAnnualAmount: 154 },
+  months: {
+    "2026-09": {
+      common: { readingDate: "2026-10-11", landlordOccupants: 4, tenantOccupants: 1, chargeAdvanceReceived: 70 },
+      water: { mainMeterPrevious: 525.69, mainMeter: 533.117, pricePerM3: 1.05 },
+      electricity: { tariffMode: "base", mainBase: 71697.08 },
+      softener: { unitPrice: 9.5, quantity: 0 },
+      internet: { billedAmount: 20.99 },
+    },
+    "2026-10": { common: { readingDate: "2026-11-15", chargeAdvanceReceived: 70 }, internet: { billedAmount: 23.48 } },
+  },
+};
+const SHAPE_NAMES = Object.keys(M.SHAPES);
+let S;
+function reset() {
+  S = { remote: M.clone(INITIAL), shapes: {}, last: "Reset to the September and October values.", changed: null, notes: {} };
+  for (const n of SHAPE_NAMES) S.shapes[n] = { local: M.clone(INITIAL), queue: [], note: "" };
+}
+
+function typeValue(month, section, key, value) {
+  S.changed = `${month}|${section}|${key}`;
+  for (const n of SHAPE_NAMES) {
+    const sh = S.shapes[n];
+    const patch = M.SHAPES[n].make(PERIOD, month, section, key, value);
+    const r = M.applyPatch(sh.local, patch, n);
+    if (r.error) { sh.note = `Refused before queueing: ${r.error}`; continue; }
+    sh.local = r.file; sh.queue = M.enqueue(sh.queue, patch, n); sh.note = "";
+  }
+  S.last = value === null ? `Emptied ${month} ${section}.${key}.` : `Typed ${JSON.stringify(value)} into ${month} ${section}.${key}.`;
+}
+
+function injectBroken(patches) {
+  for (const n of SHAPE_NAMES) { const sh = S.shapes[n]; sh.queue = [...sh.queue, patches[n]]; sh.note = ""; }
+  S.last = "A corrupted patch was put in each queue (e.g. a hand-edited IndexedDB entry or a bug in the form). Drain to see who catches it.";
+}
+
+function drain() {
+  for (const n of SHAPE_NAMES) {
+    const sh = S.shapes[n];
+    sh.lastRemote = null;
+    if (!sh.queue.length) { sh.note = "Queue empty, nothing to send."; sh.local = M.clone(S.remote); continue; }
+    const { file, errors } = M.applyAll(S.remote, sh.queue, n);
+    sh.note = errors.length ? `PUT sent without the refused patches: ${errors.join("; ")}` : `PUT ok. Commit: ${M.commitLine(sh.queue, n)}`;
+    sh.lastRemote = file; sh.local = file; sh.queue = [];
+  }
+  S.remote = S.shapes.dot.lastRemote || S.remote;
+  S.last = "Drained every queue as one PUT (remote shown is shape a's result).";
+}
+
+function remoteThenDrain() {
+  // other device: October tenant occupants = 2
+  S.remote = M.clone(S.remote);
+  S.remote.months["2026-10"] ??= {};
+  S.remote.months["2026-10"].common ??= {};
+  S.remote.months["2026-10"].common.tenantOccupants = 2;
+  S.remote.months["2026-10"].common.chargeAdvanceReceived = 65;
+  drain();
+  S.last = "The phone wrote October (2 tenants, advance 65) first. Our PUT got a 409, so we pulled and replayed the queued patches on top: queued edits win on the same cell, other cells keep the phone's values.";
+}
+
+const SCENARIOS = [
+  { name: "Monthly reading", text: "The everyday case: type October's main water meter, then drain. Compare the four patches and commit lines.", steps: [
+    ["Type 540.2 into 2026-10 water.mainMeter", () => typeValue("2026-10", "water", "mainMeter", 540.2)],
+    ["Drain the queue", drain] ] },
+  { name: "Retype the same cell offline", text: "Offline, you type a value, notice a typo and retype it. The queue must keep only the last patch for that cell; the 'cell id' is how each shape recognises the same cell.", steps: [
+    ["Type 54.02 into 2026-10 water.mainMeter (typo)", () => typeValue("2026-10", "water", "mainMeter", 54.02)],
+    ["Retype 540.2", () => typeValue("2026-10", "water", "mainMeter", 540.2)],
+    ["Drain the queue", drain] ] },
+  { name: "Empty the last key", text: "October's internet section holds one key. Emptying it removes the key, then the empty section (Q17). Emptying October's other keys removes the month itself.", steps: [
+    ["Empty 2026-10 internet.billedAmount", () => typeValue("2026-10", "internet", "billedAmount", null)],
+    ["Empty 2026-10 common.readingDate", () => typeValue("2026-10", "common", "readingDate", null)],
+    ["Empty 2026-10 common.chargeAdvanceReceived", () => typeValue("2026-10", "common", "chargeAdvanceReceived", null)],
+    ["Drain the queue", drain] ] },
+  { name: "Previous index outside month 1", text: "Q5: previous indexes are allowed only in the first month. All four shapes refuse it the same way, because the rule lives in the catalogue, not in the patch shape.", steps: [
+    ["Type 530 into 2026-10 water.mainMeterPrevious", () => typeValue("2026-10", "water", "mainMeterPrevious", 530)] ] },
+  { name: "Corrupted patch", text: "A patch that the form cannot produce, but a bug or a stale queue could. Watch which error message is the clearest.", steps: [
+    ["Inject a typo'd patch in each queue", () => injectBroken({
+      dot: { period: PERIOD, month: "2026-10", field: "water.main.Meter", value: 1 },
+      split: { period: PERIOD, month: "2026-10", section: "watr", field: "mainMeter", value: 1 },
+      array: { period: PERIOD, month: "2026-10", field: ["water"], value: 1 },
+      id: { period: PERIOD, month: "2026-10", field: "waterMainMeterr", value: 1 } })],
+    ["Drain the queue", drain] ] },
+  { name: "Conflict with the phone", text: "ADR 0004: you edit October on the computer while the phone writes October too. On 409 the queued patches are replayed on the remote file.", steps: [
+    ["Type 3 into 2026-10 common.tenantOccupants", () => typeValue("2026-10", "common", "tenantOccupants", 3)],
+    ["Phone writes, then our drain hits 409 and rebases", remoteThenDrain] ] },
+];
+let activeTab = 0, stepIdx = 0;
+
+function render() {
+  const h = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  document.getElementById("lastAction").textContent = S.last;
+  document.getElementById("shapes").innerHTML = SHAPE_NAMES.map(n => {
+    const sh = S.shapes[n], sp = M.SHAPES[n];
+    const ids = sh.queue.map(p => sp.cellId(p));
+    const note = sh.note ? `<p class="${/Refused|refused|without/.test(sh.note) ? "err" : "ok"}">${h(sh.note)}</p>` : "";
+    return `<div class="card"><span class="tag">${n}</span> <b>${sp.title}</b>
+      <p class="muted" style="margin-top:8px">Queued patches (${sh.queue.length})</p>
+      <pre>${h(sh.queue.length ? sh.queue.map(p => JSON.stringify(p)).join("\n") : "(empty)")}</pre>
+      <p class="muted">Queue key per cell (IndexedDB)</p><pre>${h(ids.join("\n") || "(empty)")}</pre>
+      ${note}</div>`;
+  }).join("");
+  const files = SHAPE_NAMES.map(n => JSON.stringify(S.shapes[n].local));
+  const same = files.every(f => f === files[0]);
+  document.getElementById("sameFiles").innerHTML = same
+    ? `<span class="ok">The four shapes produce the identical file.</span> The patch shape changes only the queue, not the file.`
+    : `<span class="err">The local files differ between shapes</span> (a patch was refused by one shape only). Showing shape a.`;
+  document.getElementById("file").textContent = JSON.stringify(S.shapes.dot.local.months, null, 2);
+  document.getElementById("remote").textContent = JSON.stringify(S.remote.months, null, 2);
+
+  document.getElementById("tabs").innerHTML = SCENARIOS.map((sc, i) => `<button class="${i === activeTab ? "active" : ""}" data-tab="${i}">${sc.name}</button>`).join("");
+  const sc = SCENARIOS[activeTab];
+  document.getElementById("scenario").innerHTML = `<p>${sc.text}</p><div class="steps">${sc.steps.map((st, i) =>
+    `<button data-step="${i}" class="${i < stepIdx ? "done" : ""}" ${i !== stepIdx ? "disabled" : ""}>${i + 1}. ${st[0]}</button>`).join("")}</div>`;
+}
+
+function fillSelectors() {
+  month.innerHTML = ["2026-09", "2026-10", "2026-11"].map(m => `<option>${m}</option>`).join("");
+  month.value = "2026-10";
+  section.innerHTML = Object.keys(M.CATALOGUE).map(s => `<option>${s}</option>`).join("");
+  const fillKeys = () => key.innerHTML = Object.keys(M.CATALOGUE[section.value]).map(k => `<option>${k}</option>`).join("");
+  section.value = "water"; fillKeys(); section.onchange = fillKeys;
+}
+const readValue = () => { const v = document.getElementById("value").value.trim(); return v !== "" && !isNaN(+v) ? +v : v; };
+
+const $ = id => document.getElementById(id);
+const month = $("month"), section = $("section"), key = $("key");
+document.getElementById("btnType").onclick = () => { typeValue(month.value, section.value, key.value, readValue()); render(); };
+document.getElementById("btnEmpty").onclick = () => { typeValue(month.value, section.value, key.value, null); render(); };
+document.getElementById("btnDrain").onclick = () => { drain(); render(); };
+document.getElementById("btnRemote").onclick = () => { remoteThenDrain(); render(); };
+document.getElementById("btnReset").onclick = () => { reset(); stepIdx = 0; render(); };
+document.getElementById("tabs").onclick = e => { const t = e.target.dataset.tab; if (t === undefined) return; activeTab = +t; stepIdx = 0; reset(); render(); };
+document.getElementById("scenario").onclick = e => { const i = e.target.dataset.step; if (i === undefined || +i !== stepIdx) return;
+  SCENARIOS[activeTab].steps[stepIdx][1](); stepIdx++; render(); };
+
+reset(); fillSelectors(); render();
+</script>
+</body>
+</html>
