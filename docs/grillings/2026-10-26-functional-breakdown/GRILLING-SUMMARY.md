@@ -44,7 +44,7 @@ v1 scope ends at a manual "Nouvelle période". v2 will prefill it from the previ
 - Q20 (v02): period table on large screens, "Saisie du mois" form on small screens, same queue.
 - Q21 (v02): v1 "Nouvelle période" is filled by hand; prefill from the previous period is v2.
 - Q22 (v02): no spreadsheet import.
-- Q23 (v02): softener description and quantity are not inherited; unit price is.
+- Q23 (v02): softener description and quantity are not inherited; unit price is. Corrected by Q7b of `docs/grillings/2026-10-27-period-file-json-shape`: the unit price is not inherited either.
 - Q24 (v03): the auth callback refuses any GitHub login outside an env-var allowlist.
 - Q25 (v03): the settlement is available for any period, labelled "provisoire" until closed.
 - Q27 (v03): implausible values are saved with a warning, never blocked.

@@ -23,7 +23,7 @@ Twelve consecutive months, September to August, over which charges are tracked a
 _Avoid_: Year, exercice
 
 **Month** (_Mois_):
-One column of a period, holding the readings and prices for that month.
+One column of a period, holding the readings and prices for that month. A month is named after the calendar month in which its consumption window starts: the "September" month runs from the mid-September reading date to the mid-October one.
 
 **Reading date** (_Date de relevé_):
 The day the meters are read for a month; it closes the month's consumption window for every section.
