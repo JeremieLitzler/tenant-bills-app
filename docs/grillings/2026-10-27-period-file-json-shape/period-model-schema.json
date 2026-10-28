@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "periodName": "2025-2026",
+  "settings": {
+    "monthlyTenantBillAdvance": 50
+  },
+  "months": [
+    {
+      "month": "2025-09",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-10",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-11",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-12",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-01",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-02",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-03",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-04",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-05",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-06",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-07",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-08",
+      "common": { "tenantBillAdvance": 0 },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {}
+    }
+  ]
+}

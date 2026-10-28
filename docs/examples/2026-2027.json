@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "periodName": "2026-2027",
+  "settings": {
+    "monthlyTenantBillAdvance": 70
+  },
+  "months": [
+    {
+      "month": "2026-09",
+      "common": {
+        "readingDatePrevious": "2026-09-12",
+        "readingDate": "2026-10-11",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
+        "tenantBillAdvance": 70
+      },
+      "waterConsumption": {
+        "mainMeterPrevious": 525690,
+        "mainMeter": 533117,
+        "studioUnsoftenedMeterPrevious": 13992,
+        "studioUnsoftenedMeter": 14614,
+        "studioSoftenedMeterPrevious": 18676,
+        "studioSoftenedMeter": 19685,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
+      },
+      "waterTreatment": {
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
+      "waterSoftener": {},
+      "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "month",
+        "mainBasePrevious": 71319.42,
+        "mainBase": 71319.42,
+        "studioBasePrevious": 2493.6,
+        "studioBase": 2586.2,
+        "excisePerKwh": 0.03062,
+        "kwhPriceBase": 0.11848,
+        "subscriptionPerUnit": 22.78,
+        "ctaTax": 2.34,
+        "vat": 1.2
+      },
+      "internet": {
+        "billedAmount": 20.99
+      },
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2026-10",
+      "common": {
+        "tenantBillAdvance": 70
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "ctaTax": 2.42
+      },
+      "internet": {
+        "billedAmount": 23.48
+      },
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2026-11",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2026-12",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-01",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-02",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-03",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-04",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-05",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-06",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-07",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.83
+      }
+    },
+    {
+      "month": "2027-08",
+      "common": {
+        "tenantBillAdvance": 0
+      },
+      "waterConsumption": {},
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {},
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 12.87
+      }
+    }
+  ]
+}

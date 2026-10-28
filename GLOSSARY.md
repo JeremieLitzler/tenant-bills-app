@@ -9,7 +9,7 @@ The owner who lives in the main dwelling, pays the utility bills and re-invoices
 _Avoid_: Owner, propriétaire
 
 **Tenant** (_Locataire_):
-The occupant of the studio who pays a monthly charge advance and their share of the charges.
+The occupant of the studio who pays a monthly tenant bill advance and their share of the charges.
 _Avoid_: Renter
 
 **Occupant count** (_Nb d'occupants_):
@@ -31,9 +31,12 @@ _Avoid_: Au (alone), index date
 
 ## Money
 
-**Charge advance** (_Avance sur charges_):
-The fixed amount the tenant transfers each month ahead of the settlement.
-_Avoid_: Provision, deposit
+**Tenant bill advance** (_Avance sur charges_):
+The amount the tenant actually transferred in a month ahead of the settlement. The amount expected each month is set once per period.
+_Avoid_: Charge advance, provision, deposit
+
+**Balance** (_Avance sur charges - Consommations_):
+The tenant bill advances received so far minus the tenant shares owed so far, followed during the period and final at the settlement.
 
 **Tenant share** (_Part Locataire_):
 The part of a section's monthly bill the tenant owes.
@@ -42,7 +45,7 @@ The part of a section's monthly bill the tenant owes.
 The part of a section's monthly bill the landlord keeps.
 
 **Settlement** (_Régularisation_):
-The comparison, at the end of a period, of the charge advances received with the tenant shares owed, giving the balance due and the next period's charge advance.
+The comparison, at the end of a period, of the tenant bill advances received with the tenant shares owed, giving the final balance and the next period's monthly tenant bill advance.
 _Avoid_: Reconciliation, regularization
 
 ## Sections
