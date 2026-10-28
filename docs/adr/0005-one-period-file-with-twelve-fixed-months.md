@@ -1,0 +1,7 @@
+# A period is one JSON file holding twelve fixed months of sparse, inherited inputs
+
+Each period is one file, `periods/YYYY-YYYY.json`, with `schemaVersion` (integer), `periodName`, `settings` and a `months` array of exactly twelve entries from September to August, created with the period. Every month always holds the same seven section objects (`common`, `waterConsumption`, `waterTreatment`, `waterSoftener`, `electricity`, `internet`, `heatPumpMaintenance`), and each section holds plain values keyed by the field catalogue. Inside a section, an absent key means "inherited from the previous month" and any stored number, 0 included, means "typed for this month". The one exception is `common.tenantBillAdvance`, present in every month from creation, where 0 means "nothing received". Water indexes are stored in litres, as integers.
+
+We kept one file rather than one file per section because the GitHub Contents API writes one file per `PUT`: a drain of the patch queue (ADR 0004) must stay one commit with one SHA to check. We chose a fixed array of twelve with every section present over a sparse object because it reads like the spreadsheet's twelve columns, gives stable diffs, and the apply function never creates or removes a parent object; the cost is a lookup by `month` and a file that is larger than strictly needed.
+
+A file with an unknown or newer `schemaVersion`, or whose `months` is not exactly the twelve months in order, is opened read-only.
