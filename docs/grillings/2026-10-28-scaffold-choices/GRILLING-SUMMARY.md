@@ -1,6 +1,6 @@
 # Grilling summary — scaffold choices: package manager, router, folder layout (issue #4)
 
-Session started 2026-10-28, rounds v01 to v02. Decision record written: `docs/architecture.md`. Follow-up issue created: #14.
+Session started 2026-10-28, rounds v01 to v02. Decision record written: `docs/architecture.md`. Follow-up issues created: #14 (shared auth and proxy module), #15 (404 navigation errors).
 
 ## Shared understanding
 
