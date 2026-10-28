@@ -80,3 +80,5 @@ To update the data, we'll use Netlify Functions similar to the project `https://
 Use IndexedDb to store data on device instead of a full pull from the JSON file.
 
 Hosting of the webapp is also on Netlify.
+
+The package manager, routes and folder layout are described in [docs/architecture.md](docs/architecture.md).
