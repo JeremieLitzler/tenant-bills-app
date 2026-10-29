@@ -2,6 +2,8 @@
 
 Package manager, router and folder layout of the app, settled in `docs/grillings/2026-10-28-scaffold-choices/` (issue #4). None of these choices met the ADR bar: they are cheap to change before the scaffold grows.
 
+What is tested, at which seam, and how the golden record fixture is produced: see `docs/architecture-tests.md`.
+
 ## Package manager and runtime
 
 - pnpm, pinned through `"packageManager": "pnpm@12.16.1"` in `package.json` so Netlify's Corepack installs the same major as local development (Netlify's default is `10.x`). Bump it by hand when pnpm is upgraded locally.
