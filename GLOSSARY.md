@@ -22,12 +22,23 @@ _Avoid_: Units, parts
 Twelve consecutive months, September to August, over which charges are tracked and then settled.
 _Avoid_: Year, exercice
 
+**Closed period** (_Période clôturée_):
+A period whose settlement the landlord has declared final, once every reading and every bill of the period is in. Until it is closed, a period is open and its settlement is provisional. Nothing in a closed period changes.
+_Avoid_: Finished, archived, complete period
+
+**Running period** (_Période en cours_):
+The open period containing today.
+_Avoid_: Current year
+
 **Month** (_Mois_):
 One column of a period, holding the readings and prices for that month. A month is named after the calendar month in which its consumption window starts: the "September" month runs from the mid-September reading date to the mid-October one.
 
 **Reading date** (_Date de relevé_):
 The day the meters are read for a month; it closes the month's consumption window for every section.
 _Avoid_: Au (alone), index date
+
+**Estimated month** (_Mois estimé_):
+The last month of a period while its indexes are estimated from an earlier month's consumption and its reading is not yet taken.
 
 ## Money
 
@@ -47,6 +58,12 @@ The part of a section's monthly bill the landlord keeps.
 **Settlement** (_Régularisation_):
 The comparison, at the end of a period, of the tenant bill advances received with the tenant shares owed, giving the final balance and the next period's monthly tenant bill advance.
 _Avoid_: Reconciliation, regularization
+
+**Provisional settlement** (_Régularisation provisoire_):
+The settlement of an open period, computed from the months entered so far; it can still change.
+
+**Estimated settlement** (_Régularisation estimée_):
+The provisional settlement while the last month of the period is estimated; it gives the next period's monthly tenant bill advance before the last reading is taken.
 
 ## Sections
 

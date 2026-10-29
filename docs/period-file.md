@@ -42,6 +42,7 @@ Each period is one JSON file in the data repo `JeremieLitzler/tenant-bills-data`
 - Any stored number, `0` included, means "typed for this month". Typing a value always stores it, even when it equals the inherited value.
 - `null` never appears in the file.
 - Exception: `common.tenantBillAdvance` is present in every month from the period's creation, starting at `0`; `0` means "nothing received".
+- Exception: in the twelfth month, indexes stored without `common.readingDate` are estimates (see "The estimated twelfth month").
 
 ## Values
 
@@ -53,7 +54,20 @@ Each period is one JSON file in the data repo `JeremieLitzler/tenant-bills-data`
 
 ## Settings
 
-- `monthlyTenantBillAdvance`: the expected monthly tenant bill advance, suggested in one click on any month whose `tenantBillAdvance` is `0`. Required when the period is created.
+- `monthlyTenantBillAdvance`: the expected monthly tenant bill advance, suggested in one click on any month whose `tenantBillAdvance` is `0`. Required when the period is created. "Nouvelle période" prefills it with the previous period's next advance, CEIL(total tenant shares / 12), as shown at that moment (estimated or actual); it is not updated afterwards.
+- `closedOn`: `"YYYY-MM-DD"`, the date "Clôturer la période" was pressed. Absent while the period is open (ADR 0006).
+
+## Closing a period
+
+- "Clôturer la période" is enabled when every month has `common.readingDate` and every tenant share is computable. The confirmation lists the months whose `tenantBillAdvance` is `0`, without blocking, and requires ticking that the period's water bills were received and typed.
+- A closed period is read-only, `settings` included, and cannot be reopened. A patch queued before the close reached the file still applies, and the app flags it.
+- "Nouvelle période" is refused while the previous period's file exists and its twelfth month is neither estimated nor read. Without a previous file, it is allowed.
+
+## The estimated twelfth month
+
+- "Estimer les relevés", on the twelfth month, is enabled once the eleventh month has its `readingDate`. It writes an estimated current index for each meter as ordinary patches: the eleventh month's current index plus the meter's delta in the previous period's twelfth month, or in this period's eleventh month when that delta is missing.
+- The delta is a total per meter: HC + HP when the source month was in `hchp`. When the twelfth month is in `hchp`, the total is split 30 % HC, 70 % HP; in `base`, it goes to the Base register.
+- The twelfth month is estimated while it holds indexes but no `common.readingDate`. Its "Au", for a per-day subscription, is the suggested reading date, not stored. Typing the reading date makes it read; the confirmation lists the indexes still equal to their estimate.
 
 ## Keys per section
 
@@ -132,7 +146,8 @@ The app opens a file read-only, and refuses to write it, when:
 - `schemaVersion` is unknown or newer than the app's;
 - `months` is not exactly the twelve months of the period in order;
 - a month lacks `common.tenantBillAdvance`;
-- a water index is not an integer.
+- a water index is not an integer;
+- `settings.closedOn` is present and not a `"YYYY-MM-DD"` date.
 
 ## Writing
 
