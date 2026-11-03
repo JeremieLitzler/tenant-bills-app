@@ -128,3 +128,28 @@
     @apply font-sans;
     }
 }
+/* PROTOTYPE (issue #9): phone portrait, CSS only. The same table markup becomes a
+   month carousel: the label column stays pinned and narrower (labels wrap), each
+   month column takes the rest of the width, and horizontal scrolling snaps one
+   month at a time. Applies to the three versions, which share the table shape. */
+@media (max-width: 640px) {
+  [role='grid'] {
+    --label-w: 9.5rem;
+    container-type: inline-size;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* phones use overlay scrollbars; keeps 100cqw exact */
+    scroll-padding: 5rem 0 0 var(--label-w) !important;
+  }
+  [role='grid'] tr > :first-child:not([colspan]) {
+    width: var(--label-w) !important;
+    min-width: var(--label-w) !important;
+    max-width: var(--label-w) !important;
+    white-space: normal !important;
+    font-size: 0.75rem;
+    line-height: 1.1;
+  }
+  [role='grid'] tr > :not(:first-child) {
+    min-width: calc(100cqw - var(--label-w));
+    scroll-snap-align: start;
+  }
+}
