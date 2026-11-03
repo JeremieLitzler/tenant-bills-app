@@ -7,7 +7,7 @@
 - Q36: the "Clôturer la période" confirmation requires ticking "Les factures d'eau de la période ont-elles été reçues et saisies ?".
 - Q37: once the twelfth month is read and the period isn't closed, the settlement view reminds you to tell the tenant that the final settlement comes in October, when the water bills arrive.
 
-The frontier is empty. `GRILLING-SUMMARY.md` is rewritten: it replaces the withdrawn v06 summary.
+The frontier is empty. `GRILLING-SUMMARY.md` is rewritten: it replaces the withdrawn first summary.
 
 ## Q38 - Does the summary match your understanding?
 

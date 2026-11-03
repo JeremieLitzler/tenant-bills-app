@@ -1,8 +1,8 @@
 # Grilling round v07 — when a period is closed (issue #7)
 
-## Settled in v06
+## A missed remark
 
-Nothing. I missed your v05 section "Remark about the last month of a running period" when I read your answers. I only read the text under each `### Answer to Q<n>` heading. So the v06 summary and its Q30 are withdrawn. `GRILLING-SUMMARY.md` will be rewritten once this branch is settled.
+I missed your v05 section "Remark about the last month of a running period" when I read your answers. I only read the text under each `### Answer to Q<n>` heading. So the first summary is withdrawn. `GRILLING-SUMMARY.md` will be rewritten once this branch is settled.
 
 How I read your remark:
 
