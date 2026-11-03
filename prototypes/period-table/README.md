@@ -1,6 +1,6 @@
 # PROTOTYPE — period table (issue #9)
 
-Throwaway. Deleted in the last commit before `docs/9-period-table-library` is merged (Q12 of `docs/grillings/2026-11-03-period-table-library/`).
+Throwaway, not part of the app. Kept in the repo for a test on a phone; the verdict is in the "Period table" section of `docs/architecture.md`: the plain shadcn-vue `Table` version.
 
 Three versions of the period table on one page, switchable with `?variant=` or the floating bar at the bottom:
 
@@ -39,4 +39,6 @@ Differs: `src/variants/VariantShadcn.vue` (51 lines), `VariantTanstack.vue` (94 
 - Reactivity. Edits (a new index, January switched back to Base) update every version, TanStack v9 included, with no extra code.
 - shadcn-vue wrappers vs native `<table>`. `Table`'s root is its scroll container `div`. Attributes (`role`, `tabindex`, `@keydown`, `style`) fall through to it, but its `class` prop goes to the inner `<table>`. So the container's max height went through `style`, and the grid root is reached as `el.$el`. Minor friction, nothing made harder. The native version needed the classes copied by hand and is 2 lines shorter.
 
-Applying the rules settled in Q15 and Q15b: TanStack is simpler on no requirement and harder on one (grouping), so the row model built by hand wins. The shadcn-vue wrappers made no requirement harder, so they stay. Your verdict after trying the three versions decides.
+Phone portrait (CSS only, in `src/style.css`): below 640px the label column narrows and wraps, each month takes the rest of the width, and horizontal scrolling snaps one month at a time.
+
+Applying the rules settled in Q15 and Q15b: TanStack is simpler on no requirement and harder on one (grouping), so the row model built by hand wins. The shadcn-vue wrappers made no requirement harder, so they stay. Verdict: no major difference seen, so the plain shadcn-vue `Table` version was chosen.
