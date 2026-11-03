@@ -1,6 +1,6 @@
 # Architecture
 
-Package manager, router and folder layout of the app, settled in `docs/grillings/2026-10-28-scaffold-choices/` (issue #4). None of these choices met the ADR bar: they are cheap to change before the scaffold grows. How shared state is held is in the "State" section below (issue #8).
+Package manager, router and folder layout of the app, settled in `docs/grillings/2026-10-28-scaffold-choices/` (issue #4). None of these choices met the ADR bar: they are cheap to change before the scaffold grows. How shared state is held is in the "State" section below (issue #8), and how the period table is built is in the "Period table" section (issue #9).
 
 What is tested, at which seam, and how the golden record fixture is produced: see `docs/architecture-tests.md`.
 
@@ -125,3 +125,45 @@ useSession(): {
 - On a 401 from the proxy, the period state calls `expire()`. It does not redirect.
 - The app shell, mounted on every route, watches the session. When it turns signed-out, it calls `usePeriods().clear()` and re-runs the current route with `router.replace(route.fullPath)`, so the guard redirects.
 - Queued patches survive a 401 and an explicit "Se déconnecter". Signing out while patches are queued asks for confirmation first ("N modifications pas encore enregistrées"). After the next sign-in, the periods are re-loaded from GitHub and the queued patches are re-applied on top.
+
+## Period table
+
+Settled in `docs/grillings/2026-11-03-period-table-library/` (issue #9), after a prototype of three versions in `prototypes/period-table/`. No ADR: swapping the table's rendering later touches one component and its line definitions, not the period file or the queue.
+
+### Approach
+
+The period table (F5) uses shadcn-vue's plain `Table` components (`src/components/ui/table/`), with rows built by our own code. No TanStack Table.
+
+- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month (September to August), plus a label column. That is transposed from TanStack's row model, which expects one data object per row.
+- The shape is fixed (about 60 lines, 12 months). Sorting, filtering, pagination and row selection, TanStack's main features, go unused.
+- In the prototype, TanStack was harder for sections (two grouping features, a column that exists only to group by, then filtered out of every row) and simpler for nothing. A plain `<table>` with Tailwind only was no simpler than the shadcn-vue components either, so those stay for one table style across the app.
+
+### Rows and cells
+
+- The rows come from a list of line definitions: section, key, French label, input or computed, inherited or not, and tariff mode for the electricity lines. Each section starts with a header row.
+- One cell component renders every month cell. It reads the period's file and computed figures from `usePeriod(id)` and writes only through `setCell` (see "State").
+- A cell shows its value as typed, inherited (styled as such), derived (a previous index taken from the previous month), or computed (read-only). Implausible values carry a warning and are never blocked.
+- A previous index is editable only in the first month, in a tariff-switch month for the registers of the new mode, and after "Compteur remplacé". Every cell of a closed period is read-only.
+- Every electricity row is always shown. In a month in `base`, the HC and HP cells are empty, styled as not applicable and not editable, and the reverse in `hchp`. The period file keeps the other mode's keys, but no formula of that month reads them.
+
+### Keyboard and mouse
+
+The table has a selection mode and an edit mode, as in a spreadsheet. Neither shadcn-vue nor TanStack provides this: it is our own code.
+
+- The table is a single Tab stop (ARIA grid pattern, `aria-activedescendant` on the table's container). Tab leaves it.
+- Selection mode: the arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, editable or not, and skip section header rows.
+- Enter edits the selected cell, and does nothing on a read-only cell. Typing a character on an editable cell starts editing and replaces the value with it.
+- Edit mode: Enter saves and moves to the next editable cell down in the same month, staying in edit mode. On the month's last editable cell, it saves and returns to selection mode. Escape restores the earlier value, enqueues nothing, and returns to selection mode. Arrow Left and Right move the text cursor.
+- Mouse: a click selects a cell, a double click on an editable cell edits it, and leaving an editing cell any other way saves it (blur).
+- Editing without changing the text enqueues nothing, so an inherited value stays inherited.
+
+### Layout
+
+- The month header and the label column are sticky. The label column has a fixed width.
+- The table's scroll container has scroll padding matching the sticky header and label column, so the selected cell is never scrolled under them. Section titles are sticky inside their full-width header cell, so they stay visible when scrolling sideways.
+- shadcn-vue's `Table.vue` renders a scroll container `div` around the `<table>`. Attributes fall through to that container, but its `class` prop goes to the `<table>`. The container's classes (height, scroll padding) are set by editing `Table.vue`, which is our code once added.
+- The "Saisie du mois" form stays the phone screen for entering a month (Q20 of `docs/grillings/2026-10-26-functional-breakdown/`): touch is clumsy with selection and edit modes. On a phone, the table only needs to be readable. A CSS-only media query does that: a narrower label column with wrapped labels, each month column taking the rest of the width, and horizontal scrolling that snaps one month at a time.
+
+### Prototype
+
+`prototypes/period-table/` stays in the repo for a test on a phone. It is not part of the app: run it with `pnpm install` and `pnpm dev` from that folder, and switch versions with `?variant=shadcn|tanstack|native`.

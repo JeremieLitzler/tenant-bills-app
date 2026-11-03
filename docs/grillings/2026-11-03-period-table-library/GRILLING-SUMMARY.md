@@ -65,12 +65,22 @@ Superseded: none. Q4's answer replaced my own proposal (native Tab plus Enter-do
 - No `GLOSSARY.md` entry: "selection mode", "edit mode" and "not applicable" are UI terms, not domain language.
   - Approved
 
+## After the prototype
+
+Recorded in the "Period table" section of `docs/architecture.md`.
+
+- Verdict: no major difference between the three versions, so by Q15 and Q15b the period table uses the plain shadcn-vue `Table` with rows built by our own code; no TanStack.
+- Q12 changed: `prototypes/period-table/` is kept in the repo, so the phone layout can be tested on a real phone later.
+- Phones: Q20 of the functional breakdown stands; the "Saisie du mois" form is the phone screen for entering a month, since selection and edit modes are clumsy by touch. A CSS-only layout makes the table readable on a phone: narrower label column, one month per screen width, horizontal scroll snapping one month at a time. Labels stacked above inputs would need different HTML, which is the form.
+- Found while testing: the selected cell could hide under the sticky header (fixed with scroll padding), and section titles scrolled away sideways (made sticky).
+
 ## Paste-ready for issue #9
 
-> Grilled in `docs/grillings/2026-11-03-period-table-library/`. The approach is not confirmed yet: it will be picked from a throwaway prototype, then recorded in a new "Period table" section of `docs/architecture.md` (no ADR).
+> Grilled in `docs/grillings/2026-11-03-period-table-library/`, prototyped in `prototypes/period-table/`, recorded in the "Period table" section of `docs/architecture.md` (no ADR). **Verdict: plain shadcn-vue `Table` with rows built by hand, no TanStack Table.** The three versions showed no major difference; TanStack was harder for sections and simpler for nothing.
 >
 > - **Why not confirm TanStack outright**: the table is transposed from TanStack's row model (rows are lines of a section, columns are the 12 months, as in the spreadsheet), its shape is fixed so sorting, filtering and pagination go unused, and the hard requirements are per cell in any approach.
-> - **Prototype**: `prototypes/period-table/` on this branch, deleted before the merge. Three versions on the same line definitions: plain shadcn-vue `Table` with a hand-built row model, shadcn-vue data-table with `@tanstack/vue-table`, and a native `<table>` with Tailwind only. Slice: `common`, `waterConsumption`, `electricity` from the example period file, one month in `hchp`, every F5 requirement once, placeholder computed values.
+> - **Prototype**: `prototypes/period-table/`, kept in the repo for a test on a phone. Three versions on the same line definitions: plain shadcn-vue `Table` with a hand-built row model, shadcn-vue data-table with `@tanstack/vue-table`, and a native `<table>` with Tailwind only. Slice: `common`, `waterConsumption`, `electricity` from the example period file, one month in `hchp`, every F5 requirement once, placeholder computed values.
 > - **Choice rule**: TanStack is kept only if it is clearly simpler on one requirement and harder on none; a tie goes to the hand-built row model. The shadcn-vue wrappers stay unless they make a requirement harder.
 > - **Electricity**: every row is always shown; cells of the month's inactive tariff mode are empty and not editable.
+> - **Phones**: the "Saisie du mois" form stays the phone entry screen; a CSS-only layout makes the table readable on a phone, one month per swipe.
 > - **Keyboard**: spreadsheet-like selection and edit modes. Arrows move between cells (headers skipped), Enter or typing starts editing, Enter in edit mode saves and moves to the next editable cell down, Escape cancels, and the table is one Tab stop (ARIA grid).
