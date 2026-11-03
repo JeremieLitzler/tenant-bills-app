@@ -1,6 +1,6 @@
 # Grilling summary — when a period is closed (issue #7)
 
-Session started 2026-10-29, rounds v01 to v10. The v06 summary was withdrawn: I had missed your v05 remark "Remark about the last month of a running period", which changed the outcome. Glossary terms added along the way: **Closed period**, **Running period**, **Provisional settlement**, **Estimated month**, **Estimated settlement**.
+Session started 2026-10-29, rounds v01 to v10. Round v06 was removed: it only asked to confirm a first summary, which was withdrawn because I had missed your v05 remark "Remark about the last month of a running period". Its settled Q24 to Q29 are answered in v05. Glossary terms added along the way: **Closed period**, **Running period**, **Provisional settlement**, **Estimated month**, **Estimated settlement**.
 
 ## Shared understanding
 
@@ -49,7 +49,7 @@ The settlement view is "provisoire" for any open period (functional breakdown Q2
 - Q36 (v09): the closing confirmation requires ticking that the water bills were received and typed.
 - Q37 (v09): once August is read and the period isn't closed, a banner reminds you to tell the tenant the settlement comes in October.
 
-Superseded: Q3 by Q3b (the estimate gives the next advance before closing). Q4 and Q4b by Q4c (`closedOn` dropped for a history, then restored when the history went). Q7 by Q7b. Q9b (`ROUND`) by Q9c (`ROUNDUP`). Q10 by Q10b. Q11 by Q3b (no gap left). Q12 by Q12b. Q13 and Q13b by Q35 (nothing stays editable). Q31b by Q31c. Q14, Q15, Q18 to Q23 and Q26 to Q29 were withdrawn by Q35 (no history of communicated settlements, no settlement correction). Q30 (v06) was withdrawn with the v06 summary. Outside this session: functional breakdown Q21 (no prefill in v1) is narrowed by Q12b, Q22 (no import) is reversed by Q16, and Q25's "until closed" is now defined.
+Superseded: Q3 by Q3b (the estimate gives the next advance before closing). Q4 and Q4b by Q4c (`closedOn` dropped for a history, then restored when the history went). Q7 by Q7b. Q9b (`ROUND`) by Q9c (`ROUNDUP`). Q10 by Q10b. Q11 by Q3b (no gap left). Q12 by Q12b. Q13 and Q13b by Q35 (nothing stays editable). Q31b by Q31c. Q14, Q15, Q18 to Q23 and Q26 to Q29 were withdrawn by Q35 (no history of communicated settlements, no settlement correction). Q30 (v06) was withdrawn with that first summary, and the round file removed. Outside this session: functional breakdown Q21 (no prefill in v1) is narrowed by Q12b, Q22 (no import) is reversed by Q16, and Q25's "until closed" is now defined.
 
 ## For issue #7
 
