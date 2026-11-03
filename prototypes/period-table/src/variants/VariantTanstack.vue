@@ -57,7 +57,7 @@ const sectionLabel = (id: unknown) => sections.find((s) => s.id === id)?.label
     tabindex="0"
     aria-label="Tableau de la période"
     :aria-activedescendant="grid.cellId(grid.row, grid.col)"
-    style="max-height: 70vh"
+    style="max-height: 70vh; scroll-padding: 5rem 0 0 18rem"
     class="w-max"
     @keydown="grid.onRootKeydown"
   >
@@ -66,7 +66,7 @@ const sectionLabel = (id: unknown) => sections.find((s) => s.id === id)?.label
         <template v-for="header in headerGroup.headers" :key="header.id">
           <TableHead
             v-if="header.column.id !== 'section'"
-            :class="header.column.id === 'label' ? 'sticky left-0 z-30 bg-background' : 'text-right'"
+            :class="header.column.id === 'label' ? 'sticky left-0 z-30 w-72 min-w-72 bg-background' : 'text-right'"
           >
             <FlexRender v-if="!header.isPlaceholder" :header="header" />
           </TableHead>
@@ -76,11 +76,11 @@ const sectionLabel = (id: unknown) => sections.find((s) => s.id === id)?.label
     <TableBody>
       <template v-for="row in table.getRowModel().rows" :key="row.id">
         <TableRow v-if="row.getIsGrouped()" class="bg-muted hover:bg-muted">
-          <TableCell :colspan="13" class="sticky left-0 font-semibold">{{ sectionLabel(row.groupingValue) }}</TableCell>
+          <TableCell :colspan="13" class="font-semibold"><span class="sticky left-2 inline-block">{{ sectionLabel(row.groupingValue) }}</span></TableCell>
         </TableRow>
         <TableRow v-else :class="row.original.line.type === 'computed' && 'bg-muted/40'">
           <template v-for="cell in row.getAllCells()" :key="cell.id">
-            <TableCell v-if="cell.column.id === 'label'" class="sticky left-0 z-10 bg-background">
+            <TableCell v-if="cell.column.id === 'label'" class="sticky left-0 z-10 w-72 min-w-72 bg-background">
               <FlexRender :cell="cell" />
             </TableCell>
             <TableCell v-else-if="cell.column.id !== 'section'" class="p-0">
