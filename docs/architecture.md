@@ -4,6 +4,8 @@ Package manager, router and folder layout of the app, settled in `docs/grillings
 
 What is tested, at which seam, and how the golden record fixture is produced: see `docs/architecture-tests.md`.
 
+The environment variables the Netlify functions read, per environment, and how local development gets them: see `docs/environment-variables.md` (issue #10).
+
 ## Package manager and runtime
 
 - pnpm, pinned through `"packageManager": "pnpm@12.16.1"` in `package.json` so Netlify's Corepack installs the same major as local development (Netlify's default is `10.x`). Bump it by hand when pnpm is upgraded locally.
