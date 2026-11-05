@@ -1,6 +1,6 @@
 # Architecture
 
-Package manager, router and folder layout of the app, settled in `docs/grillings/2026-10-28-scaffold-choices/` (issue #4). None of these choices met the ADR bar: they are cheap to change before the scaffold grows. How shared state is held is in the "State" section below (issue #8), and how the period table is built is in the "Period table" section (issue #9).
+Package manager, router and folder layout of the app, settled in `docs/grillings/2026-10-28-scaffold-choices/` (issue #4). None of these choices met the ADR bar: they are cheap to change before the scaffold grows. How shared state is held is in the "State" section below (issue #8), the message of each commit to the data repo in the "Data commits" section (issue #11), and how the period table is built is in the "Period table" section (issue #9).
 
 What is tested, at which seam, and how the golden record fixture is produced: see `docs/architecture-tests.md`.
 
@@ -127,6 +127,44 @@ useSession(): {
 - On a 401 from the proxy, the period state calls `expire()`. It does not redirect.
 - The app shell, mounted on every route, watches the session. When it turns signed-out, it calls `usePeriods().clear()` and re-runs the current route with `router.replace(route.fullPath)`, so the guard redirects.
 - Queued patches survive a 401 and an explicit "Se déconnecter". Signing out while patches are queued asks for confirmation first ("N modifications pas encore enregistrées"). After the next sign-in, the periods are re-loaded from GitHub and the queued patches are re-applied on top.
+
+## Data commits
+
+Settled in `docs/grillings/2026-11-04-data-commit-messages/` (issue #11). No ADR: the format only affects future commits in the data repo.
+
+Each GitHub Contents API `PUT` writes one period file, so it is one commit in `JeremieLitzler/tenant-bills-data`. A drain holding patches for two periods makes one commit per period file. Author and committer are the signed-in GitHub user; only the message is set by the app.
+
+### Drain commits
+
+The subject is `data(<period>): <n> edit(s) in <where>`:
+
+- `<n>` is the number of patches in the `PUT`, that is the distinct cells written, removals (`value: null`) included. A retyped cell replaces its patch in the queue, so it counts once. After a 409 rebase, the count stays the number of patches sent, even if the other device had already written the same value. One edit is `1 edit`, otherwise `edits`.
+- `<where>` names a single month by its `YYYY-MM` key, or counts several months (`12 months`). Settings patches add `settings`, after the months and joined with `and`.
+
+```text
+data(2026-2027): 1 edit in settings
+data(2026-2027): 3 edits in 2026-10
+data(2026-2027): 6 edits in 2 months
+data(2026-2027): 4 edits in 2026-10 and settings
+data(2026-2027): 7 edits in 2 months and settings
+```
+
+When more than one group is edited (several months, or months and settings), a plain-text body follows a blank line, with one `<group>: <n> edit(s)` line per month in period order, then one for settings:
+
+```text
+data(2026-2027): 7 edits in 2 months and settings
+
+2026-10: 4 edits
+2026-11: 2 edits
+settings: 1 edit
+```
+
+- "Estimer les relevés" and "Clôturer la période" are ordinary patches: they drain with other edits and are counted like them. Closing alone reads `1 edit in settings`.
+- A retried write after a 409 keeps exactly the same message; nothing marks the retry.
+
+### Period creation commit
+
+"Nouvelle période" creates the file with a `PUT` without `sha`, committed as `data(<period>): create period`, with no body. The values typed in the creation form (the monthly tenant bill advance, the heat pump maintenance split) are part of that commit and are not counted as edits. Edits typed afterwards go in later drains.
 
 ## Period table
 
