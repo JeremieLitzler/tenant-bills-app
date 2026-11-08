@@ -51,20 +51,6 @@ The settlement view is "provisoire" for any open period (functional breakdown Q2
 
 Superseded: Q3 by Q3b (the estimate gives the next advance before closing). Q4 and Q4b by Q4c (`closedOn` dropped for a history, then restored when the history went). Q7 by Q7b. Q9b (`ROUND`) by Q9c (`ROUNDUP`). Q10 by Q10b. Q11 by Q3b (no gap left). Q12 by Q12b. Q13 and Q13b by Q35 (nothing stays editable). Q31b by Q31c. Q14, Q15, Q18 to Q23 and Q26 to Q29 were withdrawn by Q35 (no history of communicated settlements, no settlement correction). Q30 (v06) was withdrawn with that first summary, and the round file removed. Outside this session: functional breakdown Q21 (no prefill in v1) is narrowed by Q12b, Q22 (no import) is reversed by Q16, and Q25's "until closed" is now defined.
 
-## For issue #7
-
-Paste-ready:
-
-> Settled in `docs/grillings/2026-10-29-period-closing/` (rounds v01 to v10).
->
-> - **Closing rule**: explicit "Clôturer la période", once the water bills are in (October). Enabled when every month has a reading date and every tenant share is computable. The confirmation lists months with a `0` advance and requires ticking "factures d'eau reçues et saisies".
-> - **Field**: `settings.closedOn: "YYYY-MM-DD"`, absent while open. `schemaVersion` stays 1.
-> - **Reopening**: not possible.
-> - **Edits to a closed period**: locked, `settings` included. A patch queued before the close applies and is flagged.
-> - **Next advance in time**: once July is read, "Estimer les relevés" estimates August from last year's August deltas (or this July's), so the next advance (CEIL(total tenant shares / 12)) can be communicated in mid-August. "Nouvelle période" is allowed from then on and prefills it.
-> - **Recorded in**: ADR 0006, amended ADRs 0001 and 0002, `docs/period-file.md`, `GLOSSARY.md`.
-> - **Follow-ups**: #18 import of 2025-2026 (closed on 2026-09-12); #19 settlement paid in instalments; #20 estimating any month (not v1).
-
 ## Decided without grilling, please check
 
 These had to be settled to write the outcome down. Object to any of them before I write the docs:

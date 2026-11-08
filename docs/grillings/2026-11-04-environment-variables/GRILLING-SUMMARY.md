@@ -43,22 +43,6 @@ Local development has its own OAuth app (callback on `http://localhost:8888`) an
 
 Superseded: the "separate data repo for local development" recommendation of Q13 was replaced by one branch per environment; Q23's example message naming `DATA_REPO` is superseded by Q22 (generic message, link to the Netlify function logs).
 
-## Paste-ready section for issue #10
-
-Settled in `docs/grillings/2026-11-04-environment-variables/`.
-
-- `GITHUB_OAUTH_CLIENT_ID`: the OAuth app client ID. Not secret.
-- `GITHUB_OAUTH_CLIENT_SECRET`: the OAuth app client secret. **Secret.**
-- `DATA_REPO`: the data repo as `owner/name`, `JeremieLitzler/tenant-bills-data`. Not secret.
-- `DATA_BRANCH`: the data repo branch the proxy reads and writes: `main` in production, `staging` on staging, `develop` locally. The proxy sets it on every request; the client never names a branch. Not secret.
-- `ALLOWED_LOGINS`: comma-separated GitHub logins, spaces ignored, compared case-insensitively, `JeremieLitzler`. Not secret.
-
-All five are trimmed on read, scoped to Functions only, and set in the production context only on the production site, where deploy previews are turned off. No variable has a fallback: a missing one refuses every request, is named in the function log, and the web app shows a generic misconfiguration message pointing to the Netlify function logs. The functions copied from `french-gas-stations-scraper` are changed to the renamed OAuth variables.
-
-Local development uses its own OAuth app and the Proton Pass pattern (`.env.proton-pass-example`, item `local-tenant-bills-github-oauth` in the `Common` vault). Staging, a second Netlify site deployed by a GitHub Actions job on each pull request with its own OAuth app and `DATA_BRANCH=staging`, gets its own issue.
-
-The variables are documented in `docs/environment-variables.md`, linked from `docs/architecture.md`.
-
 ## Not grilled, settled in v03
 
 These points were never grilled but had to be decided to write this summary. Your corrections in v03 settled them:
