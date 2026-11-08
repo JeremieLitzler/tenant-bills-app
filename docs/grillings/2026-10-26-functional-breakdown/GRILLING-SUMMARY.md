@@ -54,3 +54,28 @@ v1 scope ends at a manual "Nouvelle période". v2 will prefill it from the previ
 - Q31b (v05): the save queue flowchart (five triggers, one `drainQueue()`, one `PUT` at a time) is approved.
 
 Superseded: Q11 by Q11b (the golden record did not follow one rule); Q14 by Q14b (the scraper uses cache staleness, not a check on every load); Q17b by Q31b (the sequence diagram was replaced by a simpler flowchart); Q26 by Q30b (the answer was a request for an example). Q19's answer replaced my own "no service worker in v1".
+
+## Rejected alternatives
+
+- Q1 (v01): a tenant with read-only access, or both of you editing. Out of v1 ("for now, a"); a tenant view would change auth and data exposure.
+- Q2 (v01): thirteen months, as in the sheet. The thirteenth column came from the irregular first months of 2025-2026; September belongs only to the new period.
+- Q3 (v01): storing the computed lines too. They go stale when an input changes, and formulas should be testable code, not data.
+- Q4 (v01): copying the previous month's value into each new month. A later correction of an earlier month would not propagate, and the two would diverge silently.
+- Q6 (v01): reproducing the sheet's three formula anomalies cell for cell. The app implements the intended formulas (ADR 0003, later superseded when the sheet was fixed).
+- Q8 (v01): always showing the Base, HC and HP electricity rows. Half of them are zeros in any month.
+- Q9 (v01): subscription billed only per day, or only per month. Both appear in the history, and the August 2026 supplier has no daily rate.
+- Q11 (v01): suggesting the earliest Thu-Sun day before the 15th, or the closest Thu-Sun day before or after. The golden record did not follow one rule (Q11b), so the Sunday before the 15th was kept and the two exceptions are manual choices.
+- Q13 (v01): leaving the settlement view to later. Every number on it is derived from data the app already holds.
+- Q14 (v01): a single device. Readings are taken on the phone and the table is reviewed on the computer.
+- Q14b (v02): checking the remote file only on load, or only by scraper-style cache staleness. Both were kept (SHA check on every load plus a manual "Rafraîchir"), because a stale copy is likely after a few days on the other device and a tab can stay open for long.
+- Q17 (v01): one `PUT` per queued edit (about ten commits to fill a month), or an explicit "Enregistrer les modifications" button as in the scraper. A single drain keeps save on blur and gives one or two commits.
+- Q18 (v02): the scraper's behaviour on a 409 (error, manual pull, queued edits discarded). Losing a meter reading typed on the phone is worse than overwriting a value you just retyped.
+- Q19 (v02): no service worker in v1. You wanted the app offline-ready, so it is installable too (Q19b).
+- Q19c (v03): applying a new app version automatically on the next load. A reload while a cell is being edited could lose a value not yet blurred.
+- Q20 (v02): the same table everywhere, scrolling horizontally. Twelve columns by about sixty rows is hard to use on a phone.
+- Q21 (v02): prefilling "Nouvelle période" from the previous period in v1. You create a period once a year, so it waits for v2 (narrowed by the period-closing session).
+- Q22 (v02): importing one or both sheets. About 30 cells to type, and 2025-2026 has the 13-month layout the app does not model. Reversed for 2025-2026 by the period-closing session (Q16).
+- Q25 (v03): a settlement only for a closed period. A running balance tells you during the year whether the advance is still right.
+- Q27 (v03): blocking implausible values on save. Meter replacements and typos you fix later are both real, and blocking on blur would lose the value.
+- Q29 (v03): starting the build with auth or the formulas. F10 (hosting and CI) goes first, because F1 onward need the Netlify site and its environment variables.
+- Q31b (v05): dropping the automatic 409 retry to simplify the save queue (a conflict would keep the patches queued behind a "Réessayer" button). The flow was approved as drawn.

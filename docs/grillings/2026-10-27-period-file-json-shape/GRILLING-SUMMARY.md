@@ -130,6 +130,48 @@ Superseded:
   - `heatPumpMaintenance.billedAmount` was added (Q36);
   - `cta` became `ctaTax` (your Q52 annotation of this summary).
 
+## Rejected alternatives
+
+- Q1 (v01): keying a month by the calendar month of its reading date (`2026-10`), or by its position 0 to 11. The column label is the month's name, it stays stable when the reading date moves, and it reads in commit messages.
+- Q2 (v01), Q42 (v08): a sparse object keyed by month, holding only the months with a stored value. Replaced by an array of exactly twelve months created with the period: it reads like the sheet's twelve columns and gives a stable diff.
+- Q3 (v01): fully flat keys in a month, or fully nested sub-objects. You asked for a mix: one object per section, flat keys inside.
+- Q4 (v01): storing `null` to mean "explicitly empty, do not inherit". Emptying a cell already falls back to the inherited value, so keeping `null` out leaves two states per key. (`tenantBillAdvance` is the one exception, Q41h.)
+- Q5 (v01): a top-level `opening` object for the first month's previous indexes. First-month fields keep the patch shape free of special cases.
+- Q6 (v01): an unread current index left empty, with "—" in the shares. Inheriting it reproduces the sheet and keeps the bill computable.
+- Q7b (v02): inheriting the softener unit price. It is typed only on months with a purchase, so a month without one stores no softener field.
+- Q8 (v01): the internet bill as a list of `{ label, amount }` lines. Only the total enters the shares, and a list would break one-key-per-line patching. October's two numbers are a price increase.
+- Q9 (v01): several softener purchases per month. Two purchases are typed as their sum.
+- Q10 (v01): the period settings stored as fields of the first month. They belong to the period, not to a month.
+- Q11 (v01): amounts as integer cents. Several inputs carry six decimals.
+- Q13 (v01): a JSON Schema file as the reference. It would be a second source of truth to keep in sync with the TypeScript types.
+- Q15b (v03): the section as a separate patch property (it would add a fifth property to ADR 0004), a path array in `field` (the queue key would need `JSON.stringify`), and a flat catalogue id (a second name for every field). Q15 (v02) was first answered with a request for a prototype.
+- Q16 (v02): the general inputs directly in the month object, next to the sections. That would break the rule that every key sits two levels below the month. Asked again for the advance in Q41d; it also went to `common`.
+- Q17 (v02), Q43 (v08): removing empty sections and months from the file. With a fixed array of twelve, every month always holds all its sections, and the apply function never creates or removes a parent object.
+- Q18 (v02): both index keys suffixed (`mainMeterCurrent`, `mainMeterPrevious`). The meter name holds the current index you type every month.
+- Q20 (v03): VAT as a fraction or a percentage. The sheet's multiplier (1.055) is used unchanged by the formulas and the test fixtures.
+- Q21 (v04): a separate patch kind for settings. A null month and a `settings.<key>` path keep one patch shape.
+- Q22 (v04): removing the other tariff mode's keys when the mode changes. A mode toggled by mistake loses nothing.
+- Q23 (v04): `...Previous` keys allowed in any month as a plain override, or tariff switches only at the start of a period. The August 2026 supplier change shows a switch can happen mid-period.
+- Q24 (v04): not supporting meter replacement, or allowing `...Previous` keys without a dedicated action. A negative delta would give a negative share, so it stays behind "Compteur remplacé".
+- Q25 (v04): loading a file and ignoring unknown keys. Writing back a half-understood file could silently drop what was ignored.
+- Q26 (v04): optional settings keys in a new file. The advance suggestion and the heat pump split need both values from the first month.
+- Q27 (v04): whatever order `JSON.stringify` produces. A fixed order keeps each commit's diff to the changed lines.
+- Q28 (v05): a `<meter>Replaced: true` flag that validation checks. A second key must agree with the `...Previous` key, and cleanup would have to remove both.
+- Q29 (v06): typing a value equal to the inherited one stores nothing. Typing is a statement that you read it on that month's bill.
+- Q30 (v06), Q37b (v09): copying the sheet's zero placeholders, and October's repeated constants, as explicit values. They are column fill, not values read off a meter or a bill.
+- Q34b (v08): adding the 237.28 settlement payment to an advance, storing it as a separate key, or not recording it. You wanted a read-only balance view, "Avance sur charges - Consommations", and no payment is stored.
+- Q35 (v08): keeping ADR 0003 as it stood. The fixed sheet removed all three anomalies, so it is superseded.
+- Q36 (v08), Q36b (v09): the heat pump as a period setting with a split mode, then keeping `heatPumpAnnualAmount` in settings. 154 would be stored twice and could disagree with the months; 2025-2026 bills it in August only.
+- Q37c (v09): storing planned reading dates ahead of the reading. A stored date with no indexes would look like a reading that found nothing.
+- Q41c (v08): naming the advance `chargeAdvance`, after the glossary. You wanted the name to say who the charges come from, so it is `tenantBillAdvance` and the glossary term followed (Q41g).
+- Q41e (v08): leaving `tenantBillAdvance` absent until a payment is recorded. You preferred `0` in every month from creation.
+- Q41f (v08): suggesting the previous month's payment. A one-off amount would be suggested after an unusual month.
+- Q44 (v08): keeping the sections named `water` and `softener`. `waterConsumption` and `waterSoftener` match the sheet and sit next to `waterTreatment`.
+- Q45 (v08): a `{ value, type }` wrapper around every value. It would give each key two places to be wrong and make a patch path three levels deep.
+- Q46 (v08): storing `startDate` and `endDate` in every month. A stored "Du" can disagree with the previous "Au".
+- Q48 (v09): water indexes in m³ as decimals, or a per-period unit setting. They are stored as integer litres; the app shows m³.
+- Q51 (v10): flagging estimated readings in the file. The golden record needs only the numbers.
+
 ## Not grilled, decided to write the artefacts
 
 Say so if any of these is wrong before I write `docs/period-file.md` and the example:

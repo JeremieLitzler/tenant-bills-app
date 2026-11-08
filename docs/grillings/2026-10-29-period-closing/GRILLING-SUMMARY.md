@@ -51,6 +51,30 @@ The settlement view is "provisoire" for any open period (functional breakdown Q2
 
 Superseded: Q3 by Q3b (the estimate gives the next advance before closing). Q4 and Q4b by Q4c (`closedOn` dropped for a history, then restored when the history went). Q7 by Q7b. Q9b (`ROUND`) by Q9c (`ROUNDUP`). Q10 by Q10b. Q11 by Q3b (no gap left). Q12 by Q12b. Q13 and Q13b by Q35 (nothing stays editable). Q31b by Q31c. Q14, Q15, Q18 to Q23 and Q26 to Q29 were withdrawn by Q35 (no history of communicated settlements, no settlement correction). Q30 (v06) was withdrawn with that first summary, and the round file removed. Outside this session: functional breakdown Q21 (no prefill in v1) is narrowed by Q12b, Q22 (no import) is reversed by Q16, and Q25's "until closed" is now defined.
 
+## Rejected alternatives
+
+- Q1 (v01): closing derived from the data, either when all twelve months have a reading date or when every value the formulas need is present. The August advance, a late internet bill or a price correction can arrive after the reading, and "final" must mean the landlord has checked it.
+- Q2 (v01): editing a closed period with a warning banner. A closed settlement is a figure already communicated to the tenant, and a silent change behind it is the thing to prevent.
+- Q3 (v01), Q3b (v07): refusing "Nouvelle période" until the previous period is closed. Your reason was that the next advance is only known at closing. The estimated last month gives it from mid-August, so the period can be created first.
+- Q4 (v02): a top-level `closedOn` or `status` field. Both need a new patch kind; `settings.closedOn` reuses the settings patch.
+- Q4b (v04): dropping `closedOn` and deciding "closed" from a history of communicated settlements. Restored by Q4c (v09) when the history went.
+- Q5 (v02): a "Rouvrir la période" action behind a confirmation. Closing is final.
+- Q6 (v02): allowing "Clôturer la période" at any time, even with gaps. A settlement handed to the tenant with a missing month is wrong by construction.
+- Q7 (v02), Q7b (v03): leaving `settings` editable on a closed period. One rule is easier to trust than an exception.
+- Q8 (v02): dropping a patch queued before the close reached the file. Silently losing an edit is worse than a flagged one.
+- Q9 (v02): showing only the rounded-up advance. Both figures are shown: the exact average (69.69) and the rounded one (70).
+- Q9c (v03): rounding to the nearest euro, as the Excel formula first did. You wanted it rounded up, so the advances cover the expected charges.
+- Q13 (v03), Q13b (v07): keeping some pricing keys editable on a closed period (nineteen, then the ten water keys). The list became empty when closing moved to after the water bills (Q35).
+- Q14 to Q29 (v03 to v05): a versioned history of communicated settlements (`settings.communicatedSettlements`), with the difference between two entries carried into the running period as `common.previousPeriodSettlementsDelta`, written to both period files in one go. Withdrawn by Q35: it existed only because a closed period could still change, and you found it unnecessary complexity. Along with it went per-section snapshots (Q19), the delta in a settings total, typed by hand or computed (Q21, Q22), and an ADR 0001 exception for stored balances.
+- Q16 (v03): writing the 2025-2026 import outside the repo. You asked for the file at the repo root, gitignored.
+- Q31 (v07): estimating August from the average delta of the eleven months already read. The previous period's August delta is added to the mid-August reading, because August has its own pattern. Q31c (v08): no previous period, so the delta of July is used instead of an average or no estimate.
+- Q31e (v09): splitting an estimated kWh total in July's HC/HP proportion, or in the proportion of all months read. A fixed 30 % HC and 70 % HP split was chosen.
+- Q32 (v07): computing the estimate at display only and never storing it. You wanted it stored in the August reading properties, which makes it the one exception to ADR 0001 (a stored index without a reading date is an estimate).
+- Q32b (v08): an explicit `common.estimated` flag. The missing `readingDate` already says the month is estimated.
+- Q32c (v08): writing the estimate automatically when the eleventh reading date is typed. A write on a month you have not opened is surprising, so it is the "Estimer les relevés" button.
+- Q34 (v07): the next advance recomputed at closing. The tenant would have to change the transfer twice, which the estimate exists to avoid.
+- Q35 (v08): closing at the actual August reading in mid-September, with the October water bills then correcting a closed period. A period closes once the water bills are in.
+
 ## Decided without grilling, please check
 
 These had to be settled to write the outcome down. Object to any of them before I write the docs:
