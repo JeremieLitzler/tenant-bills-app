@@ -1,0 +1,37 @@
+name: Staging deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+# One staging site, one fixed URL: the last push wins when several pull requests are open.
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      # The staging site's variables (DATA_BRANCH=staging, its own OAuth app) live in Netlify, not here.
+      - name: Deploy to the staging site
+        run: pnpm dlx netlify-cli deploy --prod --dir dist --functions netlify/functions --site "$NETLIFY_STAGING_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_STAGING_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
