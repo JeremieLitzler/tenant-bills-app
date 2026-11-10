@@ -38,6 +38,6 @@ Everything else keeps its real value: unit prices and fees (public tariffs), rea
 
 ## Continuous integration
 
-A GitHub Actions workflow runs on pull requests: `pnpm install --frozen-lockfile`, `pnpm audit signatures`, the tests with `vitest --coverage`, then `pnpm build`. Since `main` only moves through merged pull requests, this check guards what Netlify deploys; Netlify's build command only builds.
+A GitHub Actions workflow (`.github/workflows/pull-request.yml`) runs when a pull request is opened and on each push to it, with the pnpm version pinned by `packageManager` and the Node version by `.node-version`. Its steps, in order: `pnpm install --frozen-lockfile`, `pnpm audit signatures`, `pnpm run type-check`, `pnpm run lint`, `vitest run --coverage`, then `pnpm run build`. Since `main` only moves through merged pull requests, this check guards what Netlify deploys; Netlify's build command only builds.
 
-Coverage has no threshold. It is shown as a table in the workflow run's job summary, with no pull request comment.
+Coverage has no threshold. It is shown as a table in the workflow run's job summary (written by `scripts/coverage-summary.mjs` from the `json-summary` report), with no pull request comment.
