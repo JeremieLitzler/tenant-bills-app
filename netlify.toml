@@ -4,9 +4,6 @@
   publish = "dist"
   functions = "netlify/functions"
 
-[functions]
-  node_bundler = "esbuild"
-
 # Single-page app fallback: deep links such as /periods/2026-2027 load index.html.
 [[redirects]]
   from = "/*"

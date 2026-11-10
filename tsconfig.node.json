@@ -1,6 +1,12 @@
 {
   "extends": "@tsconfig/node24/tsconfig.json",
-  "include": ["vite.config.ts", "vitest.config.ts", "*.spec.ts", "netlify/**/*.ts"],
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vue-free-folders.ts",
+    "*.spec.ts",
+    "netlify/**/*.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,

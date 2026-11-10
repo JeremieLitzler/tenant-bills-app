@@ -1,13 +1,13 @@
 import { defineConfig, mergeConfig } from 'vitest/config'
 
 import viteConfig from './vite.config.ts'
+import { vueFreeFolders } from './vue-free-folders.ts'
 
 // Two environments (docs/architecture-tests.md):
 // - node: the Vue-free code (src/domain/, src/sync/), the Netlify functions and the repo config;
 // - dom: components and pages, mounted with @vue/test-utils in happy-dom.
 const nodeSpecs = [
-  'src/domain/**/*.spec.ts',
-  'src/sync/**/*.spec.ts',
+  ...vueFreeFolders.map((folder) => `${folder}/**/*.spec.ts`),
   'netlify/**/*.spec.ts',
   '*.spec.ts',
 ]
@@ -27,7 +27,7 @@ export default mergeConfig(
             name: 'dom',
             environment: 'happy-dom',
             include: ['src/**/*.spec.ts'],
-            exclude: ['src/domain/**', 'src/sync/**'],
+            exclude: vueFreeFolders.map((folder) => `${folder}/**`),
           },
         },
       ],
