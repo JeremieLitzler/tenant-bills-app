@@ -33,7 +33,14 @@ No variable has a fallback. A missing, empty or malformed variable refuses every
 Each environment uses its own OAuth app and its own branch of the one data repo.
 
 - Production: the production Netlify site, `DATA_BRANCH=main`.
-- Staging: a second Netlify site, `tenant-bills-staging`, `DATA_BRANCH=staging`, with its own OAuth app. It has no automatic builds: a GitHub Actions job on each pull request builds the branch and deploys it to the site's fixed URL with `netlify deploy --prod`. It is built in its own issue.
+- Staging: a second Netlify site, `tenant-bills-staging`, `DATA_BRANCH=staging`, with its own OAuth app. It has no automatic builds: a GitHub Actions job on each pull request builds the branch and deploys it to the site's fixed URL with `netlify deploy --prod`. 
+
+### How the staging deploy is wired
+
+- The workflow `.github/workflows/staging-deploy.yml` runs on each pull request (opened and each push), builds the branch and runs `netlify deploy --prod` against the staging site. A `concurrency` group makes the last push win.
+- Two GitHub repository secrets feed it: `NETLIFY_AUTH_TOKEN` (a Netlify personal access token) and `NETLIFY_STAGING_SITE_ID` (the staging site's ID).
+- The staging site's five variables (production context, Functions scope, only the client secret secret, `DATA_BRANCH=staging`) are set in the Netlify dashboard. The staging OAuth app's callback URL is under the staging site's fixed URL.
+- Fork pull requests get no secrets, so they do not deploy. This is a one-developer repository.
 - Local development: `netlify dev` on `http://localhost:8888`, `DATA_BRANCH=develop`, with its own OAuth app.
 
 ## Netlify settings
@@ -54,6 +61,6 @@ Local development follows the Proton Pass pattern of `french-gas-stations-scrape
 
 1. In the `Common` Proton Pass vault, keep an item named `local-tenant-bills-github-oauth` with the fields `Client ID` and `Client Secret` of the local OAuth app (callback URL under `http://localhost:8888`).
 2. Run `./create-env-proton-pass.sh` once (it needs `pass-cli`, signed in, and `jq`). It copies the committed `.env.proton-pass-example` to the gitignored `.env.proton-pass`, replacing the vault and item placeholders with their IDs.
-3. Start the app with `pass-cli run --env-file .env.proton-pass -- netlify dev`, which resolves the two `pass://` references at runtime.
+3. Start the app with `pnpm run dev:netlify` (which runs `pass-cli run --env-file .env.proton-pass -- netlify dev`), which resolves the two `pass://` references at runtime.
 
 `DATA_REPO`, `DATA_BRANCH=develop` and `ALLOWED_LOGINS` are plain values in the template.

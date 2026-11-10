@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "dev:netlify": "pass-cli run --env-file .env.proton-pass -- netlify dev",
     "type-check": "vue-tsc --build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
