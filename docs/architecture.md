@@ -8,7 +8,7 @@ The environment variables the Netlify functions read, per environment, and how l
 
 ## Package manager and runtime
 
-- pnpm, pinned through `"packageManager": "pnpm@12.16.1"` in `package.json` so Netlify's Corepack installs the same major as local development (Netlify's default is `10.x`). Bump it by hand when pnpm is upgraded locally.
+- pnpm, pinned through `"packageManager": "pnpm@12.19.0"` in `package.json` so Netlify's Corepack installs the same major as local development (Netlify's default is `10.x`). Bump it by hand when pnpm is upgraded locally.
 - Node pinned with a `.node-version` file at the root, set to `24`.
 - This differs from `french-gas-stations-scraper` (npm): its scripts and `netlify.toml` are adapted to `pnpm run ...`.
 
@@ -46,7 +46,8 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
     └── fixtures/                   # sheet values, example period files
 ```
 
-- `src/domain/` and `src/sync/` import nothing from Vue. The UI reaches `src/sync/` through one composable.
+- `src/domain/` and `src/sync/` import nothing from Vue, enforced by the `app/vue-free` block of `eslint.config.js` (guarded by `eslint.config.spec.ts`). The UI reaches `src/sync/` through one composable.
+- Imports are explicit: no auto-import plugin, so the lint rule above sees every Vue import.
 - Types live with the code that owns them; there is no `src/types/`. Other folders (`utils/`, `services/`, ...) are created only when something needs them.
 - Tests are colocated `*.spec.ts` files next to the code they test.
 - UI strings are French and written inline in the components; no i18n library.

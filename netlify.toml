@@ -1,0 +1,14 @@
+[build]
+  # Build only: the tests run in the pull request workflow (docs/architecture-tests.md).
+  command = "pnpm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Single-page app fallback: deep links such as /periods/2026-2027 load index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
