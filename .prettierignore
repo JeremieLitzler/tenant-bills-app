@@ -1,0 +1,15 @@
+# Prose is written by hand, one line per paragraph; Prettier would reflow tables and lists.
+*.md
+docs/
+GLOSSARY.md
+
+# Not part of the app
+prototypes/
+scripts/
+/2025-2026.json
+
+# Generated
+pnpm-lock.yaml
+typed-router.d.ts
+dist/
+coverage/
