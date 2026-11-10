@@ -2,7 +2,7 @@
   "files": [],
   "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.app.json" }],
   "compilerOptions": {
-    "baseUrl": ".",
+    // Read by the shadcn-vue CLI to resolve the @/ aliases of components.json.
     "paths": { "@/*": ["./src/*"] }
   }
 }

@@ -14,18 +14,19 @@ describe('ESLint config: Vue-free folders', () => {
   beforeAll(() => eslint.calculateConfigForFile('src/domain/example.ts'), 30_000)
 
   it.each([
-    ['vue', "import { ref } from 'vue'\nexport const x = ref(1)\n", 'src/domain/example.ts'],
+    ['vue', 'src/domain/example.ts', "import { ref } from 'vue'\nexport const x = ref(1)\n"],
     [
       'vue-router',
-      "import { useRoute } from 'vue-router'\nexport const r = useRoute\n",
       'src/sync/example.ts',
+      "import { useRoute } from 'vue-router'\nexport const r = useRoute\n",
     ],
     [
       'a .vue file',
-      "import Shell from '@/components/layout/AppShell.vue'\nexport { Shell }\n",
       'src/domain/example.ts',
+      "import Shell from '@/components/layout/AppShell.vue'\nexport { Shell }\n",
     ],
-  ])('reports an import of %s in %s', async (_label, code, filePath) => {
+    ['vue', 'src/domain/example.mts', "import { ref } from 'vue'\nexport const x = ref(1)\n"],
+  ])('reports an import of %s in %s', async (_label, filePath, code) => {
     expect(await ruleIdsFor(code, filePath)).toContain('no-restricted-imports')
   })
 

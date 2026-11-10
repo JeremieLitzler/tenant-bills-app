@@ -2,6 +2,8 @@ import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from 'eslint-plugin-vue'
 
+import { vueFreeFolders } from './vue-free-folders.ts'
+
 export default defineConfigWithVueTs(
   {
     name: 'app/files-to-lint',
@@ -26,7 +28,7 @@ export default defineConfigWithVueTs(
   {
     // src/domain/ and src/sync/ import nothing from Vue (docs/architecture.md).
     name: 'app/vue-free',
-    files: ['src/domain/**/*.ts', 'src/sync/**/*.ts'],
+    files: vueFreeFolders.map((folder) => `${folder}/**/*.{ts,mts,tsx}`),
     rules: {
       'no-restricted-imports': [
         'error',
