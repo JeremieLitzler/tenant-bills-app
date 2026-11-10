@@ -129,6 +129,14 @@ useSession(): {
 - The app shell, mounted on every route, watches the session. When it turns signed-out, it calls `usePeriods().clear()` and re-runs the current route with `router.replace(route.fullPath)`, so the guard redirects.
 - Queued patches survive a 401 and an explicit "Se déconnecter". Signing out while patches are queued asks for confirmation first ("N modifications pas encore enregistrées"). After the next sign-in, the periods are re-loaded from GitHub and the queued patches are re-applied on top.
 
+### Sign-in round trip
+
+The page and the login travel through the OAuth round trip as follows (issue #28):
+
+1. The sign-in page sends the visitor to `github-auth-start?redirect=<path>`. Start stores a CSRF `state` and the requested path (only a path of this site: no scheme, no host, no `//`) in two short-lived `SameSite=Lax` cookies and redirects to GitHub.
+2. `github-auth-callback` checks the `state`, exchanges the `code`, reads the signed-in `login` from `GET https://api.github.com/user`, and compares it, case-insensitively, with `ALLOWED_LOGINS`. Only an allowed login gets the `gh_token` cookie (HTTP-only, `SameSite=Strict`, `Secure` on https, 8 hours).
+3. Every outcome ends on the sign-in page: `/sign-in?signed-in=<login>[&redirect=<path>]` on success, or `/sign-in?error=not-allowed|misconfigured|failed`. On success the page stores the login as the "signed in" hint and goes to `redirect`, or `/` when none was asked. `failed` covers a denied authorization, a `state` mismatch, a rejected `code` and an unreadable login.
+
 ## Data commits
 
 Settled in `docs/grillings/2026-11-04-data-commit-messages/` (issue #11). No ADR: the format only affects future commits in the data repo.

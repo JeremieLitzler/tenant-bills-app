@@ -2,10 +2,12 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import App from './App.vue'
+import { useSession } from './composables/useSession'
 import router from './router'
 
 describe('App', () => {
   it('shows the French home page inside the app shell at /', async () => {
+    useSession().markSignedIn('JeremieLitzler')
     await router.push('/')
     await router.isReady()
 
