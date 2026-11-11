@@ -1,7 +1,7 @@
 # Prose is written by hand, one line per paragraph; Prettier would reflow tables and lists.
-*.md
-docs/
-GLOSSARY.md
+#*.md
+#docs/
+#GLOSSARY.md
 
 # Not part of the app
 prototypes/
