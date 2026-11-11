@@ -33,6 +33,27 @@ export function readAllowedLogins(): string[] | null {
   return logins
 }
 
+export interface DataTarget {
+  owner: string
+  repo: string
+  branch: string
+}
+
+// The only repo and branch the proxy talks to. `DATA_REPO` must be `owner/name`.
+export function readDataTarget(): DataTarget | null {
+  const repository = readVariable('DATA_REPO')
+  const branch = readVariable('DATA_BRANCH')
+  if (!repository || !branch) {
+    return null
+  }
+  const [owner, repo, ...rest] = repository.split('/')
+  if (!owner || !repo || rest.length > 0) {
+    console.error('Malformed environment variable DATA_REPO (expected owner/name)')
+    return null
+  }
+  return { owner, repo, branch }
+}
+
 function readVariable(name: string): string | null {
   const value = process.env[name]?.trim()
   if (!value) {
