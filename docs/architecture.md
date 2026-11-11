@@ -84,6 +84,8 @@ One module, the only one reaching `src/sync/`, with two functions over the same 
 // Collection-wide: the period list, the queue, the sync status.
 usePeriods(): {
   periodIds: Readonly<Ref<string[]>>                 // files in the data repo, e.g. ['2025-2026', '2026-2027']
+  listStatus: Readonly<Ref<'idle' | 'loading' | 'ready' | 'error'>>  // state of the period list request
+  loadPeriodIds(): Promise<void>                     // lists the periods folder; a 401 calls the session's expire()
   pendingCount: Readonly<Ref<number>>                // whole queue, shown in the app shell
   syncState: Readonly<Ref<'idle' | 'saving' | 'offline' | 'error'>>
   pendingCountFor(id: string): number                // gates "Rafraîchir" on one period
@@ -108,6 +110,18 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 - Views never write `file`. Every edit, estimate or close goes through the queue as a patch.
 - Each page asks for its period on setup and shows a loader while `status` is `loading`. The router has no loading step and there is no `<Suspense>` orchestrator. One page reads one period, so the sibling race of the reference project's ADR-013 does not arise.
 - The sync status is app-wide, because one `drainQueue()` drains one queue across all periods. The app shell shows the pending-count badge on every route, so progress stays visible when you move from one period to another.
+
+- The list comes from `listPeriodIds()` in `src/sync/periodsApi.ts`, which asks the proxy for `?path=periods`. A missing periods folder (GitHub 404) is an empty list, not an error.
+
+### Data proxy: `netlify/functions/github-api-proxy`
+
+Issue #44. One function forwarding three operations to the GitHub Contents API of `DATA_REPO`, with the token from the `gh_token` cookie:
+
+- `GET ?path=periods` lists the periods folder; `GET ?path=periods/2026-2027.json` gets one period file (content and SHA).
+- `PUT { path, message, content, sha? }` puts one period file; without `sha` GitHub creates it. No caller until F3 (#30) and F7 (#34).
+- Only paths under `periods/` are accepted (no empty, `.` or `..` segment, no backslash), and an `owner` or `repo` that is not `DATA_REPO` is refused with 403. The client does not need to send them.
+- The branch is set from `DATA_BRANCH` on every request (`ref` on reads, `branch` on writes); a `ref` or `branch` sent by the client is ignored.
+- No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`.
 
 ### Session: `src/composables/useSession.ts`
 

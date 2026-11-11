@@ -16,6 +16,12 @@ export const fr = {
     appName: 'Charges de location',
     signOut: 'Se déconnecter',
   },
+  periods: {
+    title: 'Périodes',
+    loading: 'Chargement des périodes…',
+    empty: 'Aucune période pour le moment.',
+    error: 'Impossible de charger les périodes. Merci de réessayer.',
+  },
   session: {
     confirmSignOut(pendingCount: number): string {
       const plural = pendingCount > 1 ? 's' : ''
