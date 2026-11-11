@@ -19,9 +19,12 @@ type ValueOf<S extends SectionName, K extends KeyOf<S>> = Exclude<SectionInputs[
 
 const PREVIOUS_SUFFIX = 'Previous'
 
+// Only meters have previous indexes; `common.readingDatePrevious` is the opening "Du", not one.
+const METER_SECTIONS: readonly SectionName[] = ['waterConsumption', 'electricity']
+
 // The current-index key a `...Previous` key belongs to, if it is one.
 function currentKeyOf(section: SectionName, key: string): string | undefined {
-  if (!key.endsWith(PREVIOUS_SUFFIX)) return undefined
+  if (!METER_SECTIONS.includes(section) || !key.endsWith(PREVIOUS_SUFFIX)) return undefined
   const current = key.slice(0, -PREVIOUS_SUFFIX.length)
   return current in FIELD_CATALOGUE[section] ? current : undefined
 }

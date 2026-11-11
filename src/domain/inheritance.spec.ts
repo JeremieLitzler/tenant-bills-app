@@ -193,6 +193,10 @@ describe('resolveFrom ("Du")', () => {
     expect(resolveFrom(file, '2026-11')).toEqual({ value: '2026-11-10', provenance: 'derived' })
   })
 
+  it('never derives readingDatePrevious from the previous month readingDate', () => {
+    expect(resolveValue(file, '2026-10', 'common', 'readingDatePrevious')).toBeUndefined()
+  })
+
   it('is empty when the reference date is not stored', () => {
     const open = period(month('2026-09'), month('2026-10'))
     expect(resolveFrom(open, '2026-09')).toBeUndefined()
