@@ -1,17 +1,23 @@
-// POST: clears the `gh_token` cookie. Succeeds even if it was already absent.
+// POST: clears the `gh_token` and `gh_login` cookies. Succeeds even if it was already absent.
 // Queued edits live in IndexedDB and are never touched here.
 import type { Handler, HandlerEvent } from '@netlify/functions'
 
-import { buildExpiredCookie, isHttpsRequest } from '../lib/cookies'
+import {
+  buildExpiredCookie,
+  isHttpsRequest,
+  LOGIN_COOKIE_NAME,
+  TOKEN_COOKIE_NAME,
+} from '../lib/cookies'
 import { jsonResponse } from '../lib/http-responses'
-
-const TOKEN_COOKIE_NAME = 'gh_token'
 
 export const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { error: 'Method not allowed' })
   }
 
-  const expiredTokenCookie = buildExpiredCookie(TOKEN_COOKIE_NAME, isHttpsRequest(event))
-  return jsonResponse(200, { success: true }, [expiredTokenCookie])
+  const isSecureRequest = isHttpsRequest(event)
+  return jsonResponse(200, { success: true }, [
+    buildExpiredCookie(TOKEN_COOKIE_NAME, isSecureRequest),
+    buildExpiredCookie(LOGIN_COOKIE_NAME, isSecureRequest),
+  ])
 }

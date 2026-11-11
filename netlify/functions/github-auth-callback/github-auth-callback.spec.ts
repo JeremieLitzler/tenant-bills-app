@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildEvent, CONTEXT, expectResponse, setCookies } from '../lib/testing'
+import {
+  buildEvent,
+  CONTEXT,
+  expectResponse,
+  setCookies,
+} from '../../../tests/helpers/netlify-event'
 import { handler } from './github-auth-callback'
 
 const STATE = 'matching-state-value'
@@ -50,13 +55,13 @@ afterEach(() => {
 })
 
 describe('github-auth-callback, allowed login', () => {
-  it('redirects to the sign-in page with the login and sets the token cookie', async () => {
+  it('redirects home and sets the token and login cookies', async () => {
     stubGithub()
 
     const response = expectResponse(await handler(callbackEvent(), CONTEXT))
 
     expect(response.statusCode).toBe(302)
-    expect(response.headers?.Location).toBe('/sign-in?signed-in=JeremieLitzler')
+    expect(response.headers?.Location).toBe('/')
     expect(
       setCookies(response).some(
         (cookie) =>
@@ -66,6 +71,10 @@ describe('github-auth-callback, allowed login', () => {
           cookie.includes('Max-Age=28800'),
       ),
     ).toBe(true)
+    const loginCookie = setCookies(response).find((cookie) => cookie.startsWith('gh_login='))
+    expect(loginCookie).toContain('gh_login=JeremieLitzler; ')
+    expect(loginCookie).toContain('Max-Age=28800')
+    expect(loginCookie).not.toContain('HttpOnly')
   })
 
   it('marks the token cookie Secure on an https request', async () => {
@@ -78,15 +87,13 @@ describe('github-auth-callback, allowed login', () => {
     expect(setCookies(response).find((c) => c.startsWith('gh_token='))).toContain('; Secure')
   })
 
-  it('hands the requested page back to the sign-in page and clears the round-trip cookies', async () => {
+  it('redirects to the requested page and clears the round-trip cookies', async () => {
     stubGithub()
     const cookies = `gh_oauth_state=${STATE}; gh_oauth_redirect=${encodeURIComponent('/periods/2026-2027')}`
 
     const response = expectResponse(await handler(callbackEvent(cookies), CONTEXT))
 
-    expect(response.headers?.Location).toBe(
-      `/sign-in?signed-in=JeremieLitzler&redirect=${encodeURIComponent('/periods/2026-2027')}`,
-    )
+    expect(response.headers?.Location).toBe('/periods/2026-2027')
     const cleared = setCookies(response).filter((c) => c.includes('Max-Age=0'))
     expect(cleared.some((c) => c.startsWith('gh_oauth_state=; '))).toBe(true)
     expect(cleared.some((c) => c.startsWith('gh_oauth_redirect=; '))).toBe(true)
@@ -98,7 +105,7 @@ describe('github-auth-callback, allowed login', () => {
 
     const response = expectResponse(await handler(callbackEvent(cookies), CONTEXT))
 
-    expect(response.headers?.Location).toBe('/sign-in?signed-in=JeremieLitzler')
+    expect(response.headers?.Location).toBe('/')
   })
 
   it.each([
@@ -110,7 +117,8 @@ describe('github-auth-callback, allowed login', () => {
 
     const response = expectResponse(await handler(callbackEvent(), CONTEXT))
 
-    expect(response.headers?.Location).toBe(`/sign-in?signed-in=${githubLogin}`)
+    expect(response.headers?.Location).toBe('/')
+    expect(setCookies(response).some((c) => c.startsWith(`gh_login=${githubLogin}; `))).toBe(true)
   })
 })
 

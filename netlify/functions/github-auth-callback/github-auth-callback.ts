@@ -1,15 +1,20 @@
 // GET: GitHub's OAuth redirect target. Validates `state`, exchanges `code` for an access token
 // server-side, reads the signed-in login, and refuses any login outside ALLOWED_LOGINS. Only an
-// allowed login gets the `gh_token` session cookie. Every outcome redirects to the sign-in page,
-// which finishes the round trip in the app (docs/architecture.md, "Sign-in round trip"); the
-// token never appears in a URL or a body.
+// allowed login gets the `gh_token` session cookie (HttpOnly) and the `gh_login` hint cookie
+// (readable by the app). Success redirects straight to the page the visitor asked for, or `/`;
+// a refusal redirects to the sign-in page with an error code. The token never appears in a URL
+// or a body.
 import type { Handler, HandlerEvent } from '@netlify/functions'
 
 import {
   buildExpiredCookie,
   buildSessionCookie,
   isHttpsRequest,
+  LOGIN_COOKIE_NAME,
   parseCookies,
+  REDIRECT_COOKIE_NAME,
+  STATE_COOKIE_NAME,
+  TOKEN_COOKIE_NAME,
 } from '../lib/cookies'
 import {
   readAllowedLogins,
@@ -17,11 +22,9 @@ import {
   type GithubOAuthCredentials,
 } from '../lib/environment'
 import { jsonResponse, redirectResponse } from '../lib/http-responses'
-import { isSafeRedirectPath, REDIRECT_COOKIE_NAME } from '../lib/redirect'
+import { isSafeRedirectPath, signInErrorPath } from '../lib/redirect'
 
-const STATE_COOKIE_NAME = 'gh_oauth_state'
-const TOKEN_COOKIE_NAME = 'gh_token'
-const TOKEN_COOKIE_MAX_AGE_SECONDS = 28800
+const SESSION_MAX_AGE_SECONDS = 28800
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
 const GITHUB_USER_URL = 'https://api.github.com/user'
 
@@ -43,28 +46,36 @@ export const handler: Handler = async (event: HandlerEvent) => {
   const credentials = readGithubOAuthCredentials()
   const allowedLogins = readAllowedLogins()
   if (!credentials || !allowedLogins) {
-    return redirectTo('/sign-in?error=misconfigured')
+    return redirectTo(signInErrorPath('misconfigured'))
   }
 
   const code = readValidatedCode(event, cookies)
   if (!code) {
-    return redirectTo('/sign-in?error=failed')
+    return redirectTo(signInErrorPath('failed'))
   }
 
-  const login = await readGithubLogin(code, credentials)
-  if (!login) {
-    return redirectTo('/sign-in?error=failed')
+  const user = await exchangeCodeForGithubUser(code, credentials)
+  if (!user) {
+    return redirectTo(signInErrorPath('failed'))
   }
-  if (!allowedLogins.includes(login.value.toLowerCase())) {
-    return redirectTo('/sign-in?error=not-allowed')
+  if (!allowedLogins.includes(user.login.toLowerCase())) {
+    return redirectTo(signInErrorPath('not-allowed'))
   }
 
-  const tokenCookie = buildSessionCookie(TOKEN_COOKIE_NAME, login.accessToken, {
-    maxAgeSeconds: TOKEN_COOKIE_MAX_AGE_SECONDS,
-    isSecureRequest,
-    sameSite: 'Strict',
-  })
-  return redirectTo(buildSignedInPath(login.value, cookies), [tokenCookie])
+  const sessionCookies = [
+    buildSessionCookie(TOKEN_COOKIE_NAME, user.accessToken, {
+      maxAgeSeconds: SESSION_MAX_AGE_SECONDS,
+      isSecureRequest,
+      sameSite: 'Strict',
+    }),
+    buildSessionCookie(LOGIN_COOKIE_NAME, encodeURIComponent(user.login), {
+      maxAgeSeconds: SESSION_MAX_AGE_SECONDS,
+      isSecureRequest,
+      sameSite: 'Strict',
+      httpOnly: false,
+    }),
+  ]
+  return redirectTo(readRequestedPath(cookies), sessionCookies)
 }
 
 function readValidatedCode(event: HandlerEvent, cookies: Record<string, string>): string | null {
@@ -76,13 +87,9 @@ function readValidatedCode(event: HandlerEvent, cookies: Record<string, string>)
   return cookieState && cookieState === params.state ? params.code : null
 }
 
-function buildSignedInPath(login: string, cookies: Record<string, string>): string {
-  const query = new URLSearchParams({ 'signed-in': login })
-  const redirect = decodeRedirectCookie(cookies[REDIRECT_COOKIE_NAME])
-  if (isSafeRedirectPath(redirect)) {
-    query.set('redirect', redirect)
-  }
-  return `/sign-in?${query.toString()}`
+function readRequestedPath(cookies: Record<string, string>): string {
+  const requested = decodeRedirectCookie(cookies[REDIRECT_COOKIE_NAME])
+  return isSafeRedirectPath(requested) ? requested : '/'
 }
 
 function decodeRedirectCookie(value: string | undefined): string | null {
@@ -93,17 +100,23 @@ function decodeRedirectCookie(value: string | undefined): string | null {
   }
 }
 
-async function readGithubLogin(
+interface GithubUser {
+  login: string
+  accessToken: string
+}
+
+// Two GitHub calls: the code is exchanged for a token, then the token is used to read the login.
+async function exchangeCodeForGithubUser(
   code: string,
   credentials: GithubOAuthCredentials,
-): Promise<{ value: string; accessToken: string } | null> {
+): Promise<GithubUser | null> {
   try {
     const accessToken = await exchangeCodeForAccessToken(code, credentials)
     if (!accessToken) {
       return null
     }
-    const value = await fetchLogin(accessToken)
-    return value ? { value, accessToken } : null
+    const login = await fetchLogin(accessToken)
+    return login ? { login, accessToken } : null
   } catch {
     return null
   }

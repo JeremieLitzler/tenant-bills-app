@@ -1,12 +1,21 @@
 // Cookie parsing/building shared by all GitHub OAuth Netlify functions.
 import type { HandlerEvent } from '@netlify/functions'
 
+// Names used by more than one function.
+export const STATE_COOKIE_NAME = 'gh_oauth_state'
+export const REDIRECT_COOKIE_NAME = 'gh_oauth_redirect'
+export const TOKEN_COOKIE_NAME = 'gh_token'
+// Readable by the app (not HttpOnly): the "signed in" hint, holding only the login. The token
+// cookie stays the truth; the first 401 from the proxy corrects a stale hint.
+export const LOGIN_COOKIE_NAME = 'gh_login'
+
 type SameSitePolicy = 'Strict' | 'Lax'
 
 interface SessionCookieOptions {
   maxAgeSeconds: number
   isSecureRequest: boolean
   sameSite: SameSitePolicy
+  httpOnly?: boolean
 }
 
 export function parseCookies(cookieHeader: string | undefined): Record<string, string> {
@@ -30,7 +39,7 @@ export function buildSessionCookie(
 ): string {
   const attributes = [
     `${name}=${value}`,
-    'HttpOnly',
+    ...(options.httpOnly === false ? [] : ['HttpOnly']),
     `SameSite=${options.sameSite}`,
     'Path=/',
     `Max-Age=${options.maxAgeSeconds}`,

@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildEvent, CONTEXT, expectResponse, setCookies } from '../lib/testing'
+import {
+  buildEvent,
+  CONTEXT,
+  expectResponse,
+  setCookies,
+} from '../../../tests/helpers/netlify-event'
 import { handler } from './github-auth-logout'
 
 describe('github-auth-logout', () => {
-  it('clears the gh_token cookie when one is present', async () => {
+  it('clears the gh_token and gh_login cookies when one is present', async () => {
     const event = buildEvent({
       httpMethod: 'POST',
       headers: { cookie: 'gh_token=gho_existing_token' },
@@ -16,6 +21,11 @@ describe('github-auth-logout', () => {
     expect(
       setCookies(response).some(
         (cookie) => cookie.startsWith('gh_token=; ') && cookie.includes('Max-Age=0'),
+      ),
+    ).toBe(true)
+    expect(
+      setCookies(response).some(
+        (cookie) => cookie.startsWith('gh_login=; ') && cookie.includes('Max-Age=0'),
       ),
     ).toBe(true)
   })

@@ -3,16 +3,19 @@
 import type { Handler, HandlerEvent } from '@netlify/functions'
 import { randomUUID } from 'node:crypto'
 
-import { buildSessionCookie, isHttpsRequest } from '../lib/cookies'
+import {
+  buildSessionCookie,
+  isHttpsRequest,
+  REDIRECT_COOKIE_NAME,
+  STATE_COOKIE_NAME,
+} from '../lib/cookies'
 import { readGithubOAuthCredentials } from '../lib/environment'
 import { jsonResponse, redirectResponse } from '../lib/http-responses'
-import { isSafeRedirectPath, REDIRECT_COOKIE_NAME } from '../lib/redirect'
+import { isSafeRedirectPath, signInErrorPath } from '../lib/redirect'
 
 const OAUTH_SCOPE = 'repo'
-const STATE_COOKIE_NAME = 'gh_oauth_state'
 const ROUND_TRIP_COOKIE_MAX_AGE_SECONDS = 300
 const CALLBACK_PATH = '/.netlify/functions/github-auth-callback'
-const MISCONFIGURED_PATH = '/sign-in?error=misconfigured'
 
 export const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'GET') {
@@ -21,12 +24,12 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
   const credentials = readGithubOAuthCredentials()
   if (!credentials) {
-    return redirectResponse(MISCONFIGURED_PATH)
+    return redirectResponse(signInErrorPath('misconfigured'))
   }
 
   const redirectUri = buildCallbackRedirectUri(event)
   if (!redirectUri) {
-    return redirectResponse(MISCONFIGURED_PATH)
+    return redirectResponse(signInErrorPath('misconfigured'))
   }
 
   const state = randomUUID()

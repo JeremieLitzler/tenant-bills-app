@@ -20,12 +20,19 @@ Netlify's built-in `URL` variable (read by `github-auth-start` to build the call
 - `ALLOWED_LOGINS` is compared case-insensitively against the `login` GitHub returns, since GitHub logins are case-insensitive.
 - The proxy sets the branch on every request from `DATA_BRANCH` (`ref` on reads and directory listings, `branch` on writes), replacing whatever the client sent. The client never names a branch. The OAuth token can write every branch of the data repo, so the proxy is the only place that keeps local development and staging off `main`.
 
+## Sign-in details
+
+- OAuth scope: the sign-in asks for `repo` (`OAUTH_SCOPE` in `github-auth-start.ts`). The data repo `JeremieLitzler/tenant-bills-data` is private and the proxy writes to it with the Contents API, so the token needs `repo`: GitHub has no narrower OAuth scope for private repositories.
+- Cookies: `gh_token` (HttpOnly, `SameSite=Strict`, 8 hours) is `Secure` whenever the request is https (always in production; not on `http://localhost` in `netlify dev`, where an unconditional `Secure` cookie would not be accepted by every browser). `gh_login` carries the same attributes without HttpOnly.
+- Sign-out offline: the logout function cannot be called, so the app clears its own state and the `gh_token` cookie ends by itself after 8 hours.
+
 ## When a variable is missing
 
 No variable has a fallback. A missing, empty or malformed variable refuses every request and names the variable in the function log. The web app never names it: it shows a generic misconfiguration message pointing to the function logs, with a link to `https://app.netlify.com/`.
 
 - `ALLOWED_LOGINS`, `GITHUB_OAUTH_CLIENT_ID` or `GITHUB_OAUTH_CLIENT_SECRET` missing: `github-auth-start` and `github-auth-callback` refuse and redirect to `/sign-in?error=misconfigured`.
 - A login outside `ALLOWED_LOGINS`: the callback redirects to `/sign-in?error=not-allowed` ("Ce compte GitHub n'est pas autorisé à utiliser l'application.").
+- The callback fails for any other reason (the user denies access on GitHub, the `state` does not match, GitHub rejects the `code`, GitHub cannot be reached or returns no login): it redirects to `/sign-in?error=failed` ("La connexion à GitHub a échoué. Merci de réessayer."). The code does not tell these cases apart; the user sees one message.
 - `DATA_REPO` or `DATA_BRANCH` missing (or `DATA_REPO` not in `owner/name` form): the proxy answers every request with a 500 and the body `{ "error": "misconfigured" }`. The app shows a full-page error instead of the period list or table. Patches already in the queue stay in IndexedDB and are sent once the configuration is fixed.
 
 ## Environments
