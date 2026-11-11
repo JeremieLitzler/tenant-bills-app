@@ -25,7 +25,7 @@ SHARE_ID=$(pass-cli vault list --output json | jq -r --arg name "$VAULT_NAME" '.
 [ -n "$SHARE_ID" ] || { echo "Could not resolve share id for vault '$VAULT_NAME'." >&2; exit 1; }
 
 echo "Resolving item id for '$ITEM_TITLE'..."
-ITEM_ID=$(pass-cli item list "$VAULT_NAME" --output json | jq -r --arg title "$ITEM_TITLE" '.items[] | select(.content.title == $title) | .id')
+ITEM_ID=$(pass-cli item list "$VAULT_NAME" --output json | jq -r --arg title "$ITEM_TITLE" '.items[] | select(.title == $title) | .id')
 [ -n "$ITEM_ID" ] || { echo "Could not resolve item id for '$ITEM_TITLE' in vault '$VAULT_NAME'." >&2; exit 1; }
 
 echo "SHARE_ID=$SHARE_ID"
