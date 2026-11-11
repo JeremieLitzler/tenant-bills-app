@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 
 # Private 2025-2026 period file extracted from the sheet (scripts/extract-golden.py)
 /2025-2026.json
+
+# Local Netlify folder
+.netlify
