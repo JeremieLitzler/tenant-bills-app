@@ -14,7 +14,7 @@ export const fr = {
   },
   shell: {
     appName: 'Charges de location',
-    signOut: 'Se déconnecter',
+    signOut: 'Se déconnecter de GitHub',
   },
   session: {
     confirmSignOut(pendingCount: number): string {
