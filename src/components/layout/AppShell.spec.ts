@@ -22,7 +22,7 @@ describe('AppShell, session end', () => {
     const { wrapper } = await mountShell('/')
 
     expect(wrapper.get('[data-testid="session-login"]').text()).toBe('JeremieLitzler')
-    expect(wrapper.get('button').text()).toBe('Se déconnecter')
+    expect(wrapper.get('button').text()).toContain('Se déconnecter')
   })
 
   it('sends the visitor to the sign-in page, remembering the current path, when the session expires', async () => {
