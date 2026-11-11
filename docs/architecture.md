@@ -111,7 +111,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 - Each page asks for its period on setup and shows a loader while `status` is `loading`. The router has no loading step and there is no `<Suspense>` orchestrator. One page reads one period, so the sibling race of the reference project's ADR-013 does not arise.
 - The sync status is app-wide, because one `drainQueue()` drains one queue across all periods. The app shell shows the pending-count badge on every route, so progress stays visible when you move from one period to another.
 
-- The list comes from `listPeriodIds()` in `src/sync/periodsApi.ts`, which asks the proxy for `?path=periods`. A missing periods folder (GitHub 404) is an empty list, not an error.
+- The list comes from `listPeriodIds()` in `src/sync/periodsApi.ts`, which asks the proxy for `?path=periods`. A missing periods folder (GitHub 404) is an empty list, not an error. Until F7 (#34) builds `/periods`, the list is shown by `src/components/periods/PeriodList.vue` on the home page.
 
 ### Data proxy: `netlify/functions/github-api-proxy`
 

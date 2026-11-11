@@ -13,9 +13,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Minimal list: F7 (#34) builds the real period management page. -->
+  <!-- Minimal list shown on the home page: F7 (#34) builds the real period management page. -->
   <section class="flex flex-col gap-4">
-    <h1 class="text-2xl font-semibold">{{ fr.periods.title }}</h1>
+    <h2 class="text-xl font-semibold">{{ fr.periods.title }}</h2>
     <p v-if="periods.listStatus.value === 'loading'" data-testid="periods-loading">
       {{ fr.periods.loading }}
     </p>

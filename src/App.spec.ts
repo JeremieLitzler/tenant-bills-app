@@ -1,10 +1,18 @@
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('App', () => {
   beforeEach(() => {
     vi.resetModules()
     document.cookie = 'gh_login=JeremieLitzler; Path=/'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json([])),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('shows the French home page inside the app shell at /', async () => {
