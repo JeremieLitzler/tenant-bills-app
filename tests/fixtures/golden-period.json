@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "periodName": "2025-2026",
+  "settings": {
+    "monthlyTenantBillAdvance": 50,
+    "closedOn": "2026-09-12"
+  },
+  "months": [
+    {
+      "month": "2025-09",
+      "common": {
+        "readingDatePrevious": "2025-09-14",
+        "readingDate": "2025-10-25",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeterPrevious": 417116,
+        "mainMeter": 432795,
+        "studioUnsoftenedMeterPrevious": 0,
+        "studioUnsoftenedMeter": 1724,
+        "studioSoftenedMeterPrevious": 0,
+        "studioSoftenedMeter": 1751,
+        "pricePerM3": 1.03,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.43,
+        "networkPerformanceFee": 0.1,
+        "subscription": 5.25,
+        "vat": 1.055
+      },
+      "waterTreatment": {
+        "collectionConsumptionDistributor": 0.584,
+        "collectionConsumptionCommunity": 0.869,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
+      "waterSoftener": {
+        "description": "Sac de sel",
+        "quantity": 1,
+        "unitPrice": 10.7
+      },
+      "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
+        "mainBasePrevious": 55936,
+        "mainBase": 56433,
+        "studioBasePrevious": 0,
+        "studioBase": 254,
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.542794,
+        "ctaTax": 3.43,
+        "vat": 1.2
+      },
+      "internet": {
+        "billedAmount": 30
+      },
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-10",
+      "common": {
+        "readingDate": "2025-11-15",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 440600,
+        "studioUnsoftenedMeter": 2638,
+        "studioSoftenedMeter": 2583,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "mainBase": 57159,
+        "studioBase": 383,
+        "ctaTax": 3.32
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-11",
+      "common": {
+        "readingDate": "2025-12-19",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 453507,
+        "studioUnsoftenedMeter": 3627,
+        "studioSoftenedMeter": 4611
+      },
+      "waterTreatment": {},
+      "waterSoftener": {
+        "description": "Sac de sel",
+        "quantity": 1,
+        "unitPrice": 9.85
+      },
+      "electricity": {
+        "mainBase": 59019,
+        "studioBase": 743,
+        "ctaTax": 3.43
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2025-12",
+      "common": {
+        "readingDate": "2026-01-17",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 466161,
+        "studioUnsoftenedMeter": 4469,
+        "studioSoftenedMeter": 5789
+      },
+      "waterTreatment": {
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937
+      },
+      "waterSoftener": {},
+      "electricity": {
+        "mainBase": 60604,
+        "studioBase": 1031,
+        "ctaTax": 1.73
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-01",
+      "common": {
+        "readingDate": "2026-02-15",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 476934,
+        "studioUnsoftenedMeter": 5686,
+        "studioSoftenedMeter": 7604
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "mainBase": 61971,
+        "studioBase": 1365,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 2.35
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-02",
+      "common": {
+        "readingDate": "2026-03-15",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 487854,
+        "studioUnsoftenedMeter": 6678,
+        "studioSoftenedMeter": 8966,
+        "pricePerM3": 1.05,
+        "subscription": 5.35
+      },
+      "waterTreatment": {},
+      "waterSoftener": {
+        "description": "Sac de sel",
+        "quantity": 1,
+        "unitPrice": 9.25
+      },
+      "electricity": {
+        "mainBase": 63385,
+        "studioBase": 1586,
+        "ctaTax": 2.27
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-03",
+      "common": {
+        "readingDate": "2026-04-13",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 496241,
+        "studioUnsoftenedMeter": 8364,
+        "studioSoftenedMeter": 10342
+      },
+      "waterTreatment": {},
+      "waterSoftener": {
+        "description": "Kit d'entretien adoucisseur",
+        "quantity": 1,
+        "unitPrice": 90.81
+      },
+      "electricity": {
+        "mainBase": 64277,
+        "studioBase": 1821,
+        "ctaTax": 2.35
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-04",
+      "common": {
+        "readingDate": "2026-05-15",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 506058,
+        "studioUnsoftenedMeter": 9469,
+        "studioSoftenedMeter": 11748
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "mainBase": 64999,
+        "studioBase": 1948,
+        "ctaTax": 2.27
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-05",
+      "common": {
+        "readingDate": "2026-06-14",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 516955,
+        "studioUnsoftenedMeter": 10195,
+        "studioSoftenedMeter": 13074
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "mainBase": 65501,
+        "studioBase": 2059,
+        "ctaTax": 2.35
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-06",
+      "common": {
+        "readingDate": "2026-07-15",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 523851,
+        "studioUnsoftenedMeter": 11058,
+        "studioSoftenedMeter": 14574
+      },
+      "waterTreatment": {},
+      "waterSoftener": {
+        "description": "Sac de sel",
+        "quantity": 1,
+        "unitPrice": 10.75
+      },
+      "electricity": {
+        "mainBase": 65853,
+        "studioBase": 2199,
+        "ctaTax": 1.78
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-07",
+      "common": {
+        "readingDate": "2026-08-10",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 532359,
+        "studioUnsoftenedMeter": 11988,
+        "studioSoftenedMeter": 17649
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "tariffMode": "hchp",
+        "subscriptionUnit": "month",
+        "mainHcPrevious": 31000,
+        "mainHc": 31105,
+        "mainHpPrevious": 36563,
+        "mainHp": 36796,
+        "studioHcPrevious": 0,
+        "studioHc": 43,
+        "studioHpPrevious": 0,
+        "studioHp": 111,
+        "excisePerKwh": 0.03062,
+        "kwhPriceHc": 0.0880466667,
+        "kwhPriceHp": 0.1232966667,
+        "subscriptionPerUnit": 22.78,
+        "ctaTax": 0
+      },
+      "internet": {},
+      "heatPumpMaintenance": {}
+    },
+    {
+      "month": "2026-08",
+      "common": {
+        "readingDate": "2026-09-12",
+        "tenantBillAdvance": 50
+      },
+      "waterConsumption": {
+        "mainMeter": 542099,
+        "studioUnsoftenedMeter": 13574,
+        "studioSoftenedMeter": 19032
+      },
+      "waterTreatment": {},
+      "waterSoftener": {},
+      "electricity": {
+        "tariffMode": "base",
+        "mainBasePrevious": 65853,
+        "mainBase": 66875,
+        "studioBasePrevious": 2315,
+        "studioBase": 2474,
+        "kwhPriceBase": 0.1184633333
+      },
+      "internet": {},
+      "heatPumpMaintenance": {
+        "billedAmount": 169
+      }
+    }
+  ]
+}
