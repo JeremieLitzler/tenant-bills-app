@@ -1,0 +1,496 @@
+{
+  "months": [
+    {
+      "month": "2025-09",
+      "waterConsumption": {
+        "deltaMain": 15.679,
+        "deltaStudioUnsoftened": 1.724,
+        "deltaStudioSoftened": 1.751,
+        "landlordShare": 31.39,
+        "tenantShare": 7.08,
+        "bill": 38.47
+      },
+      "waterTreatment": {
+        "landlordShare": 19.64,
+        "tenantShare": 5.59,
+        "bill": 25.23
+      },
+      "electricity": {
+        "deltaMainBase": 497.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 254.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 41.0,
+        "landlordShare": 108.74,
+        "tenantShare": 49.13,
+        "bill": 157.87
+      },
+      "waterSoftener": {
+        "landlordShare": 8.56,
+        "tenantShare": 2.14
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2025-10",
+      "waterConsumption": {
+        "deltaMain": 7.805,
+        "deltaStudioUnsoftened": 0.914,
+        "deltaStudioSoftened": 0.832,
+        "landlordShare": 16.86,
+        "tenantShare": 3.89,
+        "bill": 20.75
+      },
+      "waterTreatment": {
+        "landlordShare": 9.75,
+        "tenantShare": 2.81,
+        "bill": 12.56
+      },
+      "electricity": {
+        "deltaMainBase": 726.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 129.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 21.0,
+        "landlordShare": 136.95,
+        "tenantShare": 25.36,
+        "bill": 162.31
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2025-11",
+      "waterConsumption": {
+        "deltaMain": 12.907,
+        "deltaStudioUnsoftened": 0.989,
+        "deltaStudioSoftened": 2.028,
+        "landlordShare": 24.99,
+        "tenantShare": 5.91,
+        "bill": 30.9
+      },
+      "waterTreatment": {
+        "landlordShare": 15.92,
+        "tenantShare": 4.86,
+        "bill": 20.78
+      },
+      "electricity": {
+        "deltaMainBase": 1860.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 360.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 34.0,
+        "landlordShare": 335.67,
+        "tenantShare": 66.15,
+        "bill": 401.82000000000005
+      },
+      "waterSoftener": {
+        "landlordShare": 7.88,
+        "tenantShare": 1.97
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2025-12",
+      "waterConsumption": {
+        "deltaMain": 12.654,
+        "deltaStudioUnsoftened": 0.842,
+        "deltaStudioSoftened": 1.178,
+        "landlordShare": 24.59,
+        "tenantShare": 4.33,
+        "bill": 28.92
+      },
+      "waterTreatment": {
+        "landlordShare": 17.82,
+        "tenantShare": 3.38,
+        "bill": 21.2
+      },
+      "electricity": {
+        "deltaMainBase": 1585.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 288.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 29.0,
+        "landlordShare": 284.91,
+        "tenantShare": 52.91,
+        "bill": 337.82000000000005
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-01",
+      "waterConsumption": {
+        "deltaMain": 10.773,
+        "deltaStudioUnsoftened": 1.217,
+        "deltaStudioSoftened": 1.815,
+        "landlordShare": 21.59,
+        "tenantShare": 5.94,
+        "bill": 27.53
+      },
+      "waterTreatment": {
+        "landlordShare": 12.97,
+        "tenantShare": 5.08,
+        "bill": 18.05
+      },
+      "electricity": {
+        "deltaMainBase": 1367.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 334.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 29.0,
+        "landlordShare": 249.47,
+        "tenantShare": 61.06,
+        "bill": 310.53
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-02",
+      "waterConsumption": {
+        "deltaMain": 10.92,
+        "deltaStudioUnsoftened": 0.992,
+        "deltaStudioSoftened": 1.362,
+        "landlordShare": 22.14,
+        "tenantShare": 4.93,
+        "bill": 27.07
+      },
+      "waterTreatment": {
+        "landlordShare": 14.35,
+        "tenantShare": 3.94,
+        "bill": 18.29
+      },
+      "electricity": {
+        "deltaMainBase": 1414.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 221.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 28.0,
+        "landlordShare": 256.79,
+        "tenantShare": 41.78,
+        "bill": 298.57000000000005
+      },
+      "waterSoftener": {
+        "landlordShare": 7.4,
+        "tenantShare": 1.85
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-03",
+      "waterConsumption": {
+        "deltaMain": 8.387,
+        "deltaStudioUnsoftened": 1.686,
+        "deltaStudioSoftened": 1.376,
+        "landlordShare": 18.05,
+        "tenantShare": 6.07,
+        "bill": 24.12
+      },
+      "waterTreatment": {
+        "landlordShare": 8.92,
+        "tenantShare": 5.13,
+        "bill": 14.05
+      },
+      "electricity": {
+        "deltaMainBase": 892.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 235.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 29.0,
+        "landlordShare": 169.11,
+        "tenantShare": 44.31,
+        "bill": 213.42000000000002
+      },
+      "waterSoftener": {
+        "landlordShare": 72.65,
+        "tenantShare": 18.16
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-04",
+      "waterConsumption": {
+        "deltaMain": 9.817,
+        "deltaStudioUnsoftened": 1.105,
+        "deltaStudioSoftened": 1.406,
+        "landlordShare": 20.36,
+        "tenantShare": 5.18,
+        "bill": 25.54
+      },
+      "waterTreatment": {
+        "landlordShare": 12.24,
+        "tenantShare": 4.21,
+        "bill": 16.45
+      },
+      "electricity": {
+        "deltaMainBase": 722.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 127.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 32.0,
+        "landlordShare": 141.92,
+        "tenantShare": 26.43,
+        "bill": 168.35
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-05",
+      "waterConsumption": {
+        "deltaMain": 10.897,
+        "deltaStudioUnsoftened": 0.726,
+        "deltaStudioSoftened": 1.326,
+        "landlordShare": 22.1,
+        "tenantShare": 4.44,
+        "bill": 26.540000000000003
+      },
+      "waterTreatment": {
+        "landlordShare": 14.82,
+        "tenantShare": 3.44,
+        "bill": 18.26
+      },
+      "electricity": {
+        "deltaMainBase": 502.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 111.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 30.0,
+        "landlordShare": 103.68,
+        "tenantShare": 23.47,
+        "bill": 127.15
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-06",
+      "waterConsumption": {
+        "deltaMain": 6.896,
+        "deltaStudioUnsoftened": 0.863,
+        "deltaStudioSoftened": 1.5,
+        "landlordShare": 15.65,
+        "tenantShare": 4.94,
+        "bill": 20.59
+      },
+      "waterTreatment": {
+        "landlordShare": 7.59,
+        "tenantShare": 3.96,
+        "bill": 11.55
+      },
+      "electricity": {
+        "deltaMainBase": 352.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 140.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 31.0,
+        "landlordShare": 78.31,
+        "tenantShare": 28.37,
+        "bill": 106.68
+      },
+      "waterSoftener": {
+        "landlordShare": 8.6,
+        "tenantShare": 2.15
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-07",
+      "waterConsumption": {
+        "deltaMain": 8.508,
+        "deltaStudioUnsoftened": 0.93,
+        "deltaStudioSoftened": 3.075,
+        "landlordShare": 18.25,
+        "tenantShare": 7.59,
+        "bill": 25.84
+      },
+      "waterTreatment": {
+        "landlordShare": 7.54,
+        "tenantShare": 6.71,
+        "bill": 14.25
+      },
+      "electricity": {
+        "deltaMainBase": 0.0,
+        "deltaMainHc": 105.0,
+        "deltaMainHp": 233.0,
+        "deltaStudioBase": 0.0,
+        "deltaStudioHc": 43.0,
+        "deltaStudioHp": 111.0,
+        "subscriptionUnits": 1.0,
+        "landlordShare": 79.86,
+        "tenantShare": 32.09,
+        "bill": 111.95
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 0.0
+      }
+    },
+    {
+      "month": "2026-08",
+      "waterConsumption": {
+        "deltaMain": 9.74,
+        "deltaStudioUnsoftened": 1.586,
+        "deltaStudioSoftened": 1.383,
+        "landlordShare": 20.24,
+        "tenantShare": 5.92,
+        "bill": 26.159999999999997
+      },
+      "waterTreatment": {
+        "landlordShare": 11.34,
+        "tenantShare": 4.97,
+        "bill": 16.31
+      },
+      "electricity": {
+        "deltaMainBase": 1022.0,
+        "deltaMainHc": 0.0,
+        "deltaMainHp": 0.0,
+        "deltaStudioBase": 159.0,
+        "deltaStudioHc": 0.0,
+        "deltaStudioHp": 0.0,
+        "subscriptionUnits": 1.0,
+        "landlordShare": 204.7,
+        "tenantShare": 33.91,
+        "bill": 238.60999999999999
+      },
+      "waterSoftener": {
+        "landlordShare": 0.0,
+        "tenantShare": 0.0
+      },
+      "internet": {
+        "bill": 30.0,
+        "landlordShare": 24.0,
+        "tenantShare": 6.0
+      },
+      "heatPumpMaintenance": {
+        "bill": 169.0
+      }
+    }
+  ],
+  "totals": {
+    "advancesReceived": 600.0,
+    "waterConsumptionTenant": 66.22,
+    "waterTreatmentTenant": 54.08,
+    "electricityTenant": 484.97,
+    "waterSoftenerTenant": 26.27,
+    "internetTenant": 72.0,
+    "heatPumpMaintenanceTenant": 169.0,
+    "balance": -272.53999999999996,
+    "settlementAmount": 272.53999999999996,
+    "settlementDirection": "tenantToLandlord"
+  }
+}

@@ -18,11 +18,11 @@ Tests are colocated `*.spec.ts` files run by Vitest; test data lives in `tests/f
 
 The formula specs assert every computed cell of the sheet `Période-092025-092026` of "Suivi des charges de location (v2).xlsx" (ADR 0003 is superseded: no exception): per month and section the deltas, the bill, the landlord share and the tenant share, the column N totals, the balance (line 6) and the settlement amount and direction (line 5). Values are compared with `toBeCloseTo(expected, 6)`, so a different summation order cannot fail a test while a mistake under a cent still does.
 
-The repo is public and the spreadsheet holds private consumption data (`*.xlsx` is gitignored), so the fixture is built from a randomized copy of the sheet, with Excel still computing the expected values:
+The repo is public and the spreadsheet holds private consumption data (`*.xlsx` is gitignored), so the fixture is built from a randomized copy of the sheet, with Excel still computing the expected values. Issue #18 builds `scripts/extract-golden.py` first (real mode: the private 2025-2026 period file); issue #56 then adds its randomized mode and `scripts/randomize-golden.py`:
 
 1. `uv run scripts/randomize-golden.py` copies the workbook and writes randomized inputs into the copy, leaving the formulas untouched and forcing recalculation on open. The randomization is seeded, so a rerun gives the same values.
 2. Open the copy in Excel and save it, so Excel recalculates every formula.
-3. `uv run scripts/extract-golden.py` reads the inputs and the cached results from the copy and writes:
+3. `uv run scripts/extract-golden.py --randomized` reads the inputs and the cached results from the copy and writes:
    - `tests/fixtures/golden-period.json`: the randomized period file, valid in the shape of `docs/period-file.md` (ADR 0005), water indexes in litres as integers;
    - `tests/fixtures/golden-expected.json`: every computed cell listed above, keyed by month and section, plus the period totals, the balance and the settlement.
 
@@ -30,7 +30,7 @@ The scripts are Python with `openpyxl`, declared in a PEP 723 header so `uv run`
 
 What the randomization changes:
 
-- Each water and electricity meter's monthly delta, and each water softener purchase, is multiplied by a random factor between 0.85 and 1.15. Indexes are rebuilt from each meter's first previous index plus the new deltas, so they keep increasing, and rounded to whole litres (water) or whole kWh (electricity). Softener amounts keep two decimals.
+- Each water and electricity meter's monthly delta, and each water softener purchase (its unit price), is multiplied by a random factor between 0.85 and 1.15. Indexes are rebuilt from each meter's first previous index plus the new deltas (the first previous index is itself scaled by a factor, so no real index is committed; a zero stays zero; a previous index typed in a later month keeps its scaled gap with the month before), so they keep increasing, and rounded to whole litres (water) or whole kWh (electricity). Softener amounts keep two decimals.
 - The internet bill is set to 30 every month.
 - The heat pump maintenance is set to 169 in the months that already have one; the other months stay empty.
 

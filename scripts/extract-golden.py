@@ -2,14 +2,22 @@
 # requires-python = ">=3.11"
 # dependencies = ["openpyxl"]
 # ///
-"""One-off extraction of the 2025-2026 period file from the real sheet.
+"""Extraction of period files and golden values from the sheet.
 
-Reads the sheet `Période-092025-092026` of the workbook at the repo root and
-writes `2025-2026.json` (gitignored: the repo is public, the readings are
+Real mode (#18): reads the sheet `Période-092025-092026` of the workbook at the repo
+root and writes `2025-2026.json` (gitignored: the repo is public, the readings are
 private) in the shape of docs/period-file.md. The landlord then uploads it by
 hand to JeremieLitzler/tenant-bills-data, at periods/2025-2026.json.
 
-Usage: uv run scripts/extract-golden.py [workbook] [output]
+Randomized mode (#56): reads the randomized copy made by scripts/randomize-golden.py
+and saved by Excel (so every formula is recalculated), and writes the committed
+fixtures `tests/fixtures/golden-period.json` (the inputs, as a period file) and
+`tests/fixtures/golden-expected.json` (every computed cell, see "Golden record" in
+docs/architecture-tests.md).
+
+Usage:
+  uv run scripts/extract-golden.py [workbook] [output]
+  uv run scripts/extract-golden.py --randomized [copy] [period-output] [expected-output]
 
 Rules, from docs/period-file.md:
 - an inherited key is stored only in the first month and where its value
@@ -34,11 +42,7 @@ CLOSED_ON = "2026-09-12"
 PERIOD_START_YEAR = 2025
 
 
-def main() -> None:
-    workbook = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "Suivi des charges de location (v2).xlsx"
-    output = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "2025-2026.json"
-    values = openpyxl.load_workbook(workbook, data_only=True)[SHEET]
-    formulas = openpyxl.load_workbook(workbook)[SHEET]
+def build_period(values, formulas) -> dict:
 
     def cell(row: int, i: int):
         return values.cell(row, FIRST_COL + i).value
@@ -148,14 +152,86 @@ def main() -> None:
             "heatPumpMaintenance": pac,
         })
 
-    period = {
+    return {
         "schemaVersion": 1,
         "periodName": "2025-2026",
         "settings": {"monthlyTenantBillAdvance": num(8, 0), "closedOn": CLOSED_ON},
         "months": months,
     }
-    output.write_text(json.dumps(period, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Wrote {output}")
+
+
+def build_expected(values) -> dict:
+    """Every computed cell of the sheet, as Excel cached it: per month and section, then the totals."""
+
+    def number(row: int, col: int) -> float:
+        v = values.cell(row, col).value
+        if v is None:
+            raise ValueError(f"No cached value at row {row}, column {col}: open the copy in Excel and save it first")
+        return float(v)
+
+    months = []
+    for i in range(MONTHS):
+        col = FIRST_COL + i
+        year = PERIOD_START_YEAR + (1 if i >= 4 else 0)
+        month_no = (8 + i) % 12 + 1
+
+        def section(**rows: int) -> dict:
+            return {key: number(row, col) for key, row in rows.items()}
+
+        months.append({
+            "month": f"{year}-{month_no:02d}",
+            "waterConsumption": section(deltaMain=15, deltaStudioUnsoftened=18, deltaStudioSoftened=21,
+                                        landlordShare=28, tenantShare=29, bill=30),
+            "waterTreatment": section(landlordShare=48, tenantShare=49, bill=50),
+            "electricity": section(deltaMainBase=64, deltaMainHc=65, deltaMainHp=66,
+                                   deltaStudioBase=67, deltaStudioHc=68, deltaStudioHp=69,
+                                   subscriptionUnits=74, landlordShare=78, tenantShare=79, bill=80),
+            "waterSoftener": section(landlordShare=85, tenantShare=86),
+            "internet": section(bill=88, landlordShare=89, tenantShare=90),
+            "heatPumpMaintenance": section(bill=92),
+        })
+
+    total_col = FIRST_COL + MONTHS  # N
+    balance = number(6, total_col)
+    return {
+        "months": months,
+        "totals": {
+            "advancesReceived": number(8, total_col),
+            "waterConsumptionTenant": number(29, total_col),
+            "waterTreatmentTenant": number(49, total_col),
+            "electricityTenant": number(79, total_col),
+            "waterSoftenerTenant": number(86, total_col),
+            "internetTenant": number(90, total_col),
+            "heatPumpMaintenanceTenant": number(92, total_col),
+            "balance": balance,
+            "settlementAmount": number(5, total_col),
+            "settlementDirection": "landlordToTenant" if balance > 0 else "tenantToLandlord",
+        },
+    }
+
+
+def write_json(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"Wrote {path}")
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    randomized = bool(args) and args[0] == "--randomized"
+    if randomized:
+        args = args[1:]
+        workbook = Path(args[0]) if len(args) > 0 else ROOT / "golden-randomized.xlsx"
+        period_output = Path(args[1]) if len(args) > 1 else ROOT / "tests" / "fixtures" / "golden-period.json"
+        expected_output = Path(args[2]) if len(args) > 2 else ROOT / "tests" / "fixtures" / "golden-expected.json"
+    else:
+        workbook = Path(args[0]) if len(args) > 0 else ROOT / "Suivi des charges de location (v2).xlsx"
+        period_output = Path(args[1]) if len(args) > 1 else ROOT / "2025-2026.json"
+    values = openpyxl.load_workbook(workbook, data_only=True)[SHEET]
+    formulas = openpyxl.load_workbook(workbook)[SHEET]
+    write_json(period_output, build_period(values, formulas))
+    if randomized:
+        write_json(expected_output, build_expected(values))
 
 
 if __name__ == "__main__":
