@@ -111,6 +111,7 @@ describe('github-auth-callback, allowed login', () => {
   it.each([
     ['another capitalisation', 'jeremielitzler', 'JeremieLitzler'],
     ['spaces around entries', 'JeremieLitzler', ' someone , JeremieLitzler '],
+    ['a trailing newline', 'JeremieLitzler', 'JeremieLitzler\n'],
   ])('accepts the login despite %s', async (_label, githubLogin, allowed) => {
     vi.stubEnv('ALLOWED_LOGINS', allowed)
     stubGithub(githubLogin)
