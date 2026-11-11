@@ -1,4 +1,11 @@
+<script setup lang="ts">
+import PeriodList from '@/components/periods/PeriodList.vue'
+</script>
+
 <template>
   <!-- Placeholder: / will redirect to the current period (issues #75 and #79). -->
-  <h1 class="text-2xl font-semibold">Bienvenue</h1>
+  <div class="flex flex-col gap-6">
+    <h1 class="text-2xl font-semibold">Bienvenue</h1>
+    <PeriodList />
+  </div>
 </template>

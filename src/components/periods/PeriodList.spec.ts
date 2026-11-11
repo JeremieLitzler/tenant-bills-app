@@ -8,12 +8,12 @@ vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   listPeriodIds,
 }))
 
-// Mounts the whole app at /periods, with the real router, session and period state.
+// Mounts the whole app at /, with the real router, session and period state.
 async function mountApp() {
   document.cookie = 'gh_login=JeremieLitzler; Path=/'
   const { default: router } = await import('@/router')
   const { default: App } = await import('@/App.vue')
-  await router.push('/periods')
+  await router.push('/')
   await router.isReady()
   const wrapper = mount(App, { global: { plugins: [router] } })
   await flushPromises()
@@ -26,7 +26,7 @@ beforeEach(() => {
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
 })
 
-describe('period list page', () => {
+describe('PeriodList on the home page', () => {
   it('shows each period identifier with a link to it', async () => {
     listPeriodIds.mockResolvedValue(['2025-2026', '2026-2027'])
 
@@ -64,6 +64,6 @@ describe('period list page', () => {
     const { router } = await mountApp()
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/sign-in'))
-    expect(router.currentRoute.value.query.redirect).toBe('/periods')
+    expect(router.currentRoute.value.query.redirect).toBe('/')
   })
 })
