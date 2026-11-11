@@ -10,10 +10,11 @@ const route = useRoute()
 const router = useRouter()
 
 // When the session ends (a 401 or sign-out), re-run the current route so the global guard
-// redirects to the sign-in page.
+// redirects to the sign-in page. `force` is needed: navigating to the current location is
+// otherwise dropped as a duplicate and the guard never runs.
 watch(session.isSignedIn, (signedIn) => {
   if (!signedIn) {
-    void router.replace(route.fullPath)
+    void router.replace({ path: route.path, query: route.query, hash: route.hash, force: true })
   }
 })
 </script>

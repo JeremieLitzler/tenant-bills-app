@@ -9,7 +9,7 @@ import {
   REDIRECT_COOKIE_NAME,
   STATE_COOKIE_NAME,
 } from '../lib/cookies'
-import { readGithubOAuthCredentials } from '../lib/environment'
+import { readAllowedLogins, readGithubOAuthCredentials } from '../lib/environment'
 import { jsonResponse, redirectResponse } from '../lib/http-responses'
 import { isSafeRedirectPath, signInErrorPath } from '../lib/redirect'
 
@@ -22,8 +22,11 @@ export const handler: Handler = async (event: HandlerEvent) => {
     return jsonResponse(405, { error: 'Method not allowed' })
   }
 
+  // Read both so a missing variable is always named in the log; without an allowlist no
+  // sign-in can succeed, so start refuses early instead of sending the visitor to GitHub.
   const credentials = readGithubOAuthCredentials()
-  if (!credentials) {
+  const allowedLogins = readAllowedLogins()
+  if (!credentials || !allowedLogins) {
     return redirectResponse(signInErrorPath('misconfigured'))
   }
 

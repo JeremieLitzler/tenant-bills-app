@@ -11,6 +11,7 @@ import { handler } from './github-auth-start'
 beforeEach(() => {
   vi.stubEnv('GITHUB_OAUTH_CLIENT_ID', 'test-client-id')
   vi.stubEnv('GITHUB_OAUTH_CLIENT_SECRET', 'test-client-secret')
+  vi.stubEnv('ALLOWED_LOGINS', 'JeremieLitzler')
   vi.stubEnv('URL', 'http://localhost:8888')
 })
 
@@ -73,7 +74,7 @@ describe('github-auth-start', () => {
     expect(location.searchParams.get('client_id')).toBe('test-client-id')
   })
 
-  it.each(['GITHUB_OAUTH_CLIENT_ID', 'GITHUB_OAUTH_CLIENT_SECRET'])(
+  it.each(['GITHUB_OAUTH_CLIENT_ID', 'GITHUB_OAUTH_CLIENT_SECRET', 'ALLOWED_LOGINS'])(
     'refuses to start when %s is missing, names it only in the log',
     async (name) => {
       vi.stubEnv(name, '  ')
