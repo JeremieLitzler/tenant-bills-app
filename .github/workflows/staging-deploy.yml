@@ -31,7 +31,9 @@ jobs:
 
       # The staging site's variables (DATA_BRANCH=staging, its own OAuth app) live in Netlify, not here.
       - name: Deploy to the staging site
-        run: pnpm dlx --package=netlify-cli netlify deploy --prod --dir dist --functions netlify/functions --site "$NETLIFY_STAGING_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN"
+        run: pnpm dlx --package=netlify-cli netlify deploy --prod --dir dist --functions netlify/functions --site "$NETLIFY_STAGING_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "Build triggered by PR#$PR_NUMBER ($COMMIT_SHA)"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_STAGING_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
