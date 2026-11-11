@@ -1,13 +1,15 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
-
-import App from './App.vue'
-import { useSession } from './composables/useSession'
-import router from './router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('App', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    document.cookie = 'gh_login=JeremieLitzler; Path=/'
+  })
+
   it('shows the French home page inside the app shell at /', async () => {
-    useSession().markSignedIn('JeremieLitzler')
+    const { default: App } = await import('./App.vue')
+    const { default: router } = await import('./router')
     await router.push('/')
     await router.isReady()
 
@@ -16,5 +18,6 @@ describe('App', () => {
     const shell = wrapper.find('[data-testid="app-shell"]')
     expect(shell.exists()).toBe(true)
     expect(shell.find('main').text()).toContain('Bienvenue')
+    expect(shell.find('[data-testid="session-login"]').text()).toBe('JeremieLitzler')
   })
 })

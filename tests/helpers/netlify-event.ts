@@ -1,4 +1,4 @@
-// Helpers shared by the function specs: build a Netlify event and read a response.
+// Helpers shared by the Netlify function specs: build an event and read a response.
 import type { HandlerContext, HandlerEvent, HandlerResponse } from '@netlify/functions'
 
 export const CONTEXT = {} as HandlerContext

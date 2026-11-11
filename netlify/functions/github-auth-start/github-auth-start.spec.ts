@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildEvent, CONTEXT, expectResponse, setCookies } from '../lib/testing'
+import {
+  buildEvent,
+  CONTEXT,
+  expectResponse,
+  setCookies,
+} from '../../../tests/helpers/netlify-event'
 import { handler } from './github-auth-start'
 
 beforeEach(() => {

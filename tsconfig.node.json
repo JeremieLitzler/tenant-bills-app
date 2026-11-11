@@ -5,7 +5,8 @@
     "vitest.config.ts",
     "vue-free-folders.ts",
     "*.spec.ts",
-    "netlify/**/*.ts"
+    "netlify/**/*.ts",
+    "tests/**/*.ts"
   ],
   "compilerOptions": {
     "composite": true,

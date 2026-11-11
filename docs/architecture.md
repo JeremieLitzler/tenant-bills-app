@@ -38,11 +38,13 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 │   │   └── ui/                     # shadcn-vue
 │   ├── composables/
 │   ├── domain/                     # Vue-free: formulas, period file types, inheritance, patch apply
-│   ├── lib/                        # shadcn-vue's cn helper
+│   ├── i18n/                       # fr.ts: every UI string, a plain typed object
+│   ├── lib/                        # shadcn-vue's cn helper, safeRedirect, the gh_login cookie reader
 │   ├── pages/                      # file-based routes
 │   ├── router/
 │   └── sync/                       # Vue-free: IndexedDB patch queue, drainQueue(), 409 rebase, SHA check
 └── tests/
+    ├── helpers/                    # spec helpers (Netlify event builder)
     └── fixtures/                   # sheet values, example period files
 ```
 
@@ -50,7 +52,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 - Imports are explicit: no auto-import plugin, so the lint rule above sees every Vue import.
 - Types live with the code that owns them; there is no `src/types/`. Other folders (`utils/`, `services/`, ...) are created only when something needs them.
 - Tests are colocated `*.spec.ts` files next to the code they test.
-- UI strings are French and written inline in the components; no i18n library.
+- UI strings are French and live in one plain typed object, `src/i18n/fr.ts`; components and composables import from it. No i18n library (decided in issue #28, replacing the earlier "inline in the components" line).
 - The four functions are duplicated from `french-gas-stations-scraper` for now; a shared module is to be grilled in issue #14.
 
 ## Routing
@@ -66,7 +68,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 
 The table and the form are both reachable on any screen size; only the `/` redirect picks by screen size.
 
-One global `router.beforeEach` guard requires a session on every route unless the page declares `meta: { public: true }`. Without a session, it redirects to `/sign-in?redirect=<path>` and returns there after sign-in.
+One global `router.beforeEach` guard requires a session on every route unless the page declares `meta: { public: true }`. Without a session, it redirects to `/sign-in?redirect=<path>`. A signed-in visitor who opens `/sign-in` is sent to `redirect` (or `/`), unless the page has an error to show. After the OAuth round trip, the callback function redirects straight to the asked page, so the sign-in page is only a button and the error messages.
 
 ## State
 
@@ -111,22 +113,25 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 
 ```ts
 useSession(): {
-  login: Readonly<Ref<string | null>>   // GitHub login, null when signed out
+  login: Readonly<Ref<string | null>>   // GitHub login from the gh_login cookie, null when signed out
   isSignedIn: Readonly<Ref<boolean>>
   signIn(redirect?: string): void       // goes to github-auth-start
   signOut(): Promise<void>              // confirmation when patches are queued, then github-auth-logout
   expire(): void                        // called by the period state on a 401
+  setPendingCountSource(source: () => number): void  // wired by the period state (F3)
 }
 ```
 
-- The "signed in" hint is persisted in IndexedDB, as in the reference project (its ADR-008). The token sits in an HttpOnly cookie the app cannot read, and the app must open offline as a PWA, so it cannot ask a function at start-up. A stale hint is corrected by the first 401.
-- The global `beforeEach` guard reads `isSignedIn` and is the only place holding the redirect to `/sign-in?redirect=<path>`.
+- The "signed in" hint is the `gh_login` cookie: set by the callback next to the token, not HttpOnly, 8 hours, holding only the login (not a secret). The token sits in an HttpOnly cookie the app cannot read, and the app must open offline as a PWA, so it cannot ask a function at start-up; the guard reads the hint synchronously. It is only a hint (a visitor can set it), the token cookie is the truth, and a stale hint is corrected by the first 401. This replaces the IndexedDB hint of the original spec; F9 (#36) decides whether to keep the cookie or add an IndexedDB hint.
+- `signOut()` clears the local state (including the `gh_login` cookie) even when the logout call fails offline; the HttpOnly token cookie then ends by itself after 8 hours.
+- The sign-out confirmation reads a pending count that F3 wires through `setPendingCountSource()`; until then it is zero.
+- The global `beforeEach` guard reads `isSignedIn` and is the only place holding the redirect rules between the app and `/sign-in`. The redirect rule for a path of this site exists twice, in `src/lib/safeRedirect.ts` and `netlify/functions/lib/redirect.ts`; sharing one pure file is planned with #39.
 
 ### Wiring between the two
 
 - Dependencies are one-way: the period state imports the session state, never the reverse.
 - On a 401 from the proxy, the period state calls `expire()`. It does not redirect.
-- The app shell, mounted on every route, watches the session. When it turns signed-out, it calls `usePeriods().clear()` and re-runs the current route with `router.replace(route.fullPath)`, so the guard redirects.
+- The app shell, mounted on every route, watches the session. When it turns signed-out, it re-runs the current route with `router.replace(route.fullPath)`, so the guard redirects. F3 adds the clearing of the periods held in memory.
 - Queued patches survive a 401 and an explicit "Se déconnecter". Signing out while patches are queued asks for confirmation first ("N modifications pas encore enregistrées"). After the next sign-in, the periods are re-loaded from GitHub and the queued patches are re-applied on top.
 
 ### Sign-in round trip
@@ -134,8 +139,8 @@ useSession(): {
 The page and the login travel through the OAuth round trip as follows (issue #28):
 
 1. The sign-in page sends the visitor to `github-auth-start?redirect=<path>`. Start stores a CSRF `state` and the requested path (only a path of this site: no scheme, no host, no `//`) in two short-lived `SameSite=Lax` cookies and redirects to GitHub.
-2. `github-auth-callback` checks the `state`, exchanges the `code`, reads the signed-in `login` from `GET https://api.github.com/user`, and compares it, case-insensitively, with `ALLOWED_LOGINS`. Only an allowed login gets the `gh_token` cookie (HTTP-only, `SameSite=Strict`, `Secure` on https, 8 hours).
-3. Every outcome ends on the sign-in page: `/sign-in?signed-in=<login>[&redirect=<path>]` on success, or `/sign-in?error=not-allowed|misconfigured|failed`. On success the page stores the login as the "signed in" hint and goes to `redirect`, or `/` when none was asked. `failed` covers a denied authorization, a `state` mismatch, a rejected `code` and an unreadable login.
+2. `github-auth-callback` checks the `state`, exchanges the `code`, reads the signed-in `login` from `GET https://api.github.com/user`, and compares it, case-insensitively, with `ALLOWED_LOGINS`. Only an allowed login gets the `gh_token` cookie (HTTP-only, `SameSite=Strict`, `Secure` on https, 8 hours) and the `gh_login` hint cookie.
+3. On success, the callback redirects to the asked path, or `/` when none was asked. On a refusal it redirects to `/sign-in?error=not-allowed|misconfigured|failed`. `failed` is the catch-all and covers a denied authorization, a `state` mismatch, a rejected `code` and an unreadable login.
 
 ## Data commits
 
