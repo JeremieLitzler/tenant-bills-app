@@ -2,7 +2,7 @@
 // the landlord types only what changed (docs/period-file.md, "Absent, zero and inherited").
 // Vue-free.
 import { FIELD_CATALOGUE } from './periodFile'
-import type { PeriodFile, SectionInputs, SectionName } from './periodFile'
+import type { ReadonlyPeriodFile, SectionInputs, SectionName } from './periodFile'
 
 // Where a resolved value comes from: stored for this month (typed), taken from an earlier month
 // (inherited), worked out from other stored values such as a previous index (derived), or
@@ -29,14 +29,14 @@ function currentKeyOf(section: SectionName, key: string): string | undefined {
   return current in FIELD_CATALOGUE[section] ? current : undefined
 }
 
-function monthIndex(file: PeriodFile, month: string): number {
+function monthIndex(file: ReadonlyPeriodFile, month: string): number {
   return file.months.findIndex((entry) => entry.month === month)
 }
 
 // Undefined means empty: nothing typed, and nothing to inherit or derive. An unknown month is also
 // undefined: the validation of #45 guarantees the months exist.
 export function resolveValue<S extends SectionName, K extends KeyOf<S>>(
-  file: PeriodFile,
+  file: ReadonlyPeriodFile,
   month: string,
   section: S,
   key: K,
@@ -50,7 +50,7 @@ export function resolveValue<S extends SectionName, K extends KeyOf<S>>(
 // resolved current index of the month before (derived), an inherited key takes the value of the
 // month before (inherited), and anything else is empty. Recursion ends at the first month.
 function resolveAtIndex<S extends SectionName, K extends KeyOf<S>>(
-  file: PeriodFile,
+  file: ReadonlyPeriodFile,
   index: number,
   section: S,
   key: K,
@@ -81,7 +81,7 @@ function resolveAtIndex<S extends SectionName, K extends KeyOf<S>>(
 // The start of the month's date range, the sheet's "Du": the previous month's reading date, or the
 // period's opening date in the first month. Not the first day of the calendar month.
 export function resolveMonthWindowStart(
-  file: PeriodFile,
+  file: ReadonlyPeriodFile,
   month: string,
 ): Resolved<string> | undefined {
   const index = monthIndex(file, month)

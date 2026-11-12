@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { effectScope, type MaybeRefOrGetter, ref } from 'vue'
 
+import { validPeriodJson } from '../../tests/helpers/periodFile'
+
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
 
@@ -12,9 +14,8 @@ vi.mock('@/sync/periodsApi', () => ({ listPeriodIds, getPeriodFile, Unauthorized
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
   document.cookie = `gh_login=${signedInAs}; Path=/`
-  const { usePeriods } = await import('./usePeriods')
+  const { usePeriod, usePeriods } = await import('./usePeriods')
   const { useSession } = await import('./useSession')
-  const { usePeriod } = await import('./usePeriods')
   return { periods: usePeriods(), session: useSession(), usePeriod }
 }
 
@@ -92,39 +93,6 @@ describe('usePeriods, 401', () => {
   })
 })
 
-const MONTHS = [
-  '2026-09',
-  '2026-10',
-  '2026-11',
-  '2026-12',
-  '2027-01',
-  '2027-02',
-  '2027-03',
-  '2027-04',
-  '2027-05',
-  '2027-06',
-  '2027-07',
-  '2027-08',
-]
-
-function periodJson(periodName = '2026-2027') {
-  return {
-    schemaVersion: 1,
-    periodName,
-    settings: { monthlyTenantBillAdvance: 70 },
-    months: MONTHS.map((month) => ({
-      month,
-      common: { tenantBillAdvance: 0 },
-      waterConsumption: {},
-      waterTreatment: {},
-      waterSoftener: {},
-      electricity: {},
-      internet: {},
-      heatPumpMaintenance: {},
-    })),
-  }
-}
-
 // Runs `usePeriod` the way a page does, on setup, then waits for the request.
 async function openPeriod(
   usePeriod: (id: MaybeRefOrGetter<string>) => ReturnType<typeof import('./usePeriods').usePeriod>,
@@ -144,7 +112,7 @@ describe('usePeriod', () => {
     const period = effectScope().run(() => usePeriod('2026-2027'))!
     expect(period.status.value).toBe('loading')
     expect(period.file.value).toBeUndefined()
-    finish({ json: periodJson(), sha: 'sha-1' })
+    finish({ json: validPeriodJson(), sha: 'sha-1' })
     await vi.waitFor(() => expect(period.status.value).toBe('ready'))
 
     expect(period.file.value?.periodName).toBe('2026-2027')
@@ -155,7 +123,7 @@ describe('usePeriod', () => {
   })
 
   it('opens a file breaking a validation rule read-only, with the problems', async () => {
-    getPeriodFile.mockResolvedValue({ json: { ...periodJson(), schemaVersion: 2 }, sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: { ...validPeriodJson(), schemaVersion: 2 }, sha: 's' })
     const { usePeriod } = await loadPeriods()
 
     const period = await openPeriod(usePeriod)
@@ -167,7 +135,7 @@ describe('usePeriod', () => {
   })
 
   it('does not fetch a loaded period again when the page is opened again', async () => {
-    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
     const { usePeriod } = await loadPeriods()
     await openPeriod(usePeriod)
 
@@ -179,7 +147,7 @@ describe('usePeriod', () => {
   })
 
   it('does not fetch twice when two pages ask while the first request is pending', async () => {
-    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
     const { usePeriod } = await loadPeriods()
 
     effectScope().run(() => usePeriod('2026-2027'))
@@ -190,7 +158,7 @@ describe('usePeriod', () => {
   })
 
   it('keeps each period apart and loads the new one when the identifier changes', async () => {
-    getPeriodFile.mockImplementation(async (id) => ({ json: periodJson(id), sha: id }))
+    getPeriodFile.mockImplementation(async (id) => ({ json: validPeriodJson(id), sha: id }))
     const { usePeriod } = await loadPeriods()
     const id = ref('2026-2027')
     const period = await openPeriod(usePeriod, id)
@@ -215,7 +183,7 @@ describe('usePeriod', () => {
 
   it('is an error on a network or proxy failure, and asks again the next time', async () => {
     getPeriodFile.mockRejectedValueOnce(new Error('502'))
-    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
     const { usePeriod, session } = await loadPeriods()
 
     const failed = await openPeriod(usePeriod)

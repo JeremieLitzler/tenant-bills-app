@@ -95,6 +95,12 @@ export interface PeriodFile {
   months: MonthEntry[]
 }
 
+// What the functions that only read a period take, so the read-only `file` of `usePeriod` fits
+// (the months array is the only part TypeScript refuses to pass as mutable).
+export type ReadonlyPeriodFile = Omit<PeriodFile, 'months'> & {
+  readonly months: readonly MonthEntry[]
+}
+
 // "inherited": an untyped key takes the previous month's value. "not-inherited": an untyped key is
 // empty. The `...Previous` index keys are "not-inherited" from their own key, but the resolver
 // derives them from the previous month's current index (see `resolveAtIndex` in inheritance.ts).

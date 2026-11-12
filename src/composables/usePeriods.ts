@@ -22,6 +22,13 @@ interface PeriodEntry {
   problems: PeriodFileProblem[]
 }
 
+function entryWith(
+  status: PeriodStatus,
+  rest: Partial<Omit<PeriodEntry, 'status'>> = {},
+): PeriodEntry {
+  return { status, problems: [], ...rest }
+}
+
 // Every period opened so far, keyed by its identifier, for the browser session. A period that is
 // ready is never fetched again; a not-found or failed one is asked again on the next opening.
 const periodEntries = ref<Record<string, PeriodEntry>>({})
@@ -45,23 +52,23 @@ async function loadPeriodIds(): Promise<void> {
 // list. A file breaking a validation rule is still `ready`, flagged read-only through `problems`;
 // JSON that is not shaped like a period file is an `error`.
 async function loadPeriod(id: string): Promise<void> {
-  const known = periodEntries.value[id]?.status
-  if (known === 'loading' || known === 'ready') {
+  const currentStatus = periodEntries.value[id]?.status
+  if (currentStatus === 'loading' || currentStatus === 'ready') {
     return
   }
-  periodEntries.value[id] = { status: 'loading', problems: [] }
+  periodEntries.value[id] = entryWith('loading')
   try {
     const content = await getPeriodFile(id)
     if (!content) {
-      periodEntries.value[id] = { status: 'not-found', problems: [] }
+      periodEntries.value[id] = entryWith('not-found')
       return
     }
     const { file, problems } = validatePeriodFile(content.json, id)
     periodEntries.value[id] = file
-      ? { status: 'ready', file, sha: content.sha, problems }
-      : { status: 'error', problems: [] }
+      ? entryWith('ready', { file, sha: content.sha, problems })
+      : entryWith('error')
   } catch (error) {
-    periodEntries.value[id] = { status: 'error', problems: [] }
+    periodEntries.value[id] = entryWith('error')
     if (error instanceof UnauthorizedError) {
       useSession().expire()
     }
@@ -69,21 +76,25 @@ async function loadPeriod(id: string): Promise<void> {
 }
 
 // One period, called by a page on setup with its route param. Loads the file when it is not held
-// yet and again when the identifier changes.
+// yet and again when the identifier changes. `file` is read-only: every edit goes through the
+// patch queue (ADR 0004), never into the object.
 export function usePeriod(id: MaybeRefOrGetter<string>) {
   watch(
     () => toValue(id),
     (value) => void loadPeriod(value),
     { immediate: true },
   )
-  const entry = computed(() => periodEntries.value[toValue(id)])
+  const periodEntry = computed(() => periodEntries.value[toValue(id)])
   return {
-    status: computed<PeriodStatus>(() => entry.value?.status ?? 'loading'),
-    file: computed(() => entry.value?.file),
-    sha: computed(() => entry.value?.sha),
-    problems: computed(() => entry.value?.problems ?? []),
+    status: computed<PeriodStatus>(() => periodEntry.value?.status ?? 'loading'),
+    file: computed(() => {
+      const file = periodEntry.value?.file
+      return file ? readonly(file) : undefined
+    }),
+    sha: computed(() => periodEntry.value?.sha),
+    problems: computed(() => periodEntry.value?.problems ?? []),
     // The file broke a validation rule: the app shows it but never writes it.
-    isReadOnly: computed(() => (entry.value?.problems.length ?? 0) > 0),
+    isReadOnly: computed(() => (periodEntry.value?.problems.length ?? 0) > 0),
   }
 }
 
