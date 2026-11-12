@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getPeriodFile, listPeriodIds, UnauthorizedError } from './periodsApi'
+import { getPeriodFile, listPeriodIds, NotFoundException, UnauthorizedError } from './periodsApi'
 
 function stubProxy(status: number, body: unknown) {
   const fetchStub = vi.fn(async () => Response.json(body, { status }))
@@ -87,10 +87,10 @@ describe('getPeriodFile', () => {
     })
   })
 
-  it('returns undefined when the file does not exist', async () => {
+  it('throws NotFoundException when the file does not exist', async () => {
     stubProxy(404, { message: 'Not Found' })
 
-    expect(await getPeriodFile('2031-2032')).toBeUndefined()
+    await expect(getPeriodFile('2031-2032')).rejects.toBeInstanceOf(NotFoundException)
   })
 
   it('throws UnauthorizedError on a 401', async () => {

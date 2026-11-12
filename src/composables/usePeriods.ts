@@ -6,7 +6,12 @@ import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from '
 import { useSession } from '@/composables/useSession'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
-import { getPeriodFile, listPeriodIds, UnauthorizedError } from '@/sync/periodsApi'
+import {
+  getPeriodFile,
+  listPeriodIds,
+  NotFoundException,
+  UnauthorizedError,
+} from '@/sync/periodsApi'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -59,15 +64,15 @@ async function loadPeriod(id: string): Promise<void> {
   periodEntries.value[id] = entryWith('loading')
   try {
     const content = await getPeriodFile(id)
-    if (!content) {
-      periodEntries.value[id] = entryWith('not-found')
-      return
-    }
     const { file, problems } = validatePeriodFile(content.json, id)
     periodEntries.value[id] = file
       ? entryWith('ready', { file, sha: content.sha, problems })
       : entryWith('error')
   } catch (error) {
+    if (error instanceof NotFoundException) {
+      periodEntries.value[id] = entryWith('not-found')
+      return
+    }
     periodEntries.value[id] = entryWith('error')
     if (error instanceof UnauthorizedError) {
       useSession().expire()
