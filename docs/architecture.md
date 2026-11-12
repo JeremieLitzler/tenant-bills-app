@@ -84,7 +84,7 @@ One module, the only one reaching `src/sync/`, with two functions over the same 
 // Collection-wide: the period list, the queue, the sync status.
 usePeriods(): {
   periodIds: Readonly<Ref<string[]>>                 // files in the data repo, e.g. ['2025-2026', '2026-2027']
-  listStatus: Readonly<Ref<'idle' | 'loading' | 'ready' | 'error'>>  // state of the period list request
+  listStatus: Readonly<Ref<'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'>>  // state of the period list request
   loadPeriodIds(): Promise<void>                     // lists the periods folder; a 401 calls the session's expire()
   pendingCount: Readonly<Ref<number>>                // whole queue, shown in the app shell
   syncState: Readonly<Ref<'idle' | 'saving' | 'offline' | 'error'>>
@@ -95,7 +95,7 @@ usePeriods(): {
 
 // One period, called by a page on setup with the [period] route param.
 usePeriod(id: MaybeRefOrGetter<string>): {
-  status: Readonly<Ref<'loading' | 'ready' | 'not-found' | 'error'>>
+  status: Readonly<Ref<'loading' | 'ready' | 'not-found' | 'error' | 'misconfigured'>>
   file: Readonly<Ref<ReadonlyPeriodFile | undefined>>  // local copy, queued patches applied (F3); read-only in code
   sha: Readonly<Ref<string | undefined>>              // kept for later writes
   problems: Readonly<Ref<PeriodFileProblem[]>>        // the "Validation" rules the file breaks, as codes
@@ -128,7 +128,7 @@ Issue #44. One function forwarding three operations to the GitHub Contents API o
 - `PUT { path, message, content, sha? }` puts one period file; without `sha` GitHub creates it. `GET` of one file is called by `usePeriod` (#45); no `PUT` caller until F3 (#30) and F7 (#34).
 - Only paths under `periods/` are accepted (no empty, `.` or `..` segment, no backslash), and an `owner` or `repo` that is not `DATA_REPO` is refused with 403. The client does not need to send them.
 - The branch is set from `DATA_BRANCH` on every request (`ref` on reads, `branch` on writes); a `ref` or `branch` sent by the client is ignored.
-- No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`.
+- No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`; the app then shows a full-page notice (`MisconfiguredNotice`) instead of the period list or page, and touches no local storage.
 
 ### Session: `src/composables/useSession.ts`
 

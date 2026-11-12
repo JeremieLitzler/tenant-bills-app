@@ -286,18 +286,38 @@ describe('github-api-proxy, put', () => {
 })
 
 describe('github-api-proxy, configuration', () => {
+  const operations = {
+    list: () => getEvent({ path: 'periods' }),
+    get: () => getEvent({ path: 'periods/2026-2027.json' }),
+    put: () => putEvent({ path: 'periods/2026-2027.json', message: 'x', content: 'e30=' }),
+  }
+
   it.each([
+    ['DATA_REPO', undefined],
     ['DATA_REPO', ''],
+    ['DATA_REPO', ' '],
     ['DATA_REPO', 'not-owner-name'],
+    ['DATA_REPO', 'owner/name/extra'],
+    ['DATA_BRANCH', undefined],
+    ['DATA_BRANCH', ''],
     ['DATA_BRANCH', ' '],
-  ])('answers 500 misconfigured when %s is %j', async (name, value) => {
-    vi.stubEnv(name, value)
-    const fetchStub = stubGithub()
+  ])('fails closed when %s is %j, on every operation', async (name, value) => {
+    for (const [operation, buildOperationEvent] of Object.entries(operations)) {
+      if (value === undefined) {
+        vi.stubEnv(name, undefined)
+      } else {
+        vi.stubEnv(name, value)
+      }
+      vi.mocked(console.error).mockClear()
+      const fetchStub = stubGithub()
 
-    const response = expectResponse(await handler(getEvent({ path: 'periods' }), CONTEXT))
+      const response = expectResponse(await handler(buildOperationEvent(), CONTEXT))
 
-    expect(response.statusCode).toBe(500)
-    expect(JSON.parse(response.body ?? '')).toEqual({ error: 'misconfigured' })
-    expect(fetchStub).not.toHaveBeenCalled()
+      expect(response.statusCode, operation).toBe(500)
+      expect(JSON.parse(response.body ?? ''), operation).toEqual({ error: 'misconfigured' })
+      expect(response.body, operation).not.toContain(name)
+      expect(JSON.stringify(vi.mocked(console.error).mock.calls), operation).toContain(name)
+      expect(fetchStub, operation).not.toHaveBeenCalled()
+    }
   })
 })

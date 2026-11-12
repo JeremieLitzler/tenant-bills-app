@@ -67,3 +67,20 @@ describe('PeriodList on the home page', () => {
     expect(router.currentRoute.value.query.redirect).toBe('/')
   })
 })
+
+describe('PeriodList with a misconfigured proxy', () => {
+  it('replaces the whole page with the misconfiguration error and a Netlify link', async () => {
+    const { MisconfiguredError } = await import('@/sync/periodsApi')
+    listPeriodIds.mockRejectedValue(new MisconfiguredError())
+
+    const { wrapper } = await mountApp()
+
+    const notice = wrapper.find('[data-testid="misconfigured"]')
+    expect(notice.exists()).toBe(true)
+    expect(notice.attributes('role')).toBe('alert')
+    expect(notice.find('a').attributes('href')).toBe('https://app.netlify.com/')
+    expect(wrapper.find('[data-testid="periods-error"]').exists()).toBe(false)
+    expect(wrapper.find('h1').exists()).toBe(false)
+    expect(notice.text()).not.toMatch(/DATA_|MisconfiguredError/)
+  })
+})

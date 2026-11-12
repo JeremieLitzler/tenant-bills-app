@@ -155,3 +155,19 @@ describe('period page', () => {
     })
   })
 })
+
+describe('period page with a misconfigured proxy', () => {
+  it('shows the full-page misconfiguration error, without any variable name', async () => {
+    const { MisconfiguredError } = await import('@/sync/periodsApi')
+    getPeriodFile.mockRejectedValue(new MisconfiguredError())
+
+    const { wrapper } = await openPeriodPage()
+    await flushPromises()
+
+    const notice = wrapper.find('[data-testid="misconfigured"]')
+    expect(notice.exists()).toBe(true)
+    expect(notice.find('a').attributes('href')).toBe('https://app.netlify.com/')
+    expect(wrapper.find('[data-testid="period-error"]').exists()).toBe(false)
+    expect(notice.text()).not.toMatch(/DATA_/)
+  })
+})
