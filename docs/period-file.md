@@ -38,7 +38,7 @@ Each period is one JSON file in the data repo `JeremieLitzler/tenant-bills-data`
 
 ## Absent, zero and inherited
 
-- An absent key means "not typed for this month". An inherited key (marked I below) then takes the previous month's value; a non-inherited key (N) is empty.
+- An absent key means "not typed for this month". An inherited key (marked `inherited` below) then takes the previous month's value; a `not-inherited` key is empty.
 - Any stored number, `0` included, means "typed for this month". Typing a value always stores it, even when it equals the inherited value.
 - `null` never appears in the file.
 - Exception: `common.tenantBillAdvance` is present in every month from the period's creation, starting at `0`; `0` means "nothing received".
@@ -71,55 +71,55 @@ Each period is one JSON file in the data repo `JeremieLitzler/tenant-bills-data`
 
 ## Keys per section
 
-(I) inherited, (N) not inherited. A key ending in `Previous` is the previous index of the meter of the same name.
+Each key is marked `inherited` or `not-inherited`. A key ending in `Previous` is the previous index of the meter of the same name.
 
 ### `common`
 
-- `readingDate` (N): the reading date ("Au") closing the month's window for every section. Stored only once the reading is taken. "Du" is not stored: it is the previous month's `readingDate`.
-- `readingDatePrevious` (N): the opening "Du" of the period. First month only.
-- `landlordOccupants` (I), `tenantOccupants` (I): occupant counts.
-- `tenantBillAdvance` (N, always present): the amount the tenant actually transferred that month.
+- `readingDate` (not-inherited): the reading date ("Au") closing the month's window for every section. Stored only once the reading is taken. "Du" is not stored: it is the previous month's `readingDate`.
+- `readingDatePrevious` (not-inherited): the opening "Du" of the period. First month only.
+- `landlordOccupants` (inherited), `tenantOccupants` (inherited): occupant counts.
+- `tenantBillAdvance` (not-inherited, always present): the amount the tenant actually transferred that month.
 
 ### `waterConsumption`
 
-- `mainMeter`, `studioUnsoftenedMeter`, `studioSoftenedMeter` (I): current indexes, in litres.
-- `mainMeterPrevious`, `studioUnsoftenedMeterPrevious`, `studioSoftenedMeterPrevious` (N): previous indexes, in litres (see "Previous indexes").
-- `pricePerM3`, `resourceWithdrawalFee`, `drinkingWaterFee`, `networkPerformanceFee` (I): prices per m³.
-- `subscription` (I): the monthly subscription.
-- `vat` (I).
+- `mainMeter`, `studioUnsoftenedMeter`, `studioSoftenedMeter` (inherited): current indexes, in litres.
+- `mainMeterPrevious`, `studioUnsoftenedMeterPrevious`, `studioSoftenedMeterPrevious` (not-inherited): previous indexes, in litres (see "Previous indexes").
+- `pricePerM3`, `resourceWithdrawalFee`, `drinkingWaterFee`, `networkPerformanceFee` (inherited): prices per m³.
+- `subscription` (inherited): the monthly subscription.
+- `vat` (inherited).
 
 ### `waterTreatment`
 
 The indexes are those of `waterConsumption`; they are not stored twice.
 
-- `collectionConsumptionDistributor`, `collectionConsumptionCommunity`, `sanitationPerformance` (I): prices per m³.
-- `vat` (I).
+- `collectionConsumptionDistributor`, `collectionConsumptionCommunity`, `sanitationPerformance` (inherited): prices per m³.
+- `vat` (inherited).
 
 ### `waterSoftener`
 
 At most one purchase per month; several purchases are summed into one. A month without a purchase has an empty object.
 
-- `description` (N), `quantity` (N), `unitPrice` (N).
+- `description` (not-inherited), `quantity` (not-inherited), `unitPrice` (not-inherited).
 
 ### `electricity`
 
-- `tariffMode` (I): `"base"` or `"hchp"`. The keys of the other mode are kept and ignored.
-- `subscriptionUnit` (I): `"day"` (the number of units is the number of days between "Du" and "Au") or `"month"` (one unit).
-- `mainBase`, `mainHc`, `mainHp`, `studioBase`, `studioHc`, `studioHp` (I): current indexes, in kWh.
-- the same six keys ending in `Previous` (N): previous indexes.
-- `excisePerKwh` (I): the CSPE / excise rate.
-- `kwhPriceBase`, `kwhPriceHc`, `kwhPriceHp` (I): prices excluding tax.
-- `subscriptionPerUnit` (I): subscription per day or per month, excluding tax.
-- `ctaTax` (I): the CTA amount.
-- `vat` (I).
+- `tariffMode` (inherited): `"base"` or `"hchp"`. The keys of the other mode are kept and ignored.
+- `subscriptionUnit` (inherited): `"day"` (the number of units is the number of days between "Du" and "Au") or `"month"` (one unit).
+- `mainBase`, `mainHc`, `mainHp`, `studioBase`, `studioHc`, `studioHp` (inherited): current indexes, in kWh.
+- the same six keys ending in `Previous` (not-inherited): previous indexes.
+- `excisePerKwh` (inherited): the CSPE / excise rate.
+- `kwhPriceBase`, `kwhPriceHc`, `kwhPriceHp` (inherited): prices excluding tax.
+- `subscriptionPerUnit` (inherited): subscription per day or per month, excluding tax.
+- `ctaTax` (inherited): the CTA amount.
+- `vat` (inherited).
 
 ### `internet`
 
-- `billedAmount` (I): the monthly bill, one number.
+- `billedAmount` (inherited): the monthly bill, one number.
 
 ### `heatPumpMaintenance`
 
-- `billedAmount` (N): the amount charged that month. When a period is created, the app asks for the annual amount and offers to split it: ROUND(annual / 12, 2) for eleven months and the remainder in August. 2025-2026 holds 154 in August only.
+- `billedAmount` (not-inherited): the amount charged that month. When a period is created, the app asks for the annual amount and offers to split it: ROUND(annual / 12, 2) for eleven months and the remainder in August. 2025-2026 holds 154 in August only.
 
 ## Previous indexes
 
