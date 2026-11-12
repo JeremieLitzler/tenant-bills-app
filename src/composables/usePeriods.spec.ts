@@ -5,11 +5,17 @@ import { effectScope, type MaybeRefOrGetter, ref } from 'vue'
 import { validPeriodJson } from '../../tests/helpers/periodFile'
 
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
-const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
+const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string }>>()
 
 class UnauthorizedError extends Error {}
+class NotFoundException extends Error {}
 
-vi.mock('@/sync/periodsApi', () => ({ listPeriodIds, getPeriodFile, UnauthorizedError }))
+vi.mock('@/sync/periodsApi', () => ({
+  listPeriodIds,
+  getPeriodFile,
+  UnauthorizedError,
+  NotFoundException,
+}))
 
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
@@ -172,13 +178,15 @@ describe('usePeriod', () => {
   })
 
   it('is not found when the file does not exist', async () => {
-    getPeriodFile.mockResolvedValue(undefined)
-    const { usePeriod } = await loadPeriods()
+    const { NotFoundException: SyncNotFound } = await import('@/sync/periodsApi')
+    getPeriodFile.mockRejectedValue(new SyncNotFound())
+    const { usePeriod, session } = await loadPeriods()
 
     const period = await openPeriod(usePeriod, '2031-2032')
 
     expect(period.status.value).toBe('not-found')
     expect(period.file.value).toBeUndefined()
+    expect(session.isSignedIn.value).toBe(true)
   })
 
   it('is an error on a network or proxy failure, and asks again the next time', async () => {
