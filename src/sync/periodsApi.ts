@@ -41,3 +41,39 @@ export async function listPeriodIds(): Promise<string[]> {
     .filter((id): id is string => id !== undefined)
     .sort()
 }
+
+export interface PeriodFileContent {
+  // The parsed JSON, not yet validated (src/domain/validatePeriodFile.ts).
+  json: unknown
+  // Kept for later writes: a PUT without it would overwrite a newer version.
+  sha: string
+}
+
+interface ContentsFile {
+  sha?: unknown
+  content?: unknown
+}
+
+function decodeBase64Utf8(base64: string): string {
+  const binary = atob(base64.replace(/\s/g, ''))
+  return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)))
+}
+
+// One period file and its SHA, or undefined when the file does not exist (GitHub 404).
+export async function getPeriodFile(id: string): Promise<PeriodFileContent | undefined> {
+  const response = await fetch(`${PROXY_PATH}?path=${PERIODS_FOLDER}/${id}.json`)
+  if (response.status === 404) {
+    return undefined
+  }
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+  if (!response.ok) {
+    throw new Error(`Loading the period ${id} failed (${response.status})`)
+  }
+  const answer = (await response.json()) as ContentsFile
+  if (typeof answer?.content !== 'string' || typeof answer.sha !== 'string') {
+    throw new Error(`Loading the period ${id} returned something other than a file`)
+  }
+  return { json: JSON.parse(decodeBase64Utf8(answer.content)), sha: answer.sha }
+}
