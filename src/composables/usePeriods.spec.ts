@@ -8,13 +8,13 @@ const listPeriodIds = vi.fn<() => Promise<string[]>>()
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string }>>()
 
 class UnauthorizedError extends Error {}
-class NotFoundException extends Error {}
+class NotFoundError extends Error {}
 
 vi.mock('@/sync/periodsApi', () => ({
   listPeriodIds,
   getPeriodFile,
   UnauthorizedError,
-  NotFoundException,
+  NotFoundError,
 }))
 
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
@@ -178,7 +178,7 @@ describe('usePeriod', () => {
   })
 
   it('is not found when the file does not exist', async () => {
-    const { NotFoundException: SyncNotFound } = await import('@/sync/periodsApi')
+    const { NotFoundError: SyncNotFound } = await import('@/sync/periodsApi')
     getPeriodFile.mockRejectedValue(new SyncNotFound())
     const { usePeriod, session } = await loadPeriods()
 

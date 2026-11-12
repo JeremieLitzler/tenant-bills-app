@@ -6,12 +6,7 @@ import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from '
 import { useSession } from '@/composables/useSession'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
-import {
-  getPeriodFile,
-  listPeriodIds,
-  NotFoundException,
-  UnauthorizedError,
-} from '@/sync/periodsApi'
+import { getPeriodFile, listPeriodIds, NotFoundError, UnauthorizedError } from '@/sync/periodsApi'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -69,7 +64,7 @@ async function loadPeriod(id: string): Promise<void> {
       ? entryWith('ready', { file, sha: content.sha, problems })
       : entryWith('error')
   } catch (error) {
-    if (error instanceof NotFoundException) {
+    if (error instanceof NotFoundError) {
       periodEntries.value[id] = entryWith('not-found')
       return
     }

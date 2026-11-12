@@ -14,10 +14,10 @@ export class UnauthorizedError extends Error {
 }
 
 // The proxy answered 404 for a period file: it does not exist in the data repo.
-export class NotFoundException extends Error {
+export class NotFoundError extends Error {
   constructor() {
     super('Not found')
-    this.name = 'NotFoundException'
+    this.name = 'NotFoundError'
   }
 }
 
@@ -67,11 +67,11 @@ function decodeBase64Utf8(base64: string): string {
   return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)))
 }
 
-// One period file and its SHA. Throws NotFoundException when the file does not exist (GitHub 404).
+// One period file and its SHA. Throws NotFoundError when the file does not exist (GitHub 404).
 export async function getPeriodFile(id: string): Promise<PeriodFileContent> {
   const response = await fetch(`${PROXY_PATH}?path=${PERIODS_FOLDER}/${id}.json`)
   if (response.status === 404) {
-    throw new NotFoundException()
+    throw new NotFoundError()
   }
   if (response.status === 401) {
     throw new UnauthorizedError()
