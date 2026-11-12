@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getPeriodFile, listPeriodIds, NotFoundError, UnauthorizedError } from './periodsApi'
+import {
+  getPeriodFile,
+  getPeriodSha,
+  listPeriodIds,
+  NotFoundError,
+  UnauthorizedError,
+} from './periodsApi'
 
 function stubProxy(status: number, body: unknown) {
   const fetchStub = vi.fn(async () => Response.json(body, { status }))
@@ -119,5 +125,44 @@ describe('getPeriodFile', () => {
     stubProxy(200, [{ name: '2026-2027.json' }])
 
     await expect(getPeriodFile('2026-2027')).rejects.toThrow()
+  })
+})
+
+describe('getPeriodSha', () => {
+  const listing = [
+    { name: '2025-2026.json', type: 'file', sha: 'sha-old' },
+    { name: '2026-2027.json', type: 'file', sha: 'sha-new' },
+  ]
+
+  it('reads the SHA from the periods folder, without downloading the file', async () => {
+    const fetchStub = stubProxy(200, listing)
+
+    expect(await getPeriodSha('2026-2027')).toBe('sha-new')
+    expect(fetchStub).toHaveBeenCalledTimes(1)
+    expect(fetchStub).toHaveBeenCalledWith('/.netlify/functions/github-api-proxy?path=periods')
+  })
+
+  it('throws NotFoundError when the period is not listed', async () => {
+    stubProxy(200, listing)
+
+    await expect(getPeriodSha('2031-2032')).rejects.toBeInstanceOf(NotFoundError)
+  })
+
+  it('throws NotFoundError when the periods folder does not exist', async () => {
+    stubProxy(404, { message: 'Not Found' })
+
+    await expect(getPeriodSha('2026-2027')).rejects.toBeInstanceOf(NotFoundError)
+  })
+
+  it('throws UnauthorizedError on a 401', async () => {
+    stubProxy(401, { error: 'Not authenticated' })
+
+    await expect(getPeriodSha('2026-2027')).rejects.toBeInstanceOf(UnauthorizedError)
+  })
+
+  it('throws when the entry carries no SHA', async () => {
+    stubProxy(200, [{ name: '2026-2027.json', type: 'file' }])
+
+    await expect(getPeriodSha('2026-2027')).rejects.toThrow()
   })
 })

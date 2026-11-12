@@ -24,14 +24,13 @@ export class NotFoundError extends Error {
 interface FolderEntry {
   name: string
   type: string
+  sha?: unknown
 }
 
-// The identifiers of the period files in the data repo, e.g. ['2025-2026', '2026-2027'].
-// A periods folder that does not exist yet (GitHub 404) is an empty list, not an error.
-export async function listPeriodIds(): Promise<string[]> {
+async function readPeriodsFolder(): Promise<FolderEntry[] | undefined> {
   const response = await fetch(`${PROXY_PATH}?path=${PERIODS_FOLDER}`)
   if (response.status === 404) {
-    return []
+    return undefined
   }
   if (response.status === 401) {
     throw new UnauthorizedError()
@@ -43,11 +42,32 @@ export async function listPeriodIds(): Promise<string[]> {
   if (!Array.isArray(entries)) {
     throw new Error('Listing the periods returned something other than a list')
   }
-  return (entries as FolderEntry[])
+  return entries as FolderEntry[]
+}
+
+// The identifiers of the period files in the data repo, e.g. ['2025-2026', '2026-2027'].
+// A periods folder that does not exist yet (GitHub 404) is an empty list, not an error.
+export async function listPeriodIds(): Promise<string[]> {
+  const entries = (await readPeriodsFolder()) ?? []
+  return entries
     .filter((entry) => entry.type === 'file')
     .map((entry) => PERIOD_FILE_PATTERN.exec(entry.name)?.[1])
     .filter((id): id is string => id !== undefined)
     .sort()
+}
+
+// The SHA of one period file in the data repo, read from the folder listing so the file itself is
+// not downloaded. Throws NotFoundError when the file is not listed.
+export async function getPeriodSha(id: string): Promise<string> {
+  const entries = (await readPeriodsFolder()) ?? []
+  const entry = entries.find((candidate) => candidate.name === `${id}.json`)
+  if (!entry) {
+    throw new NotFoundError()
+  }
+  if (typeof entry.sha !== 'string') {
+    throw new Error(`Listing the periods returned no SHA for ${id}`)
+  }
+  return entry.sha
 }
 
 export interface PeriodFileContent {

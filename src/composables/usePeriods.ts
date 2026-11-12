@@ -3,10 +3,17 @@
 // pending count come with F3 (#30). It imports the session state, never the reverse.
 import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
+import { pendingCountFor } from '@/composables/pendingPatches'
 import { useSession } from '@/composables/useSession'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
-import { getPeriodFile, listPeriodIds, NotFoundError, UnauthorizedError } from '@/sync/periodsApi'
+import {
+  getPeriodFile,
+  getPeriodSha,
+  listPeriodIds,
+  NotFoundError,
+  UnauthorizedError,
+} from '@/sync/periodsApi'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -15,8 +22,13 @@ const listStatus = ref<ListStatus>('idle')
 
 type PeriodStatus = 'loading' | 'ready' | 'not-found' | 'error'
 
+// The outcome of the last "Rafraîchir": `refreshing` while it runs, `failed` when the copy could
+// not be compared or replaced (the loaded copy is kept).
+export type RefreshStatus = 'idle' | 'refreshing' | 'up-to-date' | 'updated' | 'failed'
+
 interface PeriodEntry {
   status: PeriodStatus
+  refresh: RefreshStatus
   file?: PeriodFile
   sha?: string
   problems: PeriodFileProblem[]
@@ -26,7 +38,7 @@ function entryWith(
   status: PeriodStatus,
   rest: Partial<Omit<PeriodEntry, 'status'>> = {},
 ): PeriodEntry {
-  return { status, problems: [], ...rest }
+  return { status, refresh: 'idle', problems: [], ...rest }
 }
 
 // Every period opened so far, keyed by its identifier, for the browser session. A period that is
@@ -75,6 +87,39 @@ async function loadPeriod(id: string): Promise<void> {
   }
 }
 
+// Pulls the other device's changes: compares the remote SHA with the loaded copy and replaces the
+// copy only when they differ. Never runs while edits are pending, so none is discarded.
+async function refreshPeriod(id: string): Promise<void> {
+  const entry = periodEntries.value[id]
+  if (entry?.status !== 'ready' || entry.refresh === 'refreshing' || pendingCountFor(id) > 0) {
+    return
+  }
+  entry.refresh = 'refreshing'
+  try {
+    if ((await getPeriodSha(id)) === entry.sha) {
+      entry.refresh = 'up-to-date'
+      return
+    }
+    const content = await getPeriodFile(id)
+    const { file, problems } = validatePeriodFile(content.json, id)
+    if (!file) {
+      entry.refresh = 'failed'
+      return
+    }
+    periodEntries.value[id] = entryWith('ready', {
+      file,
+      sha: content.sha,
+      problems,
+      refresh: 'updated',
+    })
+  } catch (error) {
+    entry.refresh = 'failed'
+    if (error instanceof UnauthorizedError) {
+      useSession().expire()
+    }
+  }
+}
+
 // One period, called by a page on setup with its route param. Loads the file when it is not held
 // yet and again when the identifier changes. `file` is read-only: every edit goes through the
 // patch queue (ADR 0004), never into the object.
@@ -95,6 +140,15 @@ export function usePeriod(id: MaybeRefOrGetter<string>) {
     problems: computed(() => periodEntry.value?.problems ?? []),
     // The file broke a validation rule: the app shows it but never writes it.
     isReadOnly: computed(() => (periodEntry.value?.problems.length ?? 0) > 0),
+    refreshStatus: computed<RefreshStatus>(() => periodEntry.value?.refresh ?? 'idle'),
+    // "Rafraîchir" is available once the period is loaded, unless edits are waiting to be saved.
+    canRefresh: computed(
+      () =>
+        periodEntry.value?.status === 'ready' &&
+        periodEntry.value.refresh !== 'refreshing' &&
+        pendingCountFor(toValue(id)) === 0,
+    ),
+    refresh: () => refreshPeriod(toValue(id)),
   }
 }
 
@@ -103,5 +157,6 @@ export function usePeriods() {
     periodIds: readonly(periodIds),
     listStatus: readonly(listStatus),
     loadPeriodIds,
+    pendingCountFor,
   }
 }
