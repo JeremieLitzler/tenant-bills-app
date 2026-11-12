@@ -38,6 +38,9 @@ Your `netlify dev` test showed that a well-formed but nonexistent repo or branch
 
 ## Decided without being asked
 
-- In the decision index, "v0N" is the round file in which the question was asked (Q1 to Q8 in v01, Q10 and Q11 in v03, Q12 and Q13 in v04).
-- The new ticket's title ("A data repo or branch or folder or files that does not exist is not reported") and its wording are mine, adjusted by you.
+- Q7 was answered after v03, Q12 and Q13 after v04.
+  - OK
+- The new ticket's title ("A data repo or branch or folder or files that does not exist is not reported") and its wording are mine.
+  - Adjusted
 - The comment on #30 and the new ticket are drafted in files here and posted only after your approval.
+  - OK
