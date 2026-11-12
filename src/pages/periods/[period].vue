@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
+import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
@@ -41,7 +42,8 @@ const refreshMessage = computed(() => {
 
 <template>
   <!-- Placeholder view: F5 (#32) builds the period table. What a 404 page looks like is #15. -->
-  <p v-if="period.status.value === 'loading'" data-testid="period-loading">
+  <MisconfiguredNotice v-if="period.status.value === 'misconfigured'" />
+  <p v-else-if="period.status.value === 'loading'" data-testid="period-loading">
     {{ fr.period.loading }}
   </p>
   <p v-else-if="period.status.value === 'not-found'" data-testid="period-not-found">

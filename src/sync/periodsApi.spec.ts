@@ -4,6 +4,7 @@ import {
   getPeriodFile,
   getPeriodSha,
   listPeriodIds,
+  MisconfiguredError,
   NotFoundError,
   UnauthorizedError,
 } from './periodsApi'
@@ -51,7 +52,7 @@ describe('listPeriodIds', () => {
   })
 
   it('throws on any other failure', async () => {
-    stubProxy(500, { error: 'misconfigured' })
+    stubProxy(500, { error: 'boom' })
 
     await expect(listPeriodIds()).rejects.toThrow('500')
   })
@@ -164,5 +165,23 @@ describe('getPeriodSha', () => {
     stubProxy(200, [{ name: '2026-2027.json', type: 'file' }])
 
     await expect(getPeriodSha('2026-2027')).rejects.toThrow()
+  })
+})
+
+describe('a misconfigured proxy', () => {
+  it.each([
+    ['listPeriodIds', () => listPeriodIds()],
+    ['getPeriodSha', () => getPeriodSha('2026-2027')],
+    ['getPeriodFile', () => getPeriodFile('2026-2027')],
+  ])('%s throws MisconfiguredError on the misconfigured 500', async (_name, call) => {
+    stubProxy(500, { error: 'misconfigured' })
+
+    await expect(call()).rejects.toBeInstanceOf(MisconfiguredError)
+  })
+
+  it('does not take any other 500 for a misconfiguration', async () => {
+    stubProxy(500, { error: 'boom' })
+
+    await expect(listPeriodIds()).rejects.not.toBeInstanceOf(MisconfiguredError)
   })
 })

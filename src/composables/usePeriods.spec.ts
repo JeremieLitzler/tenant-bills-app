@@ -11,6 +11,7 @@ const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string
 
 class UnauthorizedError extends Error {}
 class NotFoundError extends Error {}
+class MisconfiguredError extends Error {}
 
 vi.mock('@/sync/periodsApi', () => ({
   listPeriodIds,
@@ -18,6 +19,7 @@ vi.mock('@/sync/periodsApi', () => ({
   getPeriodSha,
   UnauthorizedError,
   NotFoundError,
+  MisconfiguredError,
 }))
 
 vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
@@ -87,6 +89,28 @@ describe('usePeriods, period list', () => {
     await periods.loadPeriodIds()
 
     expect(periods.listStatus.value).toBe('error')
+    expect(session.isSignedIn.value).toBe(true)
+  })
+})
+
+describe('usePeriods, misconfigured proxy', () => {
+  it('reports misconfigured on the list, and keeps the session', async () => {
+    listPeriodIds.mockRejectedValue(new MisconfiguredError())
+    const { periods, session } = await loadPeriods()
+
+    await periods.loadPeriodIds()
+
+    expect(periods.listStatus.value).toBe('misconfigured')
+    expect(session.isSignedIn.value).toBe(true)
+  })
+
+  it('reports misconfigured on a period, and keeps the session', async () => {
+    getPeriodFile.mockRejectedValue(new MisconfiguredError())
+    const { usePeriod, session } = await loadPeriods()
+
+    const period = await openPeriod(usePeriod)
+
+    expect(period.status.value).toBe('misconfigured')
     expect(session.isSignedIn.value).toBe(true)
   })
 })

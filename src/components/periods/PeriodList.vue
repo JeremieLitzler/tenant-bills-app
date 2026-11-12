@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 
+import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
 import { usePeriods } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
@@ -14,7 +15,8 @@ onMounted(() => {
 
 <template>
   <!-- Minimal list shown on the home page: F7 (#34) builds the real period management page. -->
-  <section class="flex flex-col gap-4">
+  <MisconfiguredNotice v-if="periods.listStatus.value === 'misconfigured'" />
+  <section v-else class="flex flex-col gap-4">
     <h2 class="text-xl font-semibold">{{ fr.periods.title }}</h2>
     <p v-if="periods.listStatus.value === 'loading'" data-testid="periods-loading">
       {{ fr.periods.loading }}

@@ -11,16 +11,17 @@ import {
   getPeriodFile,
   getPeriodSha,
   listPeriodIds,
+  MisconfiguredError,
   NotFoundError,
   UnauthorizedError,
 } from '@/sync/periodsApi'
 
-type ListStatus = 'idle' | 'loading' | 'ready' | 'error'
+type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
 
 const periodIds = ref<string[]>([])
 const listStatus = ref<ListStatus>('idle')
 
-type PeriodStatus = 'loading' | 'ready' | 'not-found' | 'error'
+type PeriodStatus = 'loading' | 'ready' | 'not-found' | 'error' | 'misconfigured'
 
 // The outcome of the last "Rafraîchir": `refreshing` while it runs, `failed` when the copy could
 // not be compared or replaced (the loaded copy is kept).
@@ -53,7 +54,7 @@ async function loadPeriodIds(): Promise<void> {
     periodIds.value = await listPeriodIds()
     listStatus.value = 'ready'
   } catch (error) {
-    listStatus.value = 'error'
+    listStatus.value = error instanceof MisconfiguredError ? 'misconfigured' : 'error'
     if (error instanceof UnauthorizedError) {
       useSession().expire()
     }
@@ -80,7 +81,9 @@ async function loadPeriod(id: string): Promise<void> {
       periodEntries.value[id] = entryWith('not-found')
       return
     }
-    periodEntries.value[id] = entryWith('error')
+    periodEntries.value[id] = entryWith(
+      error instanceof MisconfiguredError ? 'misconfigured' : 'error',
+    )
     if (error instanceof UnauthorizedError) {
       useSession().expire()
     }

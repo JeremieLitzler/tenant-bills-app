@@ -21,6 +21,25 @@ export class NotFoundError extends Error {
   }
 }
 
+// The proxy answered 500 `misconfigured`: DATA_REPO or DATA_BRANCH is missing or malformed. The
+// variable is named in the function log only, so nothing here can say which one.
+export class MisconfiguredError extends Error {
+  constructor() {
+    super('The data proxy is misconfigured')
+    this.name = 'MisconfiguredError'
+  }
+}
+
+async function failFor(response: Response, what: string): Promise<never> {
+  if (response.status === 500) {
+    const answer: unknown = await response.json().catch(() => undefined)
+    if ((answer as { error?: unknown } | undefined)?.error === 'misconfigured') {
+      throw new MisconfiguredError()
+    }
+  }
+  throw new Error(`${what} failed (${response.status})`)
+}
+
 interface FolderEntry {
   name: string
   type: string
@@ -36,7 +55,7 @@ async function readPeriodsFolder(): Promise<FolderEntry[] | undefined> {
     throw new UnauthorizedError()
   }
   if (!response.ok) {
-    throw new Error(`Listing the periods failed (${response.status})`)
+    return failFor(response, 'Listing the periods')
   }
   const entries: unknown = await response.json()
   if (!Array.isArray(entries)) {
@@ -97,7 +116,7 @@ export async function getPeriodFile(id: string): Promise<PeriodFileContent> {
     throw new UnauthorizedError()
   }
   if (!response.ok) {
-    throw new Error(`Loading the period ${id} failed (${response.status})`)
+    return failFor(response, `Loading the period ${id}`)
   }
   const answer = (await response.json()) as ContentsFile
   if (typeof answer?.content !== 'string' || typeof answer.sha !== 'string') {
