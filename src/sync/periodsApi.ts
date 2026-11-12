@@ -46,7 +46,7 @@ interface FolderEntry {
   sha?: unknown
 }
 
-// TODO(#47 follow-up): a 404 here is read as an empty list even when the repo or branch does not
+// TODO(#104): a 404 here is read as an empty list even when the repo or branch does not
 // exist; see the ticket "A data repo or branch or folder or files that does not exist is not reported".
 async function readPeriodsFolder(): Promise<FolderEntry[] | undefined> {
   const response = await fetch(`${PROXY_PATH}?path=${PERIODS_FOLDER}`)
