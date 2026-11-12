@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
+import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
 import { useSession } from '@/composables/useSession'
 import { fr } from '@/i18n/fr'
 import { safeRedirect } from '@/lib/safeRedirect'
@@ -24,16 +25,11 @@ const errorMessage = computed(() => {
 <template>
   <section class="mx-auto flex max-w-sm flex-col gap-4">
     <h1 class="text-2xl font-semibold">{{ fr.signIn.title }}</h1>
-    <p v-if="errorMessage" role="alert" data-testid="sign-in-error" class="text-red-700">
+    <div v-if="route.query.error === 'misconfigured'" data-testid="sign-in-error">
+      <MisconfiguredNotice />
+    </div>
+    <p v-else-if="errorMessage" role="alert" data-testid="sign-in-error" class="text-red-700">
       {{ errorMessage }}
-      <a
-        v-if="route.query.error === 'misconfigured'"
-        href="https://app.netlify.com/"
-        target="_blank"
-        rel="noopener"
-        class="underline"
-        >{{ fr.signIn.netlifyLink }}</a
-      >
     </p>
     <button
       type="button"

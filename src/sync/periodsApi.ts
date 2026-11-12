@@ -30,14 +30,14 @@ export class MisconfiguredError extends Error {
   }
 }
 
-async function failFor(response: Response, what: string): Promise<never> {
+async function throwHttpError(response: Response, action: string): Promise<never> {
   if (response.status === 500) {
     const answer: unknown = await response.json().catch(() => undefined)
     if ((answer as { error?: unknown } | undefined)?.error === 'misconfigured') {
       throw new MisconfiguredError()
     }
   }
-  throw new Error(`${what} failed (${response.status})`)
+  throw new Error(`${action} failed (${response.status})`)
 }
 
 interface FolderEntry {
@@ -46,6 +46,8 @@ interface FolderEntry {
   sha?: unknown
 }
 
+// TODO(#47 follow-up): a 404 here is read as an empty list even when the repo or branch does not
+// exist; see the ticket "A data repo or branch or folder or files that does not exist is not reported".
 async function readPeriodsFolder(): Promise<FolderEntry[] | undefined> {
   const response = await fetch(`${PROXY_PATH}?path=${PERIODS_FOLDER}`)
   if (response.status === 404) {
@@ -55,7 +57,7 @@ async function readPeriodsFolder(): Promise<FolderEntry[] | undefined> {
     throw new UnauthorizedError()
   }
   if (!response.ok) {
-    return failFor(response, 'Listing the periods')
+    return throwHttpError(response, 'Listing the periods')
   }
   const entries: unknown = await response.json()
   if (!Array.isArray(entries)) {
@@ -116,7 +118,7 @@ export async function getPeriodFile(id: string): Promise<PeriodFileContent> {
     throw new UnauthorizedError()
   }
   if (!response.ok) {
-    return failFor(response, `Loading the period ${id}`)
+    return throwHttpError(response, `Loading the period ${id}`)
   }
   const answer = (await response.json()) as ContentsFile
   if (typeof answer?.content !== 'string' || typeof answer.sha !== 'string') {
