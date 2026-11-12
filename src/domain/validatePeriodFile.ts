@@ -36,6 +36,7 @@ function expectedMonths(periodId: string): string[] | undefined {
   const match = /^(\d{4})-(\d{4})$/.exec(periodId)
   if (!match) return undefined
   const [firstYear, secondYear] = [Number(match[1]), Number(match[2])]
+  if (secondYear !== firstYear + 1) return undefined
   const months: string[] = []
   for (let offset = 0; offset < 12; offset++) {
     const calendarMonth = ((8 + offset) % 12) + 1
@@ -68,9 +69,7 @@ function hasExpectedMonths(months: unknown[], periodId: string): boolean {
 function everyMonthHasAdvance(months: unknown[]): boolean {
   return months.every(
     (entry) =>
-      isObject(entry) &&
-      isObject(entry.common) &&
-      typeof entry.common.tenantBillAdvance === 'number',
+      isObject(entry) && isObject(entry.common) && Number.isFinite(entry.common.tenantBillAdvance),
   )
 }
 

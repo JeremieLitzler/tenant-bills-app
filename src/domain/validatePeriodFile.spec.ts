@@ -85,6 +85,20 @@ describe('validatePeriodFile', () => {
     expect(validatePeriodFile(validRaw(), '2027-2028').problems).toEqual(['months'])
   })
 
+  it('flags a period name whose second year is not the year after the first', () => {
+    const raw = { ...validRaw(), periodName: '2026-2030' }
+    raw.months = MONTHS.map((month) => ({ ...validRaw().months[0], month }))
+
+    expect(validatePeriodFile(raw, '2026-2030').problems).toEqual(['months'])
+  })
+
+  it('flags a tenantBillAdvance that is not a finite number', () => {
+    const raw = validRaw()
+    raw.months[1].common.tenantBillAdvance = Number.NaN
+
+    expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['tenant-bill-advance'])
+  })
+
   it('flags a month without common.tenantBillAdvance', () => {
     const raw = validRaw()
     raw.months[3].common = {} as { tenantBillAdvance: number }
