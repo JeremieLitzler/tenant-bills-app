@@ -22,6 +22,20 @@ export const fr = {
     empty: 'Aucune période pour le moment.',
     error: 'Impossible de charger les périodes. Merci de réessayer.',
   },
+  period: {
+    loading: 'Chargement de la période…',
+    notFound: 'Période introuvable.',
+    error: 'Impossible de charger la période. Merci de réessayer.',
+    readOnlyNotice:
+      "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
+    problems: {
+      'schema-version': 'La version du format du fichier est inconnue ou plus récente.',
+      months: "Les mois ne sont pas les douze mois de la période, dans l'ordre.",
+      'tenant-bill-advance': "Un mois n'a pas de provision du locataire.",
+      'water-index': "Un index d'eau n'est pas un nombre entier.",
+      'closed-on': 'La date de clôture est mal formée.',
+    },
+  },
   session: {
     confirmSignOut(pendingCount: number): string {
       const plural = pendingCount > 1 ? 's' : ''

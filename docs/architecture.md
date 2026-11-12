@@ -105,6 +105,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 }
 ```
 
+- Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName`, `settings` or `months`) is an `error`. A `ready` period is never fetched again; a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period].vue`, a placeholder until F5 (#32).
 - Every period loaded so far is kept, keyed by its identifier, for the browser session. Periods are loaded lazily: "Estimer les relevés" and `createPeriod` load the previous period themselves.
 - The computed figures are computed once per period, in a `computed()` over `src/domain/`. The table, the form and the settlement view only read them.
 - Views never write `file`. Every edit, estimate or close goes through the queue as a patch.
@@ -118,7 +119,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 Issue #44. One function forwarding three operations to the GitHub Contents API of `DATA_REPO`, with the token from the `gh_token` cookie:
 
 - `GET ?path=periods` lists the periods folder; `GET ?path=periods/2026-2027.json` gets one period file (content and SHA).
-- `PUT { path, message, content, sha? }` puts one period file; without `sha` GitHub creates it. No caller until F3 (#30) and F7 (#34).
+- `PUT { path, message, content, sha? }` puts one period file; without `sha` GitHub creates it. `GET` of one file is called by `usePeriod` (#45); no `PUT` caller until F3 (#30) and F7 (#34).
 - Only paths under `periods/` are accepted (no empty, `.` or `..` segment, no backslash), and an `owner` or `repo` that is not `DATA_REPO` is refused with 403. The client does not need to send them.
 - The branch is set from `DATA_BRANCH` on every request (`ref` on reads, `branch` on writes); a `ref` or `branch` sent by the client is ignored.
 - No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`.
