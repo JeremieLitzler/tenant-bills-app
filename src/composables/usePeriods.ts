@@ -46,15 +46,21 @@ function entryWith(
 // ready is never fetched again; a not-found or failed one is asked again on the next opening.
 const periodEntries = ref<Record<string, PeriodEntry>>({})
 
+// A misconfigured proxy gets its own status (a full-page notice); every other failure is `error`.
+function failureStatus(error: unknown): 'error' | 'misconfigured' {
+  return error instanceof MisconfiguredError ? 'misconfigured' : 'error'
+}
+
 // Reads the periods folder through the proxy. A 401 ends the session (the app shell then
 // redirects to the sign-in page); the state itself never redirects.
 async function loadPeriodIds(): Promise<void> {
+  // Q7 (#47): nothing here may clear queued edits when the proxy is misconfigured; see #30.
   listStatus.value = 'loading'
   try {
     periodIds.value = await listPeriodIds()
     listStatus.value = 'ready'
   } catch (error) {
-    listStatus.value = error instanceof MisconfiguredError ? 'misconfigured' : 'error'
+    listStatus.value = failureStatus(error)
     if (error instanceof UnauthorizedError) {
       useSession().expire()
     }
@@ -81,9 +87,7 @@ async function loadPeriod(id: string): Promise<void> {
       periodEntries.value[id] = entryWith('not-found')
       return
     }
-    periodEntries.value[id] = entryWith(
-      error instanceof MisconfiguredError ? 'misconfigured' : 'error',
-    )
+    periodEntries.value[id] = entryWith(failureStatus(error))
     if (error instanceof UnauthorizedError) {
       useSession().expire()
     }

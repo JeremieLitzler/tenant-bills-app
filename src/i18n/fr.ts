@@ -4,13 +4,15 @@ export const fr = {
   signIn: {
     title: 'Connexion',
     button: 'Se connecter avec GitHub',
-    netlifyLink: 'Ouvrir Netlify',
     errors: {
       'not-allowed': "Ce compte GitHub n'est pas autorisé à utiliser l'application.",
-      misconfigured:
-        "L'application n'est pas configurée correctement. Consultez les journaux des fonctions Netlify.",
       failed: 'La connexion à GitHub a échoué. Merci de réessayer.',
     },
+  },
+  misconfigured: {
+    message:
+      "L'application n'est pas configurée correctement. Consultez les journaux des fonctions Netlify.",
+    netlifyLink: 'Ouvrir Netlify',
   },
   shell: {
     appName: 'Charges de location',

@@ -4,9 +4,9 @@ import { fr } from '@/i18n/fr'
 
 <template>
   <p role="alert" data-testid="misconfigured" class="text-red-700">
-    {{ fr.signIn.errors.misconfigured }}
+    {{ fr.misconfigured.message }}
     <a href="https://app.netlify.com/" target="_blank" rel="noopener" class="underline">{{
-      fr.signIn.netlifyLink
+      fr.misconfigured.netlifyLink
     }}</a>
   </p>
 </template>

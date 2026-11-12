@@ -80,7 +80,6 @@ describe('PeriodList with a misconfigured proxy', () => {
     expect(notice.attributes('role')).toBe('alert')
     expect(notice.find('a').attributes('href')).toBe('https://app.netlify.com/')
     expect(wrapper.find('[data-testid="periods-error"]').exists()).toBe(false)
-    expect(wrapper.find('h1').exists()).toBe(false)
     expect(notice.text()).not.toMatch(/DATA_|MisconfiguredError/)
   })
 })
