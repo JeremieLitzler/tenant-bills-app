@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveFrom, resolveValue } from './inheritance'
+import { resolveMonthWindowStart, resolveValue } from './inheritance'
 import type { MonthEntry, PeriodFile, SectionInputs } from './periodFile'
 
 type Sections = { [S in keyof SectionInputs]?: Partial<SectionInputs[S]> }
@@ -171,7 +171,7 @@ describe('resolveValue, previous indexes', () => {
   })
 })
 
-describe('resolveFrom ("Du")', () => {
+describe('resolveMonthWindowStart ("Du")', () => {
   const file = period(
     month('2026-09', {
       common: {
@@ -185,12 +185,21 @@ describe('resolveFrom ("Du")', () => {
   )
 
   it('is readingDatePrevious in the first month', () => {
-    expect(resolveFrom(file, '2026-09')).toEqual({ value: '2026-09-12', provenance: 'typed' })
+    expect(resolveMonthWindowStart(file, '2026-09')).toEqual({
+      value: '2026-09-12',
+      provenance: 'typed',
+    })
   })
 
   it('is the previous month readingDate afterwards', () => {
-    expect(resolveFrom(file, '2026-10')).toEqual({ value: '2026-10-11', provenance: 'derived' })
-    expect(resolveFrom(file, '2026-11')).toEqual({ value: '2026-11-10', provenance: 'derived' })
+    expect(resolveMonthWindowStart(file, '2026-10')).toEqual({
+      value: '2026-10-11',
+      provenance: 'derived',
+    })
+    expect(resolveMonthWindowStart(file, '2026-11')).toEqual({
+      value: '2026-11-10',
+      provenance: 'derived',
+    })
   })
 
   it('never derives readingDatePrevious from the previous month readingDate', () => {
@@ -199,7 +208,7 @@ describe('resolveFrom ("Du")', () => {
 
   it('is empty when the reference date is not stored', () => {
     const open = period(month('2026-09'), month('2026-10'))
-    expect(resolveFrom(open, '2026-09')).toBeUndefined()
-    expect(resolveFrom(open, '2026-10')).toBeUndefined()
+    expect(resolveMonthWindowStart(open, '2026-09')).toBeUndefined()
+    expect(resolveMonthWindowStart(open, '2026-10')).toBeUndefined()
   })
 })

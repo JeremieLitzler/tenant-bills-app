@@ -29,18 +29,27 @@ function currentKeyOf(section: SectionName, key: string): string | undefined {
   return current in FIELD_CATALOGUE[section] ? current : undefined
 }
 
-// Undefined means empty: nothing typed, and nothing to inherit or derive.
+function monthIndex(file: PeriodFile, month: string): number {
+  return file.months.findIndex((entry) => entry.month === month)
+}
+
+// Undefined means empty: nothing typed, and nothing to inherit or derive. An unknown month is also
+// undefined: the validation of #45 guarantees the months exist.
 export function resolveValue<S extends SectionName, K extends KeyOf<S>>(
   file: PeriodFile,
   month: string,
   section: S,
   key: K,
 ): Resolved<ValueOf<S, K>> | undefined {
-  const index = file.months.findIndex((entry) => entry.month === month)
-  return index < 0 ? undefined : resolveAt(file, index, section, key)
+  const index = monthIndex(file, month)
+  return index < 0 ? undefined : resolveAtIndex(file, index, section, key)
 }
 
-function resolveAt<S extends SectionName, K extends KeyOf<S>>(
+// The worker behind `resolveValue`, on a month's position in `file.months`. The month's own value
+// wins (typed). Otherwise it walks back through the earlier months: a `...Previous` index takes the
+// resolved current index of the month before (derived), an inherited key takes the value of the
+// month before (inherited), and anything else is empty. Recursion ends at the first month.
+function resolveAtIndex<S extends SectionName, K extends KeyOf<S>>(
   file: PeriodFile,
   index: number,
   section: S,
@@ -52,25 +61,30 @@ function resolveAt<S extends SectionName, K extends KeyOf<S>>(
 
   const currentKey = currentKeyOf(section, key)
   if (currentKey !== undefined) {
-    const previousCurrent = resolveAt(file, index - 1, section, currentKey as KeyOf<S>)
+    const previousCurrent = resolveAtIndex(file, index - 1, section, currentKey as KeyOf<S>)
     return (
       previousCurrent && {
+        // Safe: both keys hold the same type (numbers), checked by `MeterPairsAgree` in periodFile.ts.
         value: previousCurrent.value as unknown as ValueOf<S, K>,
         provenance: 'derived',
       }
     )
   }
 
-  if (FIELD_CATALOGUE[section][key] === 'I') {
-    const earlier = resolveAt(file, index - 1, section, key)
+  if (FIELD_CATALOGUE[section][key] === 'inherited') {
+    const earlier = resolveAtIndex(file, index - 1, section, key)
     return earlier && { value: earlier.value, provenance: 'inherited' }
   }
   return undefined
 }
 
-// "Du": the previous month's reading date, or the period's opening date in the first month.
-export function resolveFrom(file: PeriodFile, month: string): Resolved<string> | undefined {
-  const index = file.months.findIndex((entry) => entry.month === month)
+// The start of the month's date range, the sheet's "Du": the previous month's reading date, or the
+// period's opening date in the first month. Not the first day of the calendar month.
+export function resolveMonthWindowStart(
+  file: PeriodFile,
+  month: string,
+): Resolved<string> | undefined {
+  const index = monthIndex(file, month)
   if (index < 0) return undefined
   if (index === 0) {
     const opening = file.months[0].common.readingDatePrevious

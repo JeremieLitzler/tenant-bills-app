@@ -95,63 +95,88 @@ export interface PeriodFile {
   months: MonthEntry[]
 }
 
-// "I": an untyped key takes the previous month's value. "N": an untyped key is empty.
-export type Inheritance = 'I' | 'N'
+// "inherited": an untyped key takes the previous month's value. "not-inherited": an untyped key is
+// empty. The `...Previous` index keys are "not-inherited" from their own key, but the resolver
+// derives them from the previous month's current index (see `resolveAtIndex` in inheritance.ts).
+export type Inheritance = 'inherited' | 'not-inherited'
 
 type Catalogue = { [S in SectionName]: Record<keyof SectionInputs[S], Inheritance> }
 
 export const FIELD_CATALOGUE: Catalogue = {
   common: {
-    readingDate: 'N',
-    readingDatePrevious: 'N',
-    landlordOccupants: 'I',
-    tenantOccupants: 'I',
-    tenantBillAdvance: 'N',
+    readingDate: 'not-inherited',
+    readingDatePrevious: 'not-inherited',
+    landlordOccupants: 'inherited',
+    tenantOccupants: 'inherited',
+    tenantBillAdvance: 'not-inherited',
   },
   waterConsumption: {
-    mainMeter: 'I',
-    studioUnsoftenedMeter: 'I',
-    studioSoftenedMeter: 'I',
-    mainMeterPrevious: 'N',
-    studioUnsoftenedMeterPrevious: 'N',
-    studioSoftenedMeterPrevious: 'N',
-    pricePerM3: 'I',
-    resourceWithdrawalFee: 'I',
-    drinkingWaterFee: 'I',
-    networkPerformanceFee: 'I',
-    subscription: 'I',
-    vat: 'I',
+    mainMeter: 'inherited',
+    studioUnsoftenedMeter: 'inherited',
+    studioSoftenedMeter: 'inherited',
+    mainMeterPrevious: 'not-inherited',
+    studioUnsoftenedMeterPrevious: 'not-inherited',
+    studioSoftenedMeterPrevious: 'not-inherited',
+    pricePerM3: 'inherited',
+    resourceWithdrawalFee: 'inherited',
+    drinkingWaterFee: 'inherited',
+    networkPerformanceFee: 'inherited',
+    subscription: 'inherited',
+    vat: 'inherited',
   },
   waterTreatment: {
-    collectionConsumptionDistributor: 'I',
-    collectionConsumptionCommunity: 'I',
-    sanitationPerformance: 'I',
-    vat: 'I',
+    collectionConsumptionDistributor: 'inherited',
+    collectionConsumptionCommunity: 'inherited',
+    sanitationPerformance: 'inherited',
+    vat: 'inherited',
   },
-  waterSoftener: { description: 'N', quantity: 'N', unitPrice: 'N' },
+  waterSoftener: {
+    description: 'not-inherited',
+    quantity: 'not-inherited',
+    unitPrice: 'not-inherited',
+  },
   electricity: {
-    tariffMode: 'I',
-    subscriptionUnit: 'I',
-    mainBase: 'I',
-    mainHc: 'I',
-    mainHp: 'I',
-    studioBase: 'I',
-    studioHc: 'I',
-    studioHp: 'I',
-    mainBasePrevious: 'N',
-    mainHcPrevious: 'N',
-    mainHpPrevious: 'N',
-    studioBasePrevious: 'N',
-    studioHcPrevious: 'N',
-    studioHpPrevious: 'N',
-    excisePerKwh: 'I',
-    kwhPriceBase: 'I',
-    kwhPriceHc: 'I',
-    kwhPriceHp: 'I',
-    subscriptionPerUnit: 'I',
-    ctaTax: 'I',
-    vat: 'I',
+    tariffMode: 'inherited',
+    subscriptionUnit: 'inherited',
+    mainBase: 'inherited',
+    mainHc: 'inherited',
+    mainHp: 'inherited',
+    studioBase: 'inherited',
+    studioHc: 'inherited',
+    studioHp: 'inherited',
+    mainBasePrevious: 'not-inherited',
+    mainHcPrevious: 'not-inherited',
+    mainHpPrevious: 'not-inherited',
+    studioBasePrevious: 'not-inherited',
+    studioHcPrevious: 'not-inherited',
+    studioHpPrevious: 'not-inherited',
+    excisePerKwh: 'inherited',
+    kwhPriceBase: 'inherited',
+    kwhPriceHc: 'inherited',
+    kwhPriceHp: 'inherited',
+    subscriptionPerUnit: 'inherited',
+    ctaTax: 'inherited',
+    vat: 'inherited',
   },
-  internet: { billedAmount: 'I' },
-  heatPumpMaintenance: { billedAmount: 'N' },
+  internet: { billedAmount: 'inherited' },
+  heatPumpMaintenance: { billedAmount: 'not-inherited' },
 }
+
+// A `...Previous` key takes the value of its current key (`resolveAtIndex` casts for that), so the
+// two must have the same type. This fails `vue-tsc` if a meter pair ever drifts apart.
+type PairsAgree<S> = {
+  [K in keyof S & `${string}Previous`]: K extends `${infer C}Previous`
+    ? C extends keyof S
+      ? [S[K]] extends [S[C]]
+        ? [S[C]] extends [S[K]]
+          ? true
+          : false
+        : false
+      : true
+    : true
+}[keyof S & `${string}Previous`]
+type MustBeTrue<T extends true> = T
+export type MeterPairsAgree = [
+  MustBeTrue<PairsAgree<WaterConsumptionInputs>>,
+  MustBeTrue<PairsAgree<ElectricityInputs>>,
+]
