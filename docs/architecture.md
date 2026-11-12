@@ -100,6 +100,9 @@ usePeriod(id: MaybeRefOrGetter<string>): {
   sha: Readonly<Ref<string | undefined>>              // kept for later writes
   problems: Readonly<Ref<PeriodFileProblem[]>>        // the "Validation" rules the file breaks, as codes
   isReadOnly: Readonly<Ref<boolean>>                  // at least one problem: shown with a notice, never written
+  refreshStatus: Readonly<Ref<'idle' | 'refreshing' | 'up-to-date' | 'updated' | 'failed'>>  // last "Rafraîchir"
+  canRefresh: Readonly<Ref<boolean>>                  // ready and pendingCountFor(id) is zero
+  refresh(): Promise<void>                           // compares the remote SHA, replaces the copy only if it differs
   figures: Readonly<Ref<PeriodFigures | undefined>>  // computed once from src/domain/
   isClosed: Readonly<Ref<boolean>>
   setCell(month: string, field: string, value: unknown): void  // enqueues a patch (ADR 0004)

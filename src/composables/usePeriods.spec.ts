@@ -5,6 +5,8 @@ import { effectScope, type MaybeRefOrGetter, ref } from 'vue'
 import { validPeriodJson } from '../../tests/helpers/periodFile'
 
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
+const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
+const pendingCountFor = vi.fn<(id: string) => number>(() => 0)
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string }>>()
 
 class UnauthorizedError extends Error {}
@@ -13,9 +15,12 @@ class NotFoundError extends Error {}
 vi.mock('@/sync/periodsApi', () => ({
   listPeriodIds,
   getPeriodFile,
+  getPeriodSha,
   UnauthorizedError,
   NotFoundError,
 }))
+
+vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
 
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
@@ -28,6 +33,9 @@ async function loadPeriods(signedInAs = 'JeremieLitzler') {
 beforeEach(() => {
   listPeriodIds.mockReset()
   getPeriodFile.mockReset()
+  getPeriodSha.mockReset()
+  pendingCountFor.mockReset()
+  pendingCountFor.mockReturnValue(0)
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
 })
 
@@ -221,6 +229,103 @@ describe('usePeriod', () => {
     const period = await openPeriod(usePeriod)
 
     expect(period.status.value).toBe('error')
+    expect(session.isSignedIn.value).toBe(false)
+  })
+})
+
+describe('usePeriod, refresh', () => {
+  async function openReady() {
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 'sha-1' })
+    const { usePeriod, session } = await loadPeriods()
+    return { period: await openPeriod(usePeriod), session }
+  }
+
+  it('reports up to date and downloads nothing when the SHA is unchanged', async () => {
+    const { period } = await openReady()
+    getPeriodSha.mockResolvedValue('sha-1')
+
+    await period.refresh()
+
+    expect(period.refreshStatus.value).toBe('up-to-date')
+    expect(getPeriodFile).toHaveBeenCalledTimes(1)
+    expect(period.sha.value).toBe('sha-1')
+  })
+
+  it('replaces the copy when the remote SHA differs', async () => {
+    const { period } = await openReady()
+    getPeriodSha.mockResolvedValue('sha-2')
+    getPeriodFile.mockResolvedValue({
+      json: { ...validPeriodJson(), note: 'changed' },
+      sha: 'sha-2',
+    })
+
+    await period.refresh()
+
+    expect(period.refreshStatus.value).toBe('updated')
+    expect(period.sha.value).toBe('sha-2')
+    expect(getPeriodFile).toHaveBeenCalledTimes(2)
+    expect(period.file.value).toMatchObject({ note: 'changed' })
+  })
+
+  it('re-validates the new copy', async () => {
+    const { period } = await openReady()
+    getPeriodSha.mockResolvedValue('sha-2')
+    getPeriodFile.mockResolvedValue({
+      json: { ...validPeriodJson(), schemaVersion: 2 },
+      sha: 'sha-2',
+    })
+
+    await period.refresh()
+
+    expect(period.isReadOnly.value).toBe(true)
+  })
+
+  it('does nothing while edits are pending on the period', async () => {
+    const { period } = await openReady()
+    pendingCountFor.mockImplementation((id) => (id === '2026-2027' ? 2 : 0))
+
+    expect(period.canRefresh.value).toBe(false)
+    await period.refresh()
+
+    expect(getPeriodSha).not.toHaveBeenCalled()
+    expect(period.refreshStatus.value).toBe('idle')
+  })
+
+  it('is available once the period is ready and no edit is pending', async () => {
+    const { period } = await openReady()
+
+    expect(period.canRefresh.value).toBe(true)
+  })
+
+  it('keeps the loaded copy and reports a failure', async () => {
+    const { period, session } = await openReady()
+    getPeriodSha.mockRejectedValue(new Error('502'))
+
+    await period.refresh()
+
+    expect(period.refreshStatus.value).toBe('failed')
+    expect(period.file.value?.periodName).toBe('2026-2027')
+    expect(period.sha.value).toBe('sha-1')
+    expect(session.isSignedIn.value).toBe(true)
+  })
+
+  it('keeps the loaded copy when the new file is not shaped like a period file', async () => {
+    const { period } = await openReady()
+    getPeriodSha.mockResolvedValue('sha-2')
+    getPeriodFile.mockResolvedValue({ json: 'nonsense', sha: 'sha-2' })
+
+    await period.refresh()
+
+    expect(period.refreshStatus.value).toBe('failed')
+    expect(period.sha.value).toBe('sha-1')
+  })
+
+  it('expires the session on a 401', async () => {
+    const { period, session } = await openReady()
+    getPeriodSha.mockRejectedValue(new UnauthorizedError())
+
+    await period.refresh()
+
     expect(session.isSignedIn.value).toBe(false)
   })
 })

@@ -4,13 +4,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { validPeriodJson } from '../../../tests/helpers/periodFile'
 
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
+const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
+const pendingCountFor = vi.fn<(id: string) => number>(() => 0)
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/periodsApi')>()),
   getPeriodFile,
+  getPeriodSha,
   listPeriodIds,
 }))
+
+vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
 
 function periodJson(overrides: Record<string, unknown> = {}) {
   return { ...validPeriodJson(), ...overrides }
@@ -30,6 +35,9 @@ async function openPeriodPage(path = '/periods/2026-2027') {
 beforeEach(() => {
   vi.resetModules()
   getPeriodFile.mockReset()
+  getPeriodSha.mockReset()
+  pendingCountFor.mockReset()
+  pendingCountFor.mockReturnValue(0)
   listPeriodIds.mockReset()
   listPeriodIds.mockResolvedValue([])
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
@@ -89,5 +97,61 @@ describe('period page', () => {
 
     expect(wrapper.get('[data-testid="period-read-only"]').text()).toContain('lecture seule')
     expect(wrapper.findAll('[data-testid="period-months"] li')).toHaveLength(1)
+  })
+
+  describe('Rafraîchir', () => {
+    it("shows the other device's changes when the remote file differs", async () => {
+      getPeriodFile.mockResolvedValueOnce({ json: periodJson(), sha: 'sha-1' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      getPeriodSha.mockResolvedValue('sha-2')
+      getPeriodFile.mockResolvedValue({
+        json: periodJson({ months: periodJson().months.slice(0, 11) }),
+        sha: 'sha-2',
+      })
+
+      await wrapper.get('[data-testid="period-refresh"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.get('[data-testid="period-refresh-result"]').text()).toContain('mise à jour')
+      expect(wrapper.findAll('[data-testid="period-months"] li')).toHaveLength(11)
+    })
+
+    it('says the period is up to date and keeps the copy when nothing changed', async () => {
+      getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 'sha-1' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      getPeriodSha.mockResolvedValue('sha-1')
+
+      await wrapper.get('[data-testid="period-refresh"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.get('[data-testid="period-refresh-result"]').text()).toContain('à jour')
+      expect(getPeriodFile).toHaveBeenCalledTimes(1)
+    })
+
+    it('is disabled while edits are pending', async () => {
+      pendingCountFor.mockReturnValue(3)
+      getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 'sha-1' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+
+      const button = wrapper.get('[data-testid="period-refresh"]')
+      expect(button.attributes('disabled')).toBeDefined()
+      await button.trigger('click')
+      expect(getPeriodSha).not.toHaveBeenCalled()
+    })
+
+    it('reports a failure', async () => {
+      getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 'sha-1' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      getPeriodSha.mockRejectedValue(new Error('502'))
+
+      await wrapper.get('[data-testid="period-refresh"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.get('[role="alert"]').text()).toContain('Impossible de rafraîchir')
+    })
   })
 })

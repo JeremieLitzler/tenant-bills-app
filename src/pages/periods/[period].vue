@@ -24,6 +24,19 @@ const months = computed(() =>
     .filter((entry) => typeof entry?.month === 'string')
     .map((entry) => ({ key: entry.month, label: monthLabel(entry.month) })),
 )
+
+const refreshMessage = computed(() => {
+  switch (period.refreshStatus.value) {
+    case 'up-to-date':
+      return fr.period.refresh.upToDate
+    case 'updated':
+      return fr.period.refresh.updated
+    case 'failed':
+      return fr.period.refresh.failed
+    default:
+      return undefined
+  }
+})
 </script>
 
 <template>
@@ -38,7 +51,29 @@ const months = computed(() =>
     {{ fr.period.error }}
   </p>
   <div v-else class="flex flex-col gap-4">
-    <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
+      <button
+        type="button"
+        class="rounded border px-3 py-1 disabled:opacity-50"
+        data-testid="period-refresh"
+        :disabled="!period.canRefresh.value"
+        @click="period.refresh()"
+      >
+        {{
+          period.refreshStatus.value === 'refreshing'
+            ? fr.period.refresh.refreshing
+            : fr.period.refresh.button
+        }}
+      </button>
+    </div>
+    <p
+      v-if="refreshMessage"
+      :role="period.refreshStatus.value === 'failed' ? 'alert' : 'status'"
+      data-testid="period-refresh-result"
+    >
+      {{ refreshMessage }}
+    </p>
     <div v-if="period.isReadOnly.value" role="status" data-testid="period-read-only">
       <p>{{ fr.period.readOnlyNotice }}</p>
       <ul class="list-disc pl-6">

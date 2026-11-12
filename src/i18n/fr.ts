@@ -28,6 +28,13 @@ export const fr = {
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
+    refresh: {
+      button: 'Rafraîchir',
+      refreshing: 'Rafraîchissement…',
+      upToDate: 'La période est à jour.',
+      updated: "La période a été mise à jour avec les modifications de l'autre appareil.",
+      failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
+    },
     problems: {
       'schema-version': 'La version du format du fichier est inconnue ou plus récente.',
       months: "Les mois ne sont pas les douze mois de la période, dans l'ordre.",
