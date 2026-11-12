@@ -136,4 +136,17 @@ describe('period page', () => {
     expect(wrapper.find('[data-testid="period-error"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="period-read-only"]').exists()).toBe(false)
   })
+
+  it('shows the read-only notice, without crashing, when the month entries are malformed', async () => {
+    getPeriodFile.mockResolvedValue({
+      json: periodJson({ months: [null, 'x', { month: 3 }, { month: '2026-09' }] }),
+      sha: 's',
+    })
+
+    const { wrapper } = await openPeriodPage()
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="period-read-only"]').text()).toContain('lecture seule')
+    expect(wrapper.findAll('[data-testid="period-months"] li')).toHaveLength(1)
+  })
 })

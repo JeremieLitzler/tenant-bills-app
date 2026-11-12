@@ -31,7 +31,7 @@ export const fr = {
     problems: {
       'schema-version': 'La version du format du fichier est inconnue ou plus récente.',
       months: "Les mois ne sont pas les douze mois de la période, dans l'ordre.",
-      'tenant-bill-advance': "Un mois n'a pas de provision du locataire.",
+      'tenant-bill-advance': "Un mois n'a pas d'avance sur charges.",
       'water-index': "Un index d'eau n'est pas un nombre entier.",
       'closed-on': 'La date de clôture est mal formée.',
     },

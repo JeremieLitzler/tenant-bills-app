@@ -18,11 +18,11 @@ function monthLabel(month: string): string {
   })
 }
 
+// A read-only file can hold malformed entries: show only those with a month.
 const months = computed(() =>
-  (period.file.value?.months ?? []).map((entry) => ({
-    key: entry.month,
-    label: monthLabel(entry.month),
-  })),
+  (period.file.value?.months ?? [])
+    .filter((entry) => typeof entry?.month === 'string')
+    .map((entry) => ({ key: entry.month, label: monthLabel(entry.month) })),
 )
 </script>
 
