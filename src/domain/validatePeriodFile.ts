@@ -2,7 +2,7 @@
 // never writes it. Vue-free.
 import type { PeriodFile } from './periodFile'
 
-export const SUPPORTED_SCHEMA_VERSION = 1
+const SUPPORTED_SCHEMA_VERSION = 1
 
 // One code per rule, so the page can word the notice and a test can name the rule.
 export type PeriodFileProblem =
@@ -25,9 +25,9 @@ const WATER_INDEX_KEYS = [
 ]
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
-type Json = Record<string, unknown>
+type JsonObject = Record<string, unknown>
 
-function isObject(value: unknown): value is Json {
+function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
@@ -81,14 +81,20 @@ function everyWaterIndexIsInteger(months: unknown[]): boolean {
   })
 }
 
+// Only the three top-level keys the page and the state read are checked here; whether the rest of
+// the file is sound is what `validatePeriodFile` reports as problems.
+function isPeriodFileShaped(raw: unknown): raw is PeriodFile {
+  return (
+    isObject(raw) &&
+    typeof raw.periodName === 'string' &&
+    isObject(raw.settings) &&
+    Array.isArray(raw.months)
+  )
+}
+
 // `raw` is the parsed JSON of the file named `periodId`.
 export function validatePeriodFile(raw: unknown, periodId: string): PeriodFileValidation {
-  if (
-    !isObject(raw) ||
-    typeof raw.periodName !== 'string' ||
-    !isObject(raw.settings) ||
-    !Array.isArray(raw.months)
-  ) {
+  if (!isPeriodFileShaped(raw)) {
     return { file: undefined, problems: [] }
   }
   const months: unknown[] = raw.months
@@ -97,8 +103,7 @@ export function validatePeriodFile(raw: unknown, periodId: string): PeriodFileVa
   if (!hasExpectedMonths(months, periodId)) problems.push('months')
   if (!everyMonthHasAdvance(months)) problems.push('tenant-bill-advance')
   if (!everyWaterIndexIsInteger(months)) problems.push('water-index')
-  if (raw.settings.closedOn !== undefined && !isRealDate(raw.settings.closedOn)) {
-    problems.push('closed-on')
-  }
-  return { file: raw as unknown as PeriodFile, problems }
+  const closedOn: unknown = raw.settings.closedOn
+  if (closedOn !== undefined && !isRealDate(closedOn)) problems.push('closed-on')
+  return { file: raw, problems }
 }

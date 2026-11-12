@@ -96,7 +96,10 @@ usePeriods(): {
 // One period, called by a page on setup with the [period] route param.
 usePeriod(id: MaybeRefOrGetter<string>): {
   status: Readonly<Ref<'loading' | 'ready' | 'not-found' | 'error'>>
-  file: Readonly<Ref<PeriodFile | undefined>>        // local copy, queued patches applied
+  file: Readonly<Ref<ReadonlyPeriodFile | undefined>>  // local copy, queued patches applied (F3); read-only in code
+  sha: Readonly<Ref<string | undefined>>              // kept for later writes
+  problems: Readonly<Ref<PeriodFileProblem[]>>        // the "Validation" rules the file breaks, as codes
+  isReadOnly: Readonly<Ref<boolean>>                  // at least one problem: shown with a notice, never written
   figures: Readonly<Ref<PeriodFigures | undefined>>  // computed once from src/domain/
   isClosed: Readonly<Ref<boolean>>
   setCell(month: string, field: string, value: unknown): void  // enqueues a patch (ADR 0004)

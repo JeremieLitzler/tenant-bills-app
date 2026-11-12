@@ -1,45 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
+import { validPeriodJson } from '../../tests/helpers/periodFile'
 import { validatePeriodFile } from './validatePeriodFile'
 
 const PERIOD_ID = '2026-2027'
-const MONTHS = [
-  '2026-09',
-  '2026-10',
-  '2026-11',
-  '2026-12',
-  '2027-01',
-  '2027-02',
-  '2027-03',
-  '2027-04',
-  '2027-05',
-  '2027-06',
-  '2027-07',
-  '2027-08',
-]
-
-// A fresh valid period file as plain JSON, so each test can break one rule.
-function validRaw() {
-  return {
-    schemaVersion: 1,
-    periodName: PERIOD_ID,
-    settings: { monthlyTenantBillAdvance: 70 },
-    months: MONTHS.map((month) => ({
-      month,
-      common: { tenantBillAdvance: 0 },
-      waterConsumption: {},
-      waterTreatment: {},
-      waterSoftener: {},
-      electricity: {},
-      internet: {},
-      heatPumpMaintenance: {},
-    })),
-  }
-}
-
 describe('validatePeriodFile', () => {
   it('accepts a valid file with no problem', () => {
-    const result = validatePeriodFile(validRaw(), PERIOD_ID)
+    const result = validatePeriodFile(validPeriodJson(), PERIOD_ID)
 
     expect(result.problems).toEqual([])
     expect(result.file?.periodName).toBe(PERIOD_ID)
@@ -47,7 +14,7 @@ describe('validatePeriodFile', () => {
   })
 
   it('flags an unknown schemaVersion but keeps the file', () => {
-    const raw = { ...validRaw(), schemaVersion: 0 }
+    const raw = { ...validPeriodJson(), schemaVersion: 0 }
 
     const result = validatePeriodFile(raw, PERIOD_ID)
 
@@ -56,65 +23,64 @@ describe('validatePeriodFile', () => {
   })
 
   it('flags a newer schemaVersion', () => {
-    const raw = { ...validRaw(), schemaVersion: 2 }
+    const raw = { ...validPeriodJson(), schemaVersion: 2 }
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['schema-version'])
   })
 
   it('flags a non-integer schemaVersion', () => {
-    const raw = { ...validRaw(), schemaVersion: '1' }
+    const raw = { ...validPeriodJson(), schemaVersion: '1' }
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['schema-version'])
   })
 
   it('flags months that are not the twelve months in order', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     raw.months.reverse()
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['months'])
   })
 
   it('flags eleven months', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     raw.months.pop()
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['months'])
   })
 
   it('flags months that belong to another period', () => {
-    expect(validatePeriodFile(validRaw(), '2027-2028').problems).toEqual(['months'])
+    expect(validatePeriodFile(validPeriodJson(), '2027-2028').problems).toEqual(['months'])
   })
 
   it('flags a period name whose second year is not the year after the first', () => {
-    const raw = { ...validRaw(), periodName: '2026-2030' }
-    raw.months = MONTHS.map((month) => ({ ...validRaw().months[0], month }))
+    const raw = validPeriodJson('2026-2030')
 
     expect(validatePeriodFile(raw, '2026-2030').problems).toEqual(['months'])
   })
 
   it('flags a tenantBillAdvance that is not a finite number', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     raw.months[1].common.tenantBillAdvance = Number.NaN
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['tenant-bill-advance'])
   })
 
   it('flags a month without common.tenantBillAdvance', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     raw.months[3].common = {} as { tenantBillAdvance: number }
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['tenant-bill-advance'])
   })
 
   it('flags a non-integer water index', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     Object.assign(raw.months[0].waterConsumption, { mainMeter: 533117.5 })
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['water-index'])
   })
 
   it('accepts integer water indexes, including a previous index', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     Object.assign(raw.months[0].waterConsumption, {
       mainMeterPrevious: 525690,
       mainMeter: 533117,
@@ -124,28 +90,28 @@ describe('validatePeriodFile', () => {
   })
 
   it('flags a malformed settings.closedOn', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     Object.assign(raw.settings, { closedOn: '31/08/2027' })
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['closed-on'])
   })
 
   it('flags a closedOn that is not a real date', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     Object.assign(raw.settings, { closedOn: '2027-02-30' })
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual(['closed-on'])
   })
 
   it('accepts a well-formed settings.closedOn', () => {
-    const raw = validRaw()
+    const raw = validPeriodJson()
     Object.assign(raw.settings, { closedOn: '2027-08-31' })
 
     expect(validatePeriodFile(raw, PERIOD_ID).problems).toEqual([])
   })
 
   it('reports every broken rule at once', () => {
-    const raw = { ...validRaw(), schemaVersion: 9 }
+    const raw = { ...validPeriodJson(), schemaVersion: 9 }
     raw.months.pop()
     Object.assign(raw.settings, { closedOn: 'nope' })
 
