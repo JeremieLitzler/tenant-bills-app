@@ -151,7 +151,7 @@ A patch (ADR 0010) is `{ period, month, field, value }`:
 The app opens a file read-only, and refuses to write it, when:
 
 - `schemaVersion` is unknown or newer than the app's, or older than `2`;
-- `months` is empty, holds more than twelve entries, or its `month` values are not unique and in order;
+- `months` is empty, holds more than twelve entries, or its `month` values are not a `"YYYY-MM"`, not unique or not in order;
 - a month lacks one of the seven sections;
 - a water index is not an integer;
 - `closedOn` is present and not a `"YYYY-MM-DD"` date.

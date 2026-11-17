@@ -161,7 +161,7 @@ describe('usePeriod', () => {
   })
 
   it('opens a file breaking a validation rule read-only, with the problems', async () => {
-    getPeriodFile.mockResolvedValue({ json: { ...validPeriodJson(), schemaVersion: 2 }, sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: { ...validPeriodJson(), schemaVersion: 1 }, sha: 's' })
     const { usePeriod } = await loadPeriods()
 
     const period = await openPeriod(usePeriod)
@@ -295,7 +295,7 @@ describe('usePeriod, refresh', () => {
     const { period } = await openReady()
     getPeriodSha.mockResolvedValue('sha-2')
     getPeriodFile.mockResolvedValue({
-      json: { ...validPeriodJson(), schemaVersion: 2 },
+      json: { ...validPeriodJson(), schemaVersion: 1 },
       sha: 'sha-2',
     })
 

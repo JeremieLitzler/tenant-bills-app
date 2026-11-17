@@ -5,8 +5,6 @@ export interface CommonInputs {
   startDate?: string
   endDate?: string
   estimated?: boolean
-  readingDate?: string
-  readingDatePrevious?: string
   landlordOccupants?: number
   tenantOccupants?: number
   tenantBillAdvance: number
@@ -88,16 +86,13 @@ export type SectionName = keyof SectionInputs
 
 export type MonthEntry = { month: string } & SectionInputs
 
-export interface PeriodSettings {
-  monthlyTenantBillAdvance: number
-  closedOn?: string
-}
-
 export interface PeriodFile {
   schemaVersion: number
   periodName: string
+  tenantName?: string
+  monthlyTenantBillAdvance: number
   heatPumpInvoiceEstimate?: number
-  settings: PeriodSettings
+  closedOn?: string
   months: MonthEntry[]
 }
 
@@ -107,17 +102,15 @@ export type ReadonlyPeriodFile = Omit<PeriodFile, 'months'> & {
   readonly months: readonly MonthEntry[]
 }
 
-// "inherited": an untyped key takes the previous month's value. "not-inherited": an untyped key is
-// empty. The `...Previous` index keys are "not-inherited" from their own key, but the resolver
-// derives them from the previous month's current index (see `resolveAtIndex` in inheritance.ts).
+// "inherited": copied into the next month when it is initialized (ADR 0007). "not-inherited": starts
+// empty. A `...Previous` key is "not-inherited" here, but initialization sets it to the previous
+// month's current index.
 export type Inheritance = 'inherited' | 'not-inherited'
 
 type Catalogue = { [S in SectionName]: Record<keyof SectionInputs[S], Inheritance> }
 
 export const FIELD_CATALOGUE: Catalogue = {
   common: {
-    readingDate: 'not-inherited',
-    readingDatePrevious: 'not-inherited',
     startDate: 'not-inherited',
     endDate: 'not-inherited',
     estimated: 'not-inherited',
@@ -179,8 +172,8 @@ export const FIELD_CATALOGUE: Catalogue = {
   heatPumpMaintenance: { billedAmount: 'not-inherited' },
 }
 
-// A `...Previous` key takes the value of its current key (`resolveAtIndex` casts for that), so the
-// two must have the same type. This fails `vue-tsc` if a meter pair ever drifts apart.
+// A `...Previous` key takes the value of its current key at initialization, so the two must have
+// the same type. This fails `vue-tsc` if a meter pair ever drifts apart.
 type PairsAgree<S> = {
   [K in keyof S & `${string}Previous`]: K extends `${infer C}Previous`
     ? C extends keyof S

@@ -21,7 +21,7 @@ function file(months: MonthEntry[], heatPumpInvoiceEstimate?: number): PeriodFil
   return {
     schemaVersion: 2,
     periodName: '2026-2027',
-    settings: { monthlyTenantBillAdvance: 70 },
+    monthlyTenantBillAdvance: 70,
     heatPumpInvoiceEstimate,
     months,
   } as PeriodFile
