@@ -37,7 +37,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 │   │   ├── layout/                 # app shell
 │   │   └── ui/                     # shadcn-vue
 │   ├── composables/
-│   ├── domain/                     # Vue-free: formulas, period file types, inheritance, patch apply
+│   ├── domain/                     # Vue-free: formulas, period file types, patch apply
 │   ├── i18n/                       # fr.ts: every UI string, a plain typed object
 │   ├── lib/                        # shadcn-vue's cn helper, safeRedirect, the gh_login cookie reader
 │   ├── pages/                      # file-based routes
@@ -89,7 +89,7 @@ usePeriods(): {
   pendingCount: Readonly<Ref<number>>                // whole queue, shown in the app shell
   syncState: Readonly<Ref<'idle' | 'saving' | 'offline' | 'error'>>
   pendingCountFor(id: string): number                // gates "Rafraîchir" on one period
-  createPeriod(id: string, settings: PeriodSettings): Promise<void>  // prefills from the previous period
+  createPeriod(id: string, values: NewPeriodValues): Promise<void>  // tenantName, advance, heat pump estimate, start date; prefills from the previous period
   clear(): void                                      // drops in-memory periods, keeps the queue
 }
 
@@ -105,13 +105,14 @@ usePeriod(id: MaybeRefOrGetter<string>): {
   refresh(): Promise<void>                           // compares the remote SHA, replaces the copy only if it differs
   figures: Readonly<Ref<PeriodFigures | undefined>>  // computed once from src/domain/
   isClosed: Readonly<Ref<boolean>>
-  setCell(month: string, field: string, value: unknown): void  // enqueues a patch (ADR 0004)
-  estimateReadings(): void                           // "Estimer les relevés", written as patches
+  setCell(month: string, field: string, value: unknown): void  // enqueues a patch (ADR 0010)
+  initializeNextMonth(): void                        // copies the last month into a new one, one patch carrying the whole month (ADR 0007)
+  estimateReadings(): void                           // the twelfth month's estimate, written as patches
   close(): void                                      // "Clôturer la période", written as a patch
 }
 ```
 
-- Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName`, `settings` or `months`) is an `error`. A `ready` period is never fetched again; a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period].vue`, a placeholder until F5 (#32).
+- Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName` or `months`) is an `error`. A `ready` period is never fetched again; a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period].vue`, a placeholder until F5 (#32).
 - Every period loaded so far is kept, keyed by its identifier, for the browser session. Periods are loaded lazily: "Estimer les relevés" and `createPeriod` load the previous period themselves.
 - The computed figures are computed once per period, in a `computed()` over `src/domain/`. The table, the form and the settlement view only read them.
 - Views never write `file`. Every edit, estimate or close goes through the queue as a patch.
@@ -174,7 +175,7 @@ Each GitHub Contents API `PUT` writes one period file, so it is one commit in `J
 The subject is `data(<period>): <n> edit(s) in <where>`:
 
 - `<n>` is the number of patches in the `PUT`, that is the distinct cells written, removals (`value: null`) included. A retyped cell replaces its patch in the queue, so it counts once. After a 409 rebase, the count stays the number of patches sent, even if the other device had already written the same value. One edit is `1 edit`, otherwise `edits`.
-- `<where>` names a single month by its `YYYY-MM` key, or counts several months (`12 months`). Settings patches add `settings`, after the months and joined with `and`.
+- `<where>` names a single month by its `YYYY-MM` key, or counts several months (`12 months`). Patches of the top-level values (`closedOn`, `monthlyTenantBillAdvance`, `heatPumpInvoiceEstimate`) add `settings`, after the months and joined with `and`.
 
 ```text
 data(2026-2027): 1 edit in settings
@@ -194,8 +195,9 @@ data(2026-2027): 7 edits in 2 months and settings
 settings: 1 edit
 ```
 
-- "Estimer les relevés" and "Clôturer la période" are ordinary patches: they drain with other edits and are counted like them. Closing alone reads `1 edit in settings`.
+- The twelfth month's estimate and "Clôturer la période" are ordinary patches: they drain with other edits and are counted like them. Closing alone reads `1 edit in settings`.
 - A retried write after a 409 keeps exactly the same message; nothing marks the retry.
+- A drain whose patches include a month initialization (a patch whose value is a whole month object, ADR 0010) uses the subject `data(<period>): initialize <YYYY-MM>`; any other edit queued with it is counted in the body as usual. Decided in the impact review of `docs/grillings/2026-11-17-simplify-file-structure-and-formulas/` (impact 4).
 
 ### Period creation commit
 
@@ -209,16 +211,16 @@ Settled in `docs/grillings/2026-11-03-period-table-library/` (issue #9), after a
 
 The period table (F5) uses shadcn-vue's plain `Table` components (`src/components/ui/table/`), with rows built by our own code. No TanStack Table.
 
-- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month (September to August), plus a label column. That is transposed from TanStack's row model, which expects one data object per row.
-- The shape is fixed (about 60 lines, 12 months). Sorting, filtering, pagination and row selection, TanStack's main features, go unused.
+- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month present in the file (up to twelve), plus a label column. That is transposed from TanStack's row model, which expects one data object per row.
+- The shape is fixed (about 60 lines, up to 12 months). Sorting, filtering, pagination and row selection, TanStack's main features, go unused.
 - In the prototype, TanStack was harder for sections (two grouping features, a column that exists only to group by, then filtered out of every row) and simpler for nothing. A plain `<table>` with Tailwind only was no simpler than the shadcn-vue components either, so those stay for one table style across the app.
 
 ### Rows and cells
 
-- The rows come from a list of line definitions: section, key, French label, input or computed, inherited or not, and tariff mode for the electricity lines. Each section starts with a header row.
+- The rows come from a list of line definitions: section, key, French label, input or computed, and tariff mode for the electricity lines. Each section starts with a header row.
 - One cell component renders every month cell. It reads the period's file and computed figures from `usePeriod(id)` and writes only through `setCell` (see "State").
-- A cell shows its value as typed, inherited (styled as such), derived (a previous index taken from the previous month), or computed (read-only). Implausible values carry a warning and are never blocked.
-- A previous index is editable only in the first month, in a tariff-switch month for the registers of the new mode, and after "Compteur remplacé". Every cell of a closed period is read-only.
+- A cell shows its value as stored, or computed (read-only). Implausible values carry a warning and are never blocked.
+- A previous index is an ordinary editable cell; editing a current index offers to set the next month's previous index (ADR 0007). Every cell of a closed period is read-only.
 - Every electricity row is always shown. In a month in `base`, the HC and HP cells are empty, styled as not applicable and not editable, and the reverse in `hchp`. The period file keeps the other mode's keys, but no formula of that month reads them.
 
 ### Keyboard and mouse
@@ -230,7 +232,7 @@ The table has a selection mode and an edit mode, as in a spreadsheet. Neither sh
 - Enter edits the selected cell, and does nothing on a read-only cell. Typing a character on an editable cell starts editing and replaces the value with it.
 - Edit mode: Enter saves and moves to the next editable cell down in the same month, staying in edit mode. On the month's last editable cell, it saves and returns to selection mode. Escape restores the earlier value, enqueues nothing, and returns to selection mode. Arrow Left and Right move the text cursor.
 - Mouse: a click selects a cell, a double click on an editable cell edits it, and leaving an editing cell any other way saves it (blur).
-- Editing without changing the text enqueues nothing, so an inherited value stays inherited.
+- Editing without changing the text enqueues nothing.
 
 ### Layout
 

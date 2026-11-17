@@ -129,7 +129,7 @@ async function refreshPeriod(id: string): Promise<void> {
 
 // One period, called by a page on setup with its route param. Loads the file when it is not held
 // yet and again when the identifier changes. `file` is read-only: every edit goes through the
-// patch queue (ADR 0004), never into the object.
+// patch queue (ADR 0010), never into the object.
 export function usePeriod(id: MaybeRefOrGetter<string>) {
   watch(
     () => toValue(id),

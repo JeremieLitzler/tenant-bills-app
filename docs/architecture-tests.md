@@ -6,10 +6,10 @@ Tests are colocated `*.spec.ts` files run by Vitest; test data lives in `tests/f
 
 ## Which module is tested at which seam
 
-- `src/domain/` (formulas, inheritance from the previous month, patch apply): Vitest in the Node environment, through the exported functions only. The formulas are checked against the golden record below.
-- `src/sync/` (IndexedDB patch queue, `drainQueue()`, 409 rebase, SHA check, ADR 0004): Vitest with `fake-indexeddb` and an in-memory fake of the GitHub Contents API stubbed at `fetch`. The fake keeps one file and its SHA and answers 409 when the SHA sent is stale. Tests drive `drainQueue()` and assert on the fake's final file: one `PUT` at a time, rebase and a single retry on 409, the queued edit wins on a cell changed on both sides.
+- `src/domain/` (formulas, patch apply): Vitest in the Node environment, through the exported functions only. The formulas are checked against the golden record below.
+- `src/sync/` (IndexedDB patch queue, `drainQueue()`, 409 rebase, SHA check, ADR 0010): Vitest with `fake-indexeddb` and an in-memory fake of the GitHub Contents API stubbed at `fetch`. The fake keeps one file and its SHA and answers 409 when the SHA sent is stale. Tests drive `drainQueue()` and assert on the fake's final file: one `PUT` at a time, rebase and a single retry on 409, the queued edit wins on a cell changed on both sides.
 - `netlify/functions/`: the specs are copied with the functions from `french-gas-stations-scraper` and adapted to the data repo and the login allowlist. They guard the app's security boundary (the allowlist in `github-auth-callback`, the repo restriction in `github-api-proxy`).
-- Components: only the period table and the "Saisie du mois" form, with `@vue/test-utils` and `happy-dom`. The components are mounted with the real period composable over a fixture period file, and `src/sync/` is mocked with `vi.mock` (issue #8, see "State" in `docs/architecture.md`); the tests assert the patch `{ period, month, field, value }` handed to its enqueue function on blur, and that inherited values are shown as such. Other components and the shadcn-vue ones are not tested, except as the rule below allows.
+- Components: only the period table and the "Saisie du mois" form, with `@vue/test-utils` and `happy-dom`. The components are mounted with the real period composable over a fixture period file, and `src/sync/` is mocked with `vi.mock` (issue #8, see "State" in `docs/architecture.md`); the tests assert the patch `{ period, month, field, value }` handed to its enqueue function on blur. Other components and the shadcn-vue ones are not tested, except as the rule below allows.
 - Pages: a page whose state comes from a composable that has its own spec (`usePeriod` for the period page) gets a page spec only for what the composable spec cannot guarantee: the route parameter reaching the composable, the element shown for each state, the rendering of the data (labels, order) and bugs that live in the template. It does not repeat the states the composable spec already proves. Until F5 (#32) replaces it with the period table, the period page (`src/pages/periods/[period].spec.ts`) is the one page with such a spec; it came from issue #45, see `docs/implementation-feedbacks/2026-11-12-issue-45/GRILLING-SUMMARY.md`.
 - App shell: one smoke spec, `src/App.spec.ts` in happy-dom, mounts `App.vue` with the real file-based router at `/` and asserts the page renders inside the app shell. It proves the happy-dom environment and the routing wiring, not any feature.
 - Repo config: `eslint.config.spec.ts` in the Node environment lints code placed in `src/domain/` and `src/sync/` through the ESLint API and asserts that a Vue import is reported, so the Vue-free rule cannot be dropped silently. The folder list lives in `vue-free-folders.ts`, shared with the Vitest Node project.
@@ -17,14 +17,14 @@ Tests are colocated `*.spec.ts` files run by Vitest; test data lives in `tests/f
 
 ## Golden record
 
-The formula specs assert every computed cell of the sheet `Période-092025-092026` of "Suivi des charges de location (v2).xlsx" (ADR 0003 is superseded: no exception): per month and section the deltas, the bill, the landlord share and the tenant share, the column N totals, the balance (line 6) and the settlement amount and direction (line 5). Values are compared with `toBeCloseTo(expected, 6)`, so a different summation order cannot fail a test while a mistake under a cent still does.
+The formula specs assert every computed cell of the sheet `Période-092025-092026` of "Suivi des charges de location (v2).xlsx": per month and section the deltas, the bill, the landlord share and the tenant share, the column N totals, the balance (line 6) and the settlement amount and direction (line 5). Values are compared with `toBeCloseTo(expected, 6)`, so a different summation order cannot fail a test while a mistake under a cent still does.
 
 The repo is public and the spreadsheet holds private consumption data (`*.xlsx` is gitignored), so the fixture is built from a randomized copy of the sheet, with Excel still computing the expected values. Issue #18 builds `scripts/extract-golden.py` first (real mode: the private 2025-2026 period file); issue #56 then adds its randomized mode and `scripts/randomize-golden.py`:
 
 1. `uv run scripts/randomize-golden.py` copies the workbook and writes randomized inputs into the copy, leaving the formulas untouched and forcing recalculation on open. The randomization is seeded, so a rerun gives the same values.
 2. Open the copy in Excel and save it, so Excel recalculates every formula.
 3. `uv run scripts/extract-golden.py --randomized` reads the inputs and the cached results from the copy and writes:
-   - `tests/fixtures/golden-period.json`: the randomized period file, valid in the shape of `docs/period-file.md` (ADR 0005), water indexes in litres as integers;
+   - `tests/fixtures/golden-period.json`: the randomized period file, valid in the shape of `docs/period-file.md` (ADR 0010), water indexes in litres as integers;
    - `tests/fixtures/golden-expected.json`: every computed cell listed above, keyed by month and section, plus the period totals, the balance and the settlement.
 
 The scripts are Python with `openpyxl`, declared in a PEP 723 header so `uv run` needs no virtual environment. Both scripts and both fixtures are committed; the workbook copy stays gitignored.
@@ -35,7 +35,7 @@ What the randomization changes:
 - The internet bill is set to 30 every month.
 - The heat pump maintenance is set to 169 in the months that already have one; the other months stay empty.
 
-Everything else keeps its real value: unit prices and fees (public tariffs), reading dates, occupant counts, tariff modes, the monthly tenant bill advance and the advances received.
+Everything else keeps its real value: unit prices and fees (public tariffs), end dates, occupant counts, tariff modes, the monthly tenant bill advance and the advances received.
 
 ## Continuous integration
 

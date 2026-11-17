@@ -1,4 +1,4 @@
-// The period file as stored in the data repo (docs/period-file.md, ADR 0005). Inputs only: every
+// The period file as stored in the data repo (docs/period-file.md, ADR 0010). Inputs only: every
 // delta, share, bill and balance is computed. Vue-free.
 
 export interface CommonInputs {
