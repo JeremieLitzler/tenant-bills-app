@@ -3,28 +3,12 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
+import PeriodTable from '@/components/periods/PeriodTable.vue'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
 const route = useRoute('/periods/[period]')
 const period = usePeriod(() => route.params.period)
-
-// "2026-09" as "septembre 2026". Read in UTC so the local time zone cannot shift the month.
-function monthLabel(month: string): string {
-  const [year, number] = month.split('-').map(Number)
-  return new Date(Date.UTC(year, number - 1, 1)).toLocaleDateString('fr-FR', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  })
-}
-
-// A read-only file can hold malformed entries: show only those with a month.
-const months = computed(() =>
-  (period.file.value?.months ?? [])
-    .filter((entry) => typeof entry?.month === 'string')
-    .map((entry) => ({ key: entry.month, label: monthLabel(entry.month) })),
-)
 
 const refreshMessage = computed(() => {
   switch (period.refreshStatus.value) {
@@ -41,7 +25,7 @@ const refreshMessage = computed(() => {
 </script>
 
 <template>
-  <!-- Placeholder view: F5 (#32) builds the period table. What a 404 page looks like is #15. -->
+  <!-- What a 404 page looks like is #15. -->
   <MisconfiguredNotice v-if="period.status.value === 'misconfigured'" />
   <p v-else-if="period.status.value === 'loading'" data-testid="period-loading">
     {{ fr.period.loading }}
@@ -84,8 +68,6 @@ const refreshMessage = computed(() => {
         </li>
       </ul>
     </div>
-    <ul data-testid="period-months" class="flex flex-col gap-1">
-      <li v-for="month in months" :key="month.key">{{ month.label }}</li>
-    </ul>
+    <PeriodTable :period-id="route.params.period" />
   </div>
 </template>

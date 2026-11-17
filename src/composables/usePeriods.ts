@@ -5,6 +5,7 @@ import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from '
 
 import { pendingCountFor } from '@/composables/pendingPatches'
 import { useSession } from '@/composables/useSession'
+import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
 import {
@@ -144,6 +145,16 @@ export function usePeriod(id: MaybeRefOrGetter<string>) {
       return file ? readonly(file) : undefined
     }),
     sha: computed(() => periodEntry.value?.sha),
+    // Computed once from the file, read by the views. Undefined without a file, and for a read-only
+    // file with malformed month entries (shortcut: any throw means malformed, so no table).
+    figures: computed<PeriodFigures | undefined>(() => {
+      const file = periodEntry.value?.file
+      try {
+        return file && computePeriodFigures(file)
+      } catch {
+        return undefined
+      }
+    }),
     problems: computed(() => periodEntry.value?.problems ?? []),
     // The file broke a validation rule: the app shows it but never writes it.
     isReadOnly: computed(() => (periodEntry.value?.problems.length ?? 0) > 0),
