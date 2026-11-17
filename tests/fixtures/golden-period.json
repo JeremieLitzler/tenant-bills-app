@@ -1,16 +1,15 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "periodName": "2025-2026",
-  "settings": {
-    "monthlyTenantBillAdvance": 50,
-    "closedOn": "2026-09-12"
-  },
+  "monthlyTenantBillAdvance": 50,
+  "heatPumpInvoiceEstimate": 169,
+  "closedOn": "2026-09-12",
   "months": [
     {
       "month": "2025-09",
       "common": {
-        "readingDatePrevious": "2025-09-14",
-        "readingDate": "2025-10-25",
+        "startDate": "2025-09-14",
+        "endDate": "2025-10-25",
         "landlordOccupants": 4,
         "tenantOccupants": 1,
         "tenantBillAdvance": 50
@@ -30,6 +29,8 @@
         "vat": 1.055
       },
       "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
         "collectionConsumptionDistributor": 0.584,
         "collectionConsumptionCommunity": 0.869,
         "sanitationPerformance": 0.01,
@@ -61,12 +62,16 @@
     {
       "month": "2025-10",
       "common": {
-        "readingDate": "2025-11-15",
+        "startDate": "2025-10-25",
+        "endDate": "2025-11-15",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 432795,
         "mainMeter": 440600,
+        "studioUnsoftenedMeterPrevious": 1724,
         "studioUnsoftenedMeter": 2638,
+        "studioSoftenedMeterPrevious": 1751,
         "studioSoftenedMeter": 2583,
         "drinkingWaterFee": 0.39,
         "networkPerformanceFee": 0.02
@@ -74,7 +79,9 @@
       "waterTreatment": {},
       "waterSoftener": {},
       "electricity": {
+        "mainBasePrevious": 56433,
         "mainBase": 57159,
+        "studioBasePrevious": 254,
         "studioBase": 383,
         "ctaTax": 3.32
       },
@@ -84,12 +91,16 @@
     {
       "month": "2025-11",
       "common": {
-        "readingDate": "2025-12-19",
+        "startDate": "2025-11-15",
+        "endDate": "2025-12-19",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 440600,
         "mainMeter": 453507,
+        "studioUnsoftenedMeterPrevious": 2638,
         "studioUnsoftenedMeter": 3627,
+        "studioSoftenedMeterPrevious": 2583,
         "studioSoftenedMeter": 4611
       },
       "waterTreatment": {},
@@ -99,7 +110,9 @@
         "unitPrice": 9.85
       },
       "electricity": {
+        "mainBasePrevious": 57159,
         "mainBase": 59019,
+        "studioBasePrevious": 383,
         "studioBase": 743,
         "ctaTax": 3.43
       },
@@ -109,12 +122,16 @@
     {
       "month": "2025-12",
       "common": {
-        "readingDate": "2026-01-17",
+        "startDate": "2025-12-19",
+        "endDate": "2026-01-17",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 453507,
         "mainMeter": 466161,
+        "studioUnsoftenedMeterPrevious": 3627,
         "studioUnsoftenedMeter": 4469,
+        "studioSoftenedMeterPrevious": 4611,
         "studioSoftenedMeter": 5789
       },
       "waterTreatment": {
@@ -123,7 +140,9 @@
       },
       "waterSoftener": {},
       "electricity": {
+        "mainBasePrevious": 59019,
         "mainBase": 60604,
+        "studioBasePrevious": 743,
         "studioBase": 1031,
         "ctaTax": 1.73
       },
@@ -133,18 +152,24 @@
     {
       "month": "2026-01",
       "common": {
-        "readingDate": "2026-02-15",
+        "startDate": "2026-01-17",
+        "endDate": "2026-02-15",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 466161,
         "mainMeter": 476934,
+        "studioUnsoftenedMeterPrevious": 4469,
         "studioUnsoftenedMeter": 5686,
+        "studioSoftenedMeterPrevious": 5789,
         "studioSoftenedMeter": 7604
       },
       "waterTreatment": {},
       "waterSoftener": {},
       "electricity": {
+        "mainBasePrevious": 60604,
         "mainBase": 61971,
+        "studioBasePrevious": 1031,
         "studioBase": 1365,
         "subscriptionPerUnit": 0.573041,
         "ctaTax": 2.35
@@ -155,12 +180,16 @@
     {
       "month": "2026-02",
       "common": {
-        "readingDate": "2026-03-15",
+        "startDate": "2026-02-15",
+        "endDate": "2026-03-15",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 476934,
         "mainMeter": 487854,
+        "studioUnsoftenedMeterPrevious": 5686,
         "studioUnsoftenedMeter": 6678,
+        "studioSoftenedMeterPrevious": 7604,
         "studioSoftenedMeter": 8966,
         "pricePerM3": 1.05,
         "subscription": 5.35
@@ -172,7 +201,9 @@
         "unitPrice": 9.25
       },
       "electricity": {
+        "mainBasePrevious": 61971,
         "mainBase": 63385,
+        "studioBasePrevious": 1365,
         "studioBase": 1586,
         "ctaTax": 2.27
       },
@@ -182,12 +213,16 @@
     {
       "month": "2026-03",
       "common": {
-        "readingDate": "2026-04-13",
+        "startDate": "2026-03-15",
+        "endDate": "2026-04-13",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 487854,
         "mainMeter": 496241,
+        "studioUnsoftenedMeterPrevious": 6678,
         "studioUnsoftenedMeter": 8364,
+        "studioSoftenedMeterPrevious": 8966,
         "studioSoftenedMeter": 10342
       },
       "waterTreatment": {},
@@ -197,7 +232,9 @@
         "unitPrice": 90.81
       },
       "electricity": {
+        "mainBasePrevious": 63385,
         "mainBase": 64277,
+        "studioBasePrevious": 1586,
         "studioBase": 1821,
         "ctaTax": 2.35
       },
@@ -207,18 +244,24 @@
     {
       "month": "2026-04",
       "common": {
-        "readingDate": "2026-05-15",
+        "startDate": "2026-04-13",
+        "endDate": "2026-05-15",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 496241,
         "mainMeter": 506058,
+        "studioUnsoftenedMeterPrevious": 8364,
         "studioUnsoftenedMeter": 9469,
+        "studioSoftenedMeterPrevious": 10342,
         "studioSoftenedMeter": 11748
       },
       "waterTreatment": {},
       "waterSoftener": {},
       "electricity": {
+        "mainBasePrevious": 64277,
         "mainBase": 64999,
+        "studioBasePrevious": 1821,
         "studioBase": 1948,
         "ctaTax": 2.27
       },
@@ -228,18 +271,24 @@
     {
       "month": "2026-05",
       "common": {
-        "readingDate": "2026-06-14",
+        "startDate": "2026-05-15",
+        "endDate": "2026-06-14",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 506058,
         "mainMeter": 516955,
+        "studioUnsoftenedMeterPrevious": 9469,
         "studioUnsoftenedMeter": 10195,
+        "studioSoftenedMeterPrevious": 11748,
         "studioSoftenedMeter": 13074
       },
       "waterTreatment": {},
       "waterSoftener": {},
       "electricity": {
+        "mainBasePrevious": 64999,
         "mainBase": 65501,
+        "studioBasePrevious": 1948,
         "studioBase": 2059,
         "ctaTax": 2.35
       },
@@ -249,12 +298,16 @@
     {
       "month": "2026-06",
       "common": {
-        "readingDate": "2026-07-15",
+        "startDate": "2026-06-14",
+        "endDate": "2026-07-15",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 516955,
         "mainMeter": 523851,
+        "studioUnsoftenedMeterPrevious": 10195,
         "studioUnsoftenedMeter": 11058,
+        "studioSoftenedMeterPrevious": 13074,
         "studioSoftenedMeter": 14574
       },
       "waterTreatment": {},
@@ -264,7 +317,9 @@
         "unitPrice": 10.75
       },
       "electricity": {
+        "mainBasePrevious": 65501,
         "mainBase": 65853,
+        "studioBasePrevious": 2059,
         "studioBase": 2199,
         "ctaTax": 1.78
       },
@@ -274,12 +329,16 @@
     {
       "month": "2026-07",
       "common": {
-        "readingDate": "2026-08-10",
+        "startDate": "2026-07-15",
+        "endDate": "2026-08-10",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 523851,
         "mainMeter": 532359,
+        "studioUnsoftenedMeterPrevious": 11058,
         "studioUnsoftenedMeter": 11988,
+        "studioSoftenedMeterPrevious": 14574,
         "studioSoftenedMeter": 17649
       },
       "waterTreatment": {},
@@ -307,12 +366,16 @@
     {
       "month": "2026-08",
       "common": {
-        "readingDate": "2026-09-12",
+        "startDate": "2026-08-10",
+        "endDate": "2026-09-12",
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
+        "mainMeterPrevious": 532359,
         "mainMeter": 542099,
+        "studioUnsoftenedMeterPrevious": 11988,
         "studioUnsoftenedMeter": 13574,
+        "studioSoftenedMeterPrevious": 17649,
         "studioSoftenedMeter": 19032
       },
       "waterTreatment": {},
