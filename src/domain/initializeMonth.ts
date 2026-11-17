@@ -1,24 +1,29 @@
 // "Initialize the next month" (docs/scenarios.md, Cases 3 and 6; ADR 0007): the new month object
 // that one queued patch carries. Vue-free.
 import { splitHeatPumpAnnual } from './heatPumpSplit'
+import {
+  ELECTRICITY_METERS,
+  HC_SHARE,
+  MAX_MONTHS,
+  MONDAY,
+  SUGGESTED_END_DAY_OF_MONTH,
+  SUNDAY,
+  WATER_METERS,
+  WEDNESDAY,
+} from './initializeMonthConstants'
 import { FIELD_CATALOGUE } from './periodFile'
 import type { MonthEntry, PeriodFile, SectionName } from './periodFile'
-
-const MAX_MONTHS = 12
-const HC_SHARE = 0.3 // docs/period-file.md, "The estimated twelfth month"
-const WATER_METERS = ['mainMeter', 'studioUnsoftenedMeter', 'studioSoftenedMeter'] as const
-const ELECTRICITY_METERS = ['main', 'studio'] as const
 
 type Bag = Record<string, unknown>
 const bag = (month: MonthEntry, section: SectionName) => month[section] as Bag
 
-// The 15th of the month after `start` when it is Thursday to Sunday, otherwise the Sunday before
-// (functional breakdown grilling, Q11b). Dates are UTC to keep the day stable across time zones.
+// The suggested end day of the month after `start` when it is Thursday to Sunday, otherwise the
+// Sunday before (see `SUGGESTED_END_DAY_OF_MONTH`). Dates are UTC to keep the day stable across time zones.
 function suggestedEndDate(start: string): string {
   const d = new Date(`${start}T00:00:00Z`)
-  d.setUTCMonth(d.getUTCMonth() + 1, 15)
-  const weekday = d.getUTCDay() // 0 = Sunday
-  if (weekday >= 1 && weekday <= 3) d.setUTCDate(d.getUTCDate() - weekday)
+  d.setUTCMonth(d.getUTCMonth() + 1, SUGGESTED_END_DAY_OF_MONTH)
+  const weekday = d.getUTCDay()
+  if (weekday >= MONDAY && weekday <= WEDNESDAY) d.setUTCDate(d.getUTCDate() - (weekday - SUNDAY))
   return d.toISOString().slice(0, 10)
 }
 
