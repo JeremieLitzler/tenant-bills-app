@@ -21,7 +21,8 @@ Usage:
 
 Rules, from docs/period-file.md:
 - an inherited key is stored only in the first month and where its value
-  changes; a non-inherited key is stored where it holds a value;
+  changes; a non-inherited key is stored where it holds a value, and both
+  indexes (previous and current) and both dates are stored every month;
 - water indexes are litres as integers;
 - of the electricity registers, only those of the month's tariff mode are
   stored; HC/HP tariff months hold `hchp`, the others `base`.
@@ -84,27 +85,24 @@ def build_period(values, formulas) -> dict:
         month_no = (8 + i) % 12 + 1
         common, wc, wt, ws, el, net, pac = {}, {}, {}, {}, {}, {}, {}
 
-        if i == 0:
-            common["readingDatePrevious"] = day(10, 0)
-        common["readingDate"] = day(11, i)
+        common["startDate"] = day(10, i)
+        common["endDate"] = day(11, i)
         inherit(common, "landlordOccupants", int(num(2, i)), "")
         inherit(common, "tenantOccupants", int(num(3, i)), "")
         common["tenantBillAdvance"] = num(8, i)
 
-        if i == 0:
-            wc["mainMeterPrevious"] = litres(13, 0)
+        wc["mainMeterPrevious"] = litres(13, i)
         wc["mainMeter"] = litres(14, i)
-        if i == 0:
-            wc["studioUnsoftenedMeterPrevious"] = litres(16, 0)
+        wc["studioUnsoftenedMeterPrevious"] = litres(16, i)
         wc["studioUnsoftenedMeter"] = litres(17, i)
-        if i == 0:
-            wc["studioSoftenedMeterPrevious"] = litres(19, 0)
+        wc["studioSoftenedMeterPrevious"] = litres(19, i)
         wc["studioSoftenedMeter"] = litres(20, i)
         for key, row in [("pricePerM3", 22), ("resourceWithdrawalFee", 23), ("drinkingWaterFee", 24),
                          ("networkPerformanceFee", 25), ("subscription", 26), ("vat", 27)]:
             inherit(wc, key, num(row, i), "wc.")
 
-        for key, row in [("collectionConsumptionDistributor", 44), ("collectionConsumptionCommunity", 45),
+        for key, row in [("monthlySubscriptionDistributor", 42), ("monthlySubscriptionCommunity", 43),
+                         ("collectionConsumptionDistributor", 44), ("collectionConsumptionCommunity", 45),
                          ("sanitationPerformance", 46), ("vat", 47)]:
             inherit(wt, key, num(row, i), "wt.")
 
@@ -114,18 +112,13 @@ def build_period(values, formulas) -> dict:
             ws["unitPrice"] = num(84, i)
 
         m = mode(i)
-        switched = i > 0 and m != mode(i - 1)
         inherit(el, "tariffMode", m, "el.")
         inherit(el, "subscriptionUnit", "month" if is_typed(74, i) else "day", "el.")
         # (main base, main hc, main hp, studio base, studio hc, studio hp) = rows (current):
         regs = {"base": [("mainBase", 53), ("studioBase", 59)],
                 "hchp": [("mainHc", 55), ("mainHp", 57), ("studioHc", 61), ("studioHp", 63)]}[m]
         for key, row in regs:
-            prev_row = row - 1
-            # Previous indexes are stored in the first month and in a tariff-switch month
-            # (new mode's registers), or when they differ from the previous month's current.
-            if i == 0 or switched or num(prev_row, i) != num(row, i - 1):
-                el[key + "Previous"] = num(prev_row, i)
+            el[key + "Previous"] = num(row - 1, i)
             inherit(el, key, num(row, i), "el.")
         for key, row in [("excisePerKwh", 70)]:
             inherit(el, key, num(row, i), "el.")
@@ -153,9 +146,11 @@ def build_period(values, formulas) -> dict:
         })
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "periodName": "2025-2026",
-        "settings": {"monthlyTenantBillAdvance": num(8, 0), "closedOn": CLOSED_ON},
+        "monthlyTenantBillAdvance": num(8, 0),
+        "heatPumpInvoiceEstimate": sum(num(92, i) or 0 for i in range(MONTHS)),
+        "closedOn": CLOSED_ON,
         "months": months,
     }
 
