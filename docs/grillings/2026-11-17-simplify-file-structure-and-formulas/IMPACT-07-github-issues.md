@@ -45,10 +45,15 @@ Proposal only. I changed no issue. Each edit, comment or closing needs your go-a
 ## New issues to create (proposed)
 
 1. Convert 2025-2026 to `schemaVersion` 2 (impact 3).
+   1. Approved creation
 2. Initialize the next month: copy, both indexes, one patch (Cases 2, 3).
+   1. Approved creation
 3. The apply dialog (Case 8).
+   1. Approved creation
 4. Decide the month-initialization commit message (impact 4).
+   1. I said your recommendation was OK for me. No new issue for that.
 5. Regenerate the golden record and the workbook (impact 2).
+   1. Approved creation
 
 ## Blockers
 
@@ -65,3 +70,5 @@ Proposal only. I changed no issue. Each edit, comment or closing needs your go-a
 ## Needed from you
 
 This file is not reviewed yet. Please reply per row or for the whole table: approve, change, or drop. Until then I edit and close nothing. Two answers matter most: close #78 yes or no, and the five new issues yes or no.
+
+> Approved closing #78 and answered the five new issues creation request.

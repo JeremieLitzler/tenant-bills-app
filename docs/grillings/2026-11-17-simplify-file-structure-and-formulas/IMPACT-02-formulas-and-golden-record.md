@@ -28,3 +28,5 @@ The collection subscription (_Abonnement collecte_) is the fixed monthly part of
 ## Needed from you
 
 Check the answer to Q1 and the new glossary entry. Nothing else: you do not need to touch the workbook.
+
+> Approved

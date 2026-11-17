@@ -41,4 +41,7 @@ The softener rules you gave are in `docs/period-file.md`, section `waterSoftener
 ## Needed from you
 
 1. Tell me to create the draft issue above (or run it yourself); my attempt was refused by the permission check.
+   1. I create issue 107 from your draft.
 2. Nothing else: approved.
+
+> Approved
