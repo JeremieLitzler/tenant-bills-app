@@ -35,5 +35,11 @@
 ## Needed from you
 
 1. The first month's `startDate` of 2025-2026: `2025-09-14` (as stored in `readingDatePrevious`) or `2025-09-15`?
+   1. `2025-09-14`
 2. The `tenantName` and the `heatPumpInvoiceEstimate` of the 2025-2026 period.
+   1. I'll provide the real `tenantName`. For now, set value `[à saisir]`
+   2. `heatPumpInvoiceEstimate` was 0 since all was billed on 12th month of the period.
 3. Approve the two answers I gave in "What the converter must decide".
+   1. Approved
+
+> Approved

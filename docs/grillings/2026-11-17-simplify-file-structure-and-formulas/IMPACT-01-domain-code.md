@@ -25,7 +25,3 @@
 ## Needed from you
 
 Nothing: approved.
-
-## Needed from you
-
-Nothing: approved.
