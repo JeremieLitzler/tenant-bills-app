@@ -11,9 +11,9 @@
         "bill": 38.47
       },
       "waterTreatment": {
-        "landlordShare": 19.64,
-        "tenantShare": 5.59,
-        "bill": 25.23
+        "landlordShare": 21.19,
+        "tenantShare": 5.98,
+        "bill": 27.17
       },
       "electricity": {
         "deltaMainBase": 497.0,
@@ -51,9 +51,9 @@
         "bill": 20.75
       },
       "waterTreatment": {
-        "landlordShare": 9.75,
-        "tenantShare": 2.81,
-        "bill": 12.56
+        "landlordShare": 11.3,
+        "tenantShare": 3.2,
+        "bill": 14.5
       },
       "electricity": {
         "deltaMainBase": 726.0,
@@ -91,9 +91,9 @@
         "bill": 30.9
       },
       "waterTreatment": {
-        "landlordShare": 15.92,
-        "tenantShare": 4.86,
-        "bill": 20.78
+        "landlordShare": 17.46,
+        "tenantShare": 5.24,
+        "bill": 22.700000000000003
       },
       "electricity": {
         "deltaMainBase": 1860.0,
@@ -131,9 +131,9 @@
         "bill": 28.92
       },
       "waterTreatment": {
-        "landlordShare": 17.82,
-        "tenantShare": 3.38,
-        "bill": 21.2
+        "landlordShare": 19.36,
+        "tenantShare": 3.77,
+        "bill": 23.13
       },
       "electricity": {
         "deltaMainBase": 1585.0,
@@ -171,9 +171,9 @@
         "bill": 27.53
       },
       "waterTreatment": {
-        "landlordShare": 12.97,
-        "tenantShare": 5.08,
-        "bill": 18.05
+        "landlordShare": 14.51,
+        "tenantShare": 5.47,
+        "bill": 19.98
       },
       "electricity": {
         "deltaMainBase": 1367.0,
@@ -211,9 +211,9 @@
         "bill": 27.07
       },
       "waterTreatment": {
-        "landlordShare": 14.35,
-        "tenantShare": 3.94,
-        "bill": 18.29
+        "landlordShare": 15.9,
+        "tenantShare": 4.33,
+        "bill": 20.23
       },
       "electricity": {
         "deltaMainBase": 1414.0,
@@ -251,9 +251,9 @@
         "bill": 24.12
       },
       "waterTreatment": {
-        "landlordShare": 8.92,
-        "tenantShare": 5.13,
-        "bill": 14.05
+        "landlordShare": 10.47,
+        "tenantShare": 5.52,
+        "bill": 15.99
       },
       "electricity": {
         "deltaMainBase": 892.0,
@@ -291,9 +291,9 @@
         "bill": 25.54
       },
       "waterTreatment": {
-        "landlordShare": 12.24,
-        "tenantShare": 4.21,
-        "bill": 16.45
+        "landlordShare": 13.78,
+        "tenantShare": 4.59,
+        "bill": 18.369999999999997
       },
       "electricity": {
         "deltaMainBase": 722.0,
@@ -331,9 +331,9 @@
         "bill": 26.540000000000003
       },
       "waterTreatment": {
-        "landlordShare": 14.82,
-        "tenantShare": 3.44,
-        "bill": 18.26
+        "landlordShare": 16.36,
+        "tenantShare": 3.82,
+        "bill": 20.18
       },
       "electricity": {
         "deltaMainBase": 502.0,
@@ -371,9 +371,9 @@
         "bill": 20.59
       },
       "waterTreatment": {
-        "landlordShare": 7.59,
-        "tenantShare": 3.96,
-        "bill": 11.55
+        "landlordShare": 9.14,
+        "tenantShare": 4.35,
+        "bill": 13.49
       },
       "electricity": {
         "deltaMainBase": 352.0,
@@ -411,9 +411,9 @@
         "bill": 25.84
       },
       "waterTreatment": {
-        "landlordShare": 7.54,
-        "tenantShare": 6.71,
-        "bill": 14.25
+        "landlordShare": 9.09,
+        "tenantShare": 7.1,
+        "bill": 16.189999999999998
       },
       "electricity": {
         "deltaMainBase": 0.0,
@@ -423,9 +423,9 @@
         "deltaStudioHc": 43.0,
         "deltaStudioHp": 111.0,
         "subscriptionUnits": 1.0,
-        "landlordShare": 79.86,
-        "tenantShare": 32.09,
-        "bill": 111.95
+        "landlordShare": 82.22,
+        "tenantShare": 32.68,
+        "bill": 114.9
       },
       "waterSoftener": {
         "landlordShare": 0.0,
@@ -451,9 +451,9 @@
         "bill": 26.159999999999997
       },
       "waterTreatment": {
-        "landlordShare": 11.34,
-        "tenantShare": 4.97,
-        "bill": 16.31
+        "landlordShare": 12.89,
+        "tenantShare": 5.36,
+        "bill": 18.25
       },
       "electricity": {
         "deltaMainBase": 1022.0,
@@ -463,9 +463,9 @@
         "deltaStudioHc": 0.0,
         "deltaStudioHp": 0.0,
         "subscriptionUnits": 1.0,
-        "landlordShare": 204.7,
-        "tenantShare": 33.91,
-        "bill": 238.60999999999999
+        "landlordShare": 206.95,
+        "tenantShare": 34.47,
+        "bill": 241.42
       },
       "waterSoftener": {
         "landlordShare": 0.0,
@@ -484,13 +484,13 @@
   "totals": {
     "advancesReceived": 600.0,
     "waterConsumptionTenant": 66.22,
-    "waterTreatmentTenant": 54.08,
-    "electricityTenant": 484.97,
+    "waterTreatmentTenant": 58.73000000000001,
+    "electricityTenant": 486.12,
     "waterSoftenerTenant": 26.27,
     "internetTenant": 72.0,
     "heatPumpMaintenanceTenant": 169.0,
-    "balance": -272.53999999999996,
-    "settlementAmount": 272.53999999999996,
+    "balance": -278.34000000000003,
+    "settlementAmount": 278.34000000000003,
     "settlementDirection": "tenantToLandlord"
   }
 }
