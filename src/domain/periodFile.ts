@@ -2,6 +2,9 @@
 // delta, share, bill and balance is computed. Vue-free.
 
 export interface CommonInputs {
+  startDate?: string
+  endDate?: string
+  estimated?: boolean
   readingDate?: string
   readingDatePrevious?: string
   landlordOccupants?: number
@@ -25,6 +28,8 @@ export interface WaterConsumptionInputs {
 }
 
 export interface WaterTreatmentInputs {
+  monthlySubscriptionDistributor?: number
+  monthlySubscriptionCommunity?: number
   collectionConsumptionDistributor?: number
   collectionConsumptionCommunity?: number
   sanitationPerformance?: number
@@ -91,6 +96,7 @@ export interface PeriodSettings {
 export interface PeriodFile {
   schemaVersion: number
   periodName: string
+  heatPumpInvoiceEstimate?: number
   settings: PeriodSettings
   months: MonthEntry[]
 }
@@ -112,14 +118,17 @@ export const FIELD_CATALOGUE: Catalogue = {
   common: {
     readingDate: 'not-inherited',
     readingDatePrevious: 'not-inherited',
+    startDate: 'not-inherited',
+    endDate: 'not-inherited',
+    estimated: 'not-inherited',
     landlordOccupants: 'inherited',
     tenantOccupants: 'inherited',
     tenantBillAdvance: 'not-inherited',
   },
   waterConsumption: {
-    mainMeter: 'inherited',
-    studioUnsoftenedMeter: 'inherited',
-    studioSoftenedMeter: 'inherited',
+    mainMeter: 'not-inherited',
+    studioUnsoftenedMeter: 'not-inherited',
+    studioSoftenedMeter: 'not-inherited',
     mainMeterPrevious: 'not-inherited',
     studioUnsoftenedMeterPrevious: 'not-inherited',
     studioSoftenedMeterPrevious: 'not-inherited',
@@ -131,6 +140,8 @@ export const FIELD_CATALOGUE: Catalogue = {
     vat: 'inherited',
   },
   waterTreatment: {
+    monthlySubscriptionDistributor: 'inherited',
+    monthlySubscriptionCommunity: 'inherited',
     collectionConsumptionDistributor: 'inherited',
     collectionConsumptionCommunity: 'inherited',
     sanitationPerformance: 'inherited',
@@ -144,12 +155,12 @@ export const FIELD_CATALOGUE: Catalogue = {
   electricity: {
     tariffMode: 'inherited',
     subscriptionUnit: 'inherited',
-    mainBase: 'inherited',
-    mainHc: 'inherited',
-    mainHp: 'inherited',
-    studioBase: 'inherited',
-    studioHc: 'inherited',
-    studioHp: 'inherited',
+    mainBase: 'not-inherited',
+    mainHc: 'not-inherited',
+    mainHp: 'not-inherited',
+    studioBase: 'not-inherited',
+    studioHc: 'not-inherited',
+    studioHp: 'not-inherited',
     mainBasePrevious: 'not-inherited',
     mainHcPrevious: 'not-inherited',
     mainHpPrevious: 'not-inherited',
