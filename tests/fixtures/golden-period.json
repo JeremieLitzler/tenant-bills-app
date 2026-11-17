@@ -64,6 +64,8 @@
       "common": {
         "startDate": "2025-10-25",
         "endDate": "2025-11-15",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -73,19 +75,38 @@
         "studioUnsoftenedMeter": 2638,
         "studioSoftenedMeterPrevious": 1751,
         "studioSoftenedMeter": 2583,
+        "pricePerM3": 1.03,
+        "resourceWithdrawalFee": 0.07,
         "drinkingWaterFee": 0.39,
-        "networkPerformanceFee": 0.02
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.25,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.584,
+        "collectionConsumptionCommunity": 0.869,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 56433,
         "mainBase": 57159,
         "studioBasePrevious": 254,
         "studioBase": 383,
-        "ctaTax": 3.32
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.542794,
+        "ctaTax": 3.32,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -93,6 +114,8 @@
       "common": {
         "startDate": "2025-11-15",
         "endDate": "2025-12-19",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -101,22 +124,43 @@
         "studioUnsoftenedMeterPrevious": 2638,
         "studioUnsoftenedMeter": 3627,
         "studioSoftenedMeterPrevious": 2583,
-        "studioSoftenedMeter": 4611
+        "studioSoftenedMeter": 4611,
+        "pricePerM3": 1.03,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.25,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.584,
+        "collectionConsumptionCommunity": 0.869,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {
         "description": "Sac de sel",
         "quantity": 1,
         "unitPrice": 9.85
       },
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 57159,
         "mainBase": 59019,
         "studioBasePrevious": 383,
         "studioBase": 743,
-        "ctaTax": 3.43
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.542794,
+        "ctaTax": 3.43,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -124,6 +168,8 @@
       "common": {
         "startDate": "2025-12-19",
         "endDate": "2026-01-17",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -132,21 +178,39 @@
         "studioUnsoftenedMeterPrevious": 3627,
         "studioUnsoftenedMeter": 4469,
         "studioSoftenedMeterPrevious": 4611,
-        "studioSoftenedMeter": 5789
+        "studioSoftenedMeter": 5789,
+        "pricePerM3": 1.03,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.25,
+        "vat": 1.055
       },
       "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
         "collectionConsumptionDistributor": 0.576,
-        "collectionConsumptionCommunity": 0.937
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
       },
       "waterSoftener": {},
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 59019,
         "mainBase": 60604,
         "studioBasePrevious": 743,
         "studioBase": 1031,
-        "ctaTax": 1.73
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.542794,
+        "ctaTax": 1.73,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -154,6 +218,8 @@
       "common": {
         "startDate": "2026-01-17",
         "endDate": "2026-02-15",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -162,19 +228,39 @@
         "studioUnsoftenedMeterPrevious": 4469,
         "studioUnsoftenedMeter": 5686,
         "studioSoftenedMeterPrevious": 5789,
-        "studioSoftenedMeter": 7604
+        "studioSoftenedMeter": 7604,
+        "pricePerM3": 1.03,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.25,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 60604,
         "mainBase": 61971,
         "studioBasePrevious": 1031,
         "studioBase": 1365,
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
         "subscriptionPerUnit": 0.573041,
-        "ctaTax": 2.35
+        "ctaTax": 2.35,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -182,6 +268,8 @@
       "common": {
         "startDate": "2026-02-15",
         "endDate": "2026-03-15",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -192,22 +280,41 @@
         "studioSoftenedMeterPrevious": 7604,
         "studioSoftenedMeter": 8966,
         "pricePerM3": 1.05,
-        "subscription": 5.35
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {
         "description": "Sac de sel",
         "quantity": 1,
         "unitPrice": 9.25
       },
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 61971,
         "mainBase": 63385,
         "studioBasePrevious": 1365,
         "studioBase": 1586,
-        "ctaTax": 2.27
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 2.27,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -215,6 +322,8 @@
       "common": {
         "startDate": "2026-03-15",
         "endDate": "2026-04-13",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -223,22 +332,43 @@
         "studioUnsoftenedMeterPrevious": 6678,
         "studioUnsoftenedMeter": 8364,
         "studioSoftenedMeterPrevious": 8966,
-        "studioSoftenedMeter": 10342
+        "studioSoftenedMeter": 10342,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {
         "description": "Kit d'entretien adoucisseur",
         "quantity": 1,
         "unitPrice": 90.81
       },
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 63385,
         "mainBase": 64277,
         "studioBasePrevious": 1586,
         "studioBase": 1821,
-        "ctaTax": 2.35
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 2.35,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -246,6 +376,8 @@
       "common": {
         "startDate": "2026-04-13",
         "endDate": "2026-05-15",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -254,18 +386,39 @@
         "studioUnsoftenedMeterPrevious": 8364,
         "studioUnsoftenedMeter": 9469,
         "studioSoftenedMeterPrevious": 10342,
-        "studioSoftenedMeter": 11748
+        "studioSoftenedMeter": 11748,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 64277,
         "mainBase": 64999,
         "studioBasePrevious": 1821,
         "studioBase": 1948,
-        "ctaTax": 2.27
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 2.27,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -273,6 +426,8 @@
       "common": {
         "startDate": "2026-05-15",
         "endDate": "2026-06-14",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -281,18 +436,39 @@
         "studioUnsoftenedMeterPrevious": 9469,
         "studioUnsoftenedMeter": 10195,
         "studioSoftenedMeterPrevious": 11748,
-        "studioSoftenedMeter": 13074
+        "studioSoftenedMeter": 13074,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 64999,
         "mainBase": 65501,
         "studioBasePrevious": 1948,
         "studioBase": 2059,
-        "ctaTax": 2.35
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 2.35,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -300,6 +476,8 @@
       "common": {
         "startDate": "2026-06-14",
         "endDate": "2026-07-15",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -308,22 +486,43 @@
         "studioUnsoftenedMeterPrevious": 10195,
         "studioUnsoftenedMeter": 11058,
         "studioSoftenedMeterPrevious": 13074,
-        "studioSoftenedMeter": 14574
+        "studioSoftenedMeter": 14574,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {
         "description": "Sac de sel",
         "quantity": 1,
         "unitPrice": 10.75
       },
       "electricity": {
+        "tariffMode": "base",
+        "subscriptionUnit": "day",
         "mainBasePrevious": 65501,
         "mainBase": 65853,
         "studioBasePrevious": 2059,
         "studioBase": 2199,
-        "ctaTax": 1.78
+        "excisePerKwh": 0.03085,
+        "kwhPriceBase": 0.110126,
+        "subscriptionPerUnit": 0.573041,
+        "ctaTax": 1.78,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -331,6 +530,8 @@
       "common": {
         "startDate": "2026-07-15",
         "endDate": "2026-08-10",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -339,9 +540,22 @@
         "studioUnsoftenedMeterPrevious": 11058,
         "studioUnsoftenedMeter": 11988,
         "studioSoftenedMeterPrevious": 14574,
-        "studioSoftenedMeter": 17649
+        "studioSoftenedMeter": 17649,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
         "tariffMode": "hchp",
@@ -358,9 +572,12 @@
         "kwhPriceHc": 0.0880466667,
         "kwhPriceHp": 0.1232966667,
         "subscriptionPerUnit": 22.78,
-        "ctaTax": 0
+        "ctaTax": 0,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {}
     },
     {
@@ -368,6 +585,8 @@
       "common": {
         "startDate": "2026-08-10",
         "endDate": "2026-09-12",
+        "landlordOccupants": 4,
+        "tenantOccupants": 1,
         "tenantBillAdvance": 50
       },
       "waterConsumption": {
@@ -376,19 +595,39 @@
         "studioUnsoftenedMeterPrevious": 11988,
         "studioUnsoftenedMeter": 13574,
         "studioSoftenedMeterPrevious": 17649,
-        "studioSoftenedMeter": 19032
+        "studioSoftenedMeter": 19032,
+        "pricePerM3": 1.05,
+        "resourceWithdrawalFee": 0.07,
+        "drinkingWaterFee": 0.39,
+        "networkPerformanceFee": 0.02,
+        "subscription": 5.35,
+        "vat": 1.055
       },
-      "waterTreatment": {},
+      "waterTreatment": {
+        "monthlySubscriptionDistributor": 1.0208,
+        "monthlySubscriptionCommunity": 0.735,
+        "collectionConsumptionDistributor": 0.576,
+        "collectionConsumptionCommunity": 0.937,
+        "sanitationPerformance": 0.01,
+        "vat": 1.1
+      },
       "waterSoftener": {},
       "electricity": {
         "tariffMode": "base",
+        "subscriptionUnit": "month",
         "mainBasePrevious": 65853,
         "mainBase": 66875,
         "studioBasePrevious": 2315,
         "studioBase": 2474,
-        "kwhPriceBase": 0.1184633333
+        "excisePerKwh": 0.03062,
+        "kwhPriceBase": 0.1184633333,
+        "subscriptionPerUnit": 22.78,
+        "ctaTax": 0,
+        "vat": 1.2
       },
-      "internet": {},
+      "internet": {
+        "billedAmount": 30
+      },
       "heatPumpMaintenance": {
         "billedAmount": 169
       }
