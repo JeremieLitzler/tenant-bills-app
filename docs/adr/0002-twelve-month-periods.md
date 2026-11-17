@@ -1,3 +1,5 @@
 # A period has twelve months, September to August
 
+_Obsolete: replaced by ADR 0009._
+
 The spreadsheet's period sheets hold 13 month columns, and September appears both as the last month of one period and the first month of the next. The overlap came from the irregular first months of the 2025-2026 period, not from a business rule. The 2025-2026 settlement also holds a manual "Réajustement" line of 20 €: the next advance went from 50 to 70, but the tenant kept transferring 50 in September 2026. The app needs no such line, because that shortfall is the September advance of 2026-2027 (50 received for 70 expected). The app models a period as exactly twelve months, September to August, so each month belongs to one period only and the settlement compares twelve months of tenant shares with twelve charge advances.
