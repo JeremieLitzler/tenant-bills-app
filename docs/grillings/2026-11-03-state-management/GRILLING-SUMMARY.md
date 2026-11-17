@@ -14,7 +14,7 @@ Shared state is held in **singleton composables**: module-level refs returned by
 
 **Queued patches survive a session end.** This covers a 401 and an explicit "Se déconnecter", which asks for confirmation when patches are queued. A meter reading typed offline must not be lost (ADR 0004), and the allowlist holds a single login. After the next sign-in, the periods are re-loaded and the patches re-applied.
 
-**Tests.** The table and form tests mount the real period composable over a fixture period file and `vi.mock` `src/sync/`. They assert the patch handed to its enqueue function, so the inherited display is tested against real data, not hand-written figures.
+**Tests.** The table and form tests mount the real period composable over a fixture period file and `vi.mock` `src/sync/`. They assert the patch handed to its enqueue function, so the display is tested against real data, not hand-written figures.
 
 ## Decision index
 

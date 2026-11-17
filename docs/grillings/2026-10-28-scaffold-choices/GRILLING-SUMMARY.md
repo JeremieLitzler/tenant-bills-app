@@ -8,7 +8,7 @@ The F10 scaffold follows `french-gas-stations-scraper` wherever it can, and diff
 
 The first difference is the package manager. The app uses pnpm, which you already have through scoop, rather than the reference project's npm. Netlify builds with its default pnpm `10.x` unless told otherwise, while you run `12.16.1` locally, so the version is pinned with the `packageManager` field to keep the lockfile format the same on both sides. Node is pinned to `24` with a `.node-version` file.
 
-The second difference is that the code which matters most gets its own Vue-free folders. The formulas, the period file types, inheritance and the patch apply function go in `src/domain/`. The IndexedDB patch queue, `drainQueue()`, the 409 rebase and the SHA check go in `src/sync/`. Both are tested with colocated Vitest specs, without mounting components. The reference project spreads this kind of code across `utils/`, `types/` and `composables/`, and keeps four empty folders. Here, `src/` starts lean and a folder is added when something needs it.
+The second difference is that the code which matters most gets its own Vue-free folders. The formulas, the period file types and the patch apply function go in `src/domain/`. The IndexedDB patch queue, `drainQueue()`, the 409 rebase and the SHA check go in `src/sync/`. Both are tested with colocated Vitest specs, without mounting components. The reference project spreads this kind of code across `utils/`, `types/` and `composables/`, and keeps four empty folders. Here, `src/` starts lean and a folder is added when something needs it.
 
 The third difference is routing. File-based `vue-router` 5 is kept, but this app has five real views instead of two pages. Each view gets one English path, and the parameters reuse the period file's identifiers (`2026-2027`, `2026-10`). The table and "Saisie du mois" are separate routes, both open on any screen size. Q20 of the functional breakdown (table on large screens, form on small screens) only decides where `/` lands. A single global guard protects every route except the public sign-in.
 
@@ -22,7 +22,7 @@ None of this met the ADR bar, because each choice is cheap to reverse before the
 - Q2 (v01): `vue-router` 5 with file-based routing from `src/pages/`.
 - Q3 (v01): the app sits at the repo root.
 - Q4 (v01): one `package.json` for the app and the functions; no workspace.
-- Q5 (v01): domain code (formulas, period file types, inheritance, patch apply) in a Vue-free `src/domain/`.
+- Q5 (v01): domain code (formulas, period file types, patch apply) in a Vue-free `src/domain/`.
 - Q6 (v01): queue and GitHub sync code in a Vue-free `src/sync/`, exposed through one composable.
 - Q7 (v01): colocated `*.spec.ts`, test data in `tests/fixtures/`.
 - Q8 (v01): one folder per function (`github-auth-start`, `github-auth-callback`, `github-auth-logout`, `github-api-proxy`) plus `lib/`; code duplicated from the reference project for now.
