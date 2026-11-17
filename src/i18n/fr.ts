@@ -38,9 +38,10 @@ export const fr = {
       failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
     },
     problems: {
-      'schema-version': 'La version du format du fichier est inconnue ou plus récente.',
-      months: "Les mois ne sont pas les douze mois de la période, dans l'ordre.",
-      'tenant-bill-advance': "Un mois n'a pas d'avance sur charges.",
+      'schema-version':
+        'La version du format du fichier est inconnue, plus récente ou trop ancienne.',
+      months: 'Les mois sont vides, plus de douze, en double ou dans le désordre.',
+      sections: "Un mois n'a pas ses sept sections.",
       'water-index': "Un index du compte d'eau n'est pas un nombre entier.",
       'closed-on': 'La date de clôture est mal formée.',
     },

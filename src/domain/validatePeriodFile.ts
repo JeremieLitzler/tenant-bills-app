@@ -1,12 +1,13 @@
 // The "Validation" rules of docs/period-file.md: a file breaking one opens read-only and the app
 // never writes it. Vue-free.
+import { FIELD_CATALOGUE } from './periodFile'
 import type { PeriodFile } from './periodFile'
 
-const SUPPORTED_SCHEMA_VERSION = 1
+const SUPPORTED_SCHEMA_VERSION = 2
 
 // One code per rule, so the page can word the notice and a test can name the rule.
 export type PeriodFileProblem =
-  'schema-version' | 'months' | 'tenant-bill-advance' | 'water-index' | 'closed-on'
+  'schema-version' | 'months' | 'sections' | 'water-index' | 'closed-on'
 
 export interface PeriodFileValidation {
   // Undefined when the JSON is not shaped like a period file at all (unreadable).
@@ -23,27 +24,15 @@ const WATER_INDEX_KEYS = [
   'studioUnsoftenedMeterPrevious',
   'studioSoftenedMeterPrevious',
 ]
+const SECTION_NAMES = Object.keys(FIELD_CATALOGUE)
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
+const MAX_MONTHS = 12
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 type JsonObject = Record<string, unknown>
 
 function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-// September of the first year to August of the second, e.g. "2026-2027".
-function expectedMonths(periodId: string): string[] | undefined {
-  const match = /^(\d{4})-(\d{4})$/.exec(periodId)
-  if (!match) return undefined
-  const [firstYear, secondYear] = [Number(match[1]), Number(match[2])]
-  if (secondYear !== firstYear + 1) return undefined
-  const months: string[] = []
-  for (let offset = 0; offset < 12; offset++) {
-    const calendarMonth = ((8 + offset) % 12) + 1
-    const year = calendarMonth >= 9 ? firstYear : secondYear
-    months.push(`${year}-${String(calendarMonth).padStart(2, '0')}`)
-  }
-  return months
 }
 
 function isRealDate(value: unknown): boolean {
@@ -57,20 +46,24 @@ function isRealDate(value: unknown): boolean {
   )
 }
 
-function hasExpectedMonths(months: unknown[], periodId: string): boolean {
-  const expected = expectedMonths(periodId)
+// One to twelve entries, each `month` a "YYYY-MM", unique and in order (strings of that shape
+// compare like dates).
+function hasValidMonths(months: unknown[]): boolean {
   return (
-    expected !== undefined &&
-    months.length === expected.length &&
-    months.every((entry, index) => isObject(entry) && entry.month === expected[index])
+    months.length >= 1 &&
+    months.length <= MAX_MONTHS &&
+    months.every(
+      (entry, index) =>
+        isObject(entry) &&
+        typeof entry.month === 'string' &&
+        MONTH_PATTERN.test(entry.month) &&
+        (index === 0 || (months[index - 1] as JsonObject).month! < entry.month),
+    )
   )
 }
 
-function everyMonthHasAdvance(months: unknown[]): boolean {
-  return months.every(
-    (entry) =>
-      isObject(entry) && isObject(entry.common) && Number.isFinite(entry.common.tenantBillAdvance),
-  )
+function everyMonthHasSections(months: unknown[]): boolean {
+  return months.every((entry) => isObject(entry) && SECTION_NAMES.every((s) => isObject(entry[s])))
 }
 
 function everyWaterIndexIsInteger(months: unknown[]): boolean {
@@ -81,29 +74,23 @@ function everyWaterIndexIsInteger(months: unknown[]): boolean {
   })
 }
 
-// Only the three top-level keys the page and the state read are checked here; whether the rest of
+// Only the two top-level keys the page and the state read are checked here; whether the rest of
 // the file is sound is what `validatePeriodFile` reports as problems.
 function isPeriodFileShaped(raw: unknown): raw is PeriodFile {
-  return (
-    isObject(raw) &&
-    typeof raw.periodName === 'string' &&
-    isObject(raw.settings) &&
-    Array.isArray(raw.months)
-  )
+  return isObject(raw) && typeof raw.periodName === 'string' && Array.isArray(raw.months)
 }
 
-// `raw` is the parsed JSON of the file named `periodId`.
-export function validatePeriodFile(raw: unknown, periodId: string): PeriodFileValidation {
+export function validatePeriodFile(raw: unknown): PeriodFileValidation {
   if (!isPeriodFileShaped(raw)) {
     return { file: undefined, problems: [] }
   }
   const months: unknown[] = raw.months
   const problems: PeriodFileProblem[] = []
   if (raw.schemaVersion !== SUPPORTED_SCHEMA_VERSION) problems.push('schema-version')
-  if (!hasExpectedMonths(months, periodId)) problems.push('months')
-  if (!everyMonthHasAdvance(months)) problems.push('tenant-bill-advance')
+  if (!hasValidMonths(months)) problems.push('months')
+  if (!everyMonthHasSections(months)) problems.push('sections')
   if (!everyWaterIndexIsInteger(months)) problems.push('water-index')
-  const closedOn: unknown = raw.settings.closedOn
+  const closedOn: unknown = raw.closedOn
   if (closedOn !== undefined && !isRealDate(closedOn)) problems.push('closed-on')
   return { file: raw, problems }
 }

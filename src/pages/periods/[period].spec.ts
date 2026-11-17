@@ -77,7 +77,7 @@ describe('period page', () => {
   })
 
   it('shows the months and a read-only notice for a file breaking a validation rule', async () => {
-    getPeriodFile.mockResolvedValue({ json: periodJson({ schemaVersion: 2 }), sha: 's' })
+    getPeriodFile.mockResolvedValue({ json: periodJson({ schemaVersion: 1 }), sha: 's' })
 
     const { wrapper } = await openPeriodPage()
     await flushPromises()

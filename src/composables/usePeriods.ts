@@ -78,7 +78,7 @@ async function loadPeriod(id: string): Promise<void> {
   periodEntries.value[id] = entryWith('loading')
   try {
     const content = await getPeriodFile(id)
-    const { file, problems } = validatePeriodFile(content.json, id)
+    const { file, problems } = validatePeriodFile(content.json)
     periodEntries.value[id] = file
       ? entryWith('ready', { file, sha: content.sha, problems })
       : entryWith('error')
@@ -108,7 +108,7 @@ async function refreshPeriod(id: string): Promise<void> {
       return
     }
     const content = await getPeriodFile(id)
-    const { file, problems } = validatePeriodFile(content.json, id)
+    const { file, problems } = validatePeriodFile(content.json)
     if (!file) {
       entry.refresh = 'failed'
       return

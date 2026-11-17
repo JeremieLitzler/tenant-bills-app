@@ -9,9 +9,9 @@ export function validPeriodJson(periodId = '2026-2027') {
     return `${year}-${String(calendarMonth).padStart(2, '0')}`
   })
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     periodName: periodId,
-    settings: { monthlyTenantBillAdvance: 70 },
+    monthlyTenantBillAdvance: 70,
     months: months.map((month) => ({
       month,
       common: { tenantBillAdvance: 0 },
