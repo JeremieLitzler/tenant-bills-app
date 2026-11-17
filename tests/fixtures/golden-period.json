@@ -572,7 +572,7 @@
         "kwhPriceHc": 0.0880466667,
         "kwhPriceHp": 0.1232966667,
         "subscriptionPerUnit": 22.78,
-        "ctaTax": 0,
+        "ctaTax": 2.46,
         "vat": 1.2
       },
       "internet": {
@@ -622,7 +622,7 @@
         "excisePerKwh": 0.03062,
         "kwhPriceBase": 0.1184633333,
         "subscriptionPerUnit": 22.78,
-        "ctaTax": 0,
+        "ctaTax": 2.34,
         "vat": 1.2
       },
       "internet": {
