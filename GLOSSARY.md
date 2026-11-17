@@ -19,7 +19,7 @@ _Avoid_: Units, parts
 ## Time
 
 **Period** (_Période_):
-Twelve consecutive months, September to August, over which charges are tracked and then settled.
+Up to twelve consecutive months, starting in the month the tenant entered the studio (any month, not always September), over which charges are tracked and then settled.
 _Avoid_: Year, exercice
 
 **Closed period** (_Période clôturée_):
@@ -31,14 +31,17 @@ The open period containing today.
 _Avoid_: Current year
 
 **Month** (_Mois_):
-One column of a period, holding the readings and prices for that month. A month is named after the calendar month in which its consumption window starts: the "September" month runs from the mid-September reading date to the mid-October one.
+One column of a period, holding the readings and prices for that month. A month is named after the calendar month in which its consumption window starts: the "September" month runs from its mid-September start date to its mid-October end date.
 
-**Reading date** (_Date de relevé_):
+**Start date** (_Date "Du"_):
+The day a month's consumption window opens: the previous month's end date.
+
+**End date** (_Date "Au"_):
 The day the meters are read for a month; it closes the month's consumption window for every section.
-_Avoid_: Au (alone), index date
+_Avoid_: Reading date, index date
 
 **Estimated month** (_Mois estimé_):
-The last month of a period while its indexes are estimated from an earlier month's consumption and its reading is not yet taken.
+The last month of a period while its indexes are estimated from an earlier month's consumption and its reading is not yet taken; the month carries a stored flag until the real reading is confirmed.
 
 ## Money
 
@@ -48,6 +51,12 @@ _Avoid_: Charge advance, provision, deposit
 
 **Balance** (_Avance sur charges - Consommations_):
 The tenant bill advances received so far minus the tenant shares owed so far, followed during the period and final at the settlement.
+
+**Collection subscription** (_Abonnement collecte_):
+The fixed monthly part of the water treatment bill for wastewater collection, in two components: the distributor's (`monthlySubscriptionDistributor`) and the community's (`monthlySubscriptionCommunity`). Unlike the consumption part, it does not depend on the deltas: it is split between landlord and tenant by the occupant ratio.
+
+**Bill** (_Facture_):
+A section's utility bill for a month: the landlord share plus the tenant share.
 
 **Tenant share** (_Part Locataire_):
 The part of a section's monthly bill the tenant owes.
@@ -70,15 +79,18 @@ The provisional settlement while the last month of the period is estimated; it g
 **Section**:
 One kind of charge tracked in the table: water consumption, water treatment, electricity, water softener, internet, heat pump maintenance.
 
+**Delta**:
+The difference between a month's current and previous indexes of a meter, in the unit of its section (cubic metres for water, kWh for electricity).
+
 **Index** (_Index compteur_):
-The cumulative value displayed by a meter at a reading date.
+The cumulative value displayed by a meter at an end date.
 _Avoid_: Counter value
 
 **Previous index** (_Index précédent_):
-The index of a meter at the previous month's reading date.
+The index of a meter at the previous month's end date.
 
 **Current index** (_Index actuel_):
-The index of a meter at this month's reading date.
+The index of a meter at this month's end date.
 
 **Main meter** (_Compteur Général_):
 The water meter measuring the whole house, landlord and tenant together.

@@ -1,5 +1,7 @@
 # A period is closed explicitly once its water bills are in, and its last month is estimated to give the next advance early
 
+_Obsolete: replaced by ADR 0011._
+
 A period is closed by an explicit "Clôturer la période" action, not derived from the data: it writes `settings.closedOn`, and a closed period is fully read-only and cannot be reopened. The landlord closes it once the water consumption and water treatment bills are in, around October, a month after the last reading. To give the tenant the next monthly tenant bill advance before September, an "Estimer les relevés" button writes the twelfth month's indexes as estimates once the eleventh month is read: each meter's July index plus its delta in the previous period's August (or this July's delta when there is none), with an HC/HP total split 30 % / 70 %. A twelfth month holding indexes but no `readingDate` is estimated; typing the reading date makes it read. "Nouvelle période" is allowed as soon as the previous period's last month is estimated or read, and prefills its advance from that settlement.
 
 ## Considered options
