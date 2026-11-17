@@ -20,9 +20,10 @@ Usage:
   uv run scripts/extract-golden.py --randomized [copy] [period-output] [expected-output]
 
 Rules, from docs/period-file.md:
-- an inherited key is stored only in the first month and where its value
-  changes; a non-inherited key is stored where it holds a value, and both
-  indexes (previous and current) and both dates are stored every month;
+- an inherited key is stored in every month where it holds a value, as the app
+  copies it when it initializes a month; a non-inherited key is stored where it
+  holds a value; both indexes (previous and current) and both dates are stored
+  every month;
 - water indexes are litres as integers;
 - of the electricity registers, only those of the month's tariff mode are
   stored; HC/HP tariff months hold `hchp`, the others `base`.
@@ -65,15 +66,10 @@ def build_period(values, formulas) -> dict:
     def day(row: int, i: int) -> str:
         return cell(row, i).strftime("%Y-%m-%d")
 
-    # Last stored value per inherited key, to store only changes.
-    last: dict[str, object] = {}
-
+    # An inherited key is copied into every month (docs/period-file.md, "Copy, edit and apply").
     def inherit(section: dict, key: str, value, scope: str) -> None:
-        if value is None:
-            return
-        if last.get(scope + key) != value:
+        if value is not None:
             section[key] = value
-            last[scope + key] = value
 
     # Tariff mode per month: a zero base price means HC/HP.
     def mode(i: int) -> str:
