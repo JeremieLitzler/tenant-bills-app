@@ -1,10 +1,12 @@
 # Grilling summary — period table library (issue #9)
 
+_Partly superseded on 2026-11-17 by the grilling `2026-11-17-simplify-file-structure-and-formulas`; the replaced passages are corrected below._
+
 Session started 2026-11-03, rounds v01 to v03, on the branch `docs/9-period-table-library`. No ADR and no new glossary term: the outcome goes into a new "Period table" section of `docs/architecture.md`, once the prototype has picked the approach.
 
 ## Shared understanding
 
-Issue #9 asked to confirm the shadcn-vue data-table pattern (TanStack Table) for the period table (F5). The session did not confirm it outright. The period table is transposed compared with TanStack's row model: one row per line of a section and one column per month, as in the spreadsheet (Q1). Its shape is fixed (about 60 lines, 12 months), so sorting, filtering, pagination and selection, TanStack's main features, go unused. And the hard requirements are per cell (editability, inherited styling, warnings), which a custom cell component handles in any approach. I recommended a plain shadcn-vue `Table` with a hand-built row model. You chose to decide after a throwaway prototype instead (Q3).
+Issue #9 asked to confirm the shadcn-vue data-table pattern (TanStack Table) for the period table (F5). The session did not confirm it outright. The period table is transposed compared with TanStack's row model: one row per line of a section and one column per month, as in the spreadsheet (Q1). Its shape is fixed (about 60 lines, 12 months), so sorting, filtering, pagination and selection, TanStack's main features, go unused. And the hard requirements are per cell (editability, warnings), which a custom cell component handles in any approach. I recommended a plain shadcn-vue `Table` with a hand-built row model. You chose to decide after a throwaway prototype instead (Q3).
 
 **The prototype.** It lives in `prototypes/period-table/` on this branch, as its own small Vite app, and is deleted in the last commit before the pull request is merged, so the history keeps it (Q12). It uses the planned stack: Vue 3, Vite, TypeScript, Tailwind, shadcn-vue added with its CLI (Q13). It has three versions, each built on the same line definitions:
 
@@ -12,7 +14,7 @@ Issue #9 asked to confirm the shadcn-vue data-table pattern (TanStack Table) for
 2. The shadcn-vue data-table pattern with `@tanstack/vue-table`.
 3. A native `<table>` styled with Tailwind directly, with the hand-built row model, no shadcn-vue and no TanStack (Q13b). It tests whether shadcn-vue's thin `Table` wrappers earn their place for this table.
 
-Each version covers the same slice (Q14): `common`, `waterConsumption` and `electricity`, read from `docs/examples/2026-2027.json` with one month switched to `hchp`. That includes one placeholder computed line per section, inherited styling, one warning, previous indexes editable only in the first month, the inactive tariff cells, save on blur logged as the patch `{ period, month, field, value }`, and the keyboard model below. There is no queue, no GitHub and no real formula. The scope can grow after a first look.
+Each version covers the same slice (Q14): `common`, `waterConsumption` and `electricity`, read from `docs/examples/2026-2027.json` with one month switched to `hchp`. That includes one placeholder computed line per section, one warning, the inactive tariff cells, save on blur logged as the patch `{ period, month, field, value }`, and the keyboard model below. There is no queue, no GitHub and no real formula. The scope can grow after a first look.
 
 **How the winner is chosen.** Two comparisons, each putting the burden of proof on what is added (Q15, Q15b). TanStack against the hand-built row model: the plain version wins unless TanStack is clearly simpler on at least one requirement and harder on none, and a tie goes to the plain version, with one dependency fewer. The shadcn-vue wrappers against a native `<table>`: the wrappers stay unless they make a requirement harder, because shadcn-vue is already in the stack and the other pages will use it. The comparison reports, per requirement, the code each version needed.
 
@@ -56,7 +58,7 @@ Superseded: none. Q4's answer replaced my own proposal (native Tab plus Enter-do
   - Approved
 - The keyboard model applies to the period table only. The "Saisie du mois" form keeps native form behaviour (Tab between fields).
   - Correct
-- What "inherited styling", "not applicable" and "warning" look like (colours, italics, icon) is left to the prototype, with the same styling in all three versions so it does not tilt the comparison.
+- What "not applicable" and "warning" look like (colours, italics, icon) is left to the prototype, with the same styling in all three versions so it does not tilt the comparison.
   - Correct
 - The prototype is not deployed to Netlify; you run it locally with `pnpm dev` from `prototypes/period-table/`.
   - Approved

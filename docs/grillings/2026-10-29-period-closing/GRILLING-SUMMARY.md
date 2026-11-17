@@ -1,32 +1,34 @@
 # Grilling summary — when a period is closed (issue #7)
 
+_Partly superseded on 2026-11-17 by the grilling `2026-11-17-simplify-file-structure-and-formulas`: the reading date, `settings.closedOn` and the estimated-month marker were replaced and are corrected below._
+
 Session started 2026-10-29, rounds v01 to v10. Round v06 was removed: it only asked to confirm a first summary, which was withdrawn because I had missed your v05 remark "Remark about the last month of a running period". Its settled Q24 to Q29 are answered in v05. Glossary terms added along the way: **Closed period**, **Running period**, **Provisional settlement**, **Estimated month**, **Estimated settlement**.
 
 ## Shared understanding
 
 The settlement view is "provisoire" for any open period (functional breakdown Q25). This session decided what closes a period, and how the next period's monthly tenant bill advance is known in time.
 
-**Closing is an explicit act, not a state derived from the data.** Issue #7's working assumption was "all twelve reading dates entered". It was dropped because a closed settlement is a figure handed to the tenant, and some bills arrive after the last reading. "Clôturer la période" is enabled when every month has a reading date and every tenant share is computable (Q6). Its confirmation lists months whose tenant bill advance is `0`, without blocking. It also requires ticking "Les factures d'eau de la période ont-elles été reçues et saisies ?" (Q36). Closing writes `settings.closedOn: "YYYY-MM-DD"`, an ordinary settings patch, absent while the period is open; `schemaVersion` stays `1` (Q4c).
+**Closing is an explicit act, not a state derived from the data.** Issue #7's working assumption was "all twelve reading dates entered". It was dropped because a closed settlement is a figure handed to the tenant, and some bills arrive after the last reading. "Clôturer la période" is enabled when the twelve months exist, every month is complete and none is estimated (Q6). Its confirmation lists months whose tenant bill advance is `0`, without blocking. It also requires ticking "Les factures d'eau de la période ont-elles été reçues et saisies ?" (Q36). Closing writes the top-level `closedOn: "YYYY-MM-DD"`, an ordinary patch, absent while the period is open (Q4c).
 
 **A period is closed once the water bills are in, in October, not at the August reading (Q35).** This is the main turn of the session. For four rounds, closing happened at the August reading. Because the October water bills could still change prices, that design grew a versioned history of communicated settlements, corrections carried into the running period, a write across two period files, and exceptions to ADR 0001 and ADR 0004. Your v05 remark showed where the pressure came from: the next advance was only known at closing, so closing had to come early. Once the advance can be estimated in mid-August (below), closing can wait for the water bills. Then nothing changes after closing, and the whole correction branch was withdrawn (Q14, Q18 to Q22, Q26 to Q29).
 
 **A closed period is fully locked and can't be reopened.** Every cell and every setting is read-only (Q2, Q7b), and there is no "Rouvrir la période" (Q5). The lock is a UI rule. A patch queued on another device before the close reached the file still applies, and the app flags it (Q8).
 
-**The last month is estimated so the next advance is known in mid-August.** This avoids a repeat of 2026, when the new advance (70 instead of 50) came out in September, and the tenant only updated the transfer in October. That shortfall is the 20 € in the 256.31 communicated for 2025-2026, which also corrects ADR 0002's rationale (Q24). Once the eleventh month (July) has its reading date, an "Estimer les relevés" button on the twelfth month writes estimated indexes (Q32, Q32c). Each meter gets July's current index plus that meter's kWh or litre delta in the previous period's August (Q31), or in this year's July when there is no previous period (Q31c). The delta is a total per meter: HC + HP when the source month was HC/HP (Q31d). When this year's August is HC/HP, the total is split 30 % HC, 70 % HP (Q31e). August is an **estimated month** while it holds indexes but no reading date. Typing the reading date makes it read, and the confirmation lists the indexes still equal to their estimate (Q32b). The estimate's "Au", for per-day subscriptions, is the suggested reading date, which is not stored. While August is estimated, the settlement view shows "Régularisation estimée", with the estimated balance and next advance (Q33). Once August is read but the period isn't closed yet, a banner reminds you to tell the tenant that the final settlement comes in October, when the water bills arrive (Q37).
+**The last month is estimated so the next advance is known in mid-August.** This avoids a repeat of 2026, when the new advance (70 instead of 50) came out in September, and the tenant only updated the transfer in October. That shortfall is the 20 € in the 256.31 communicated for 2025-2026, which also corrects ADR 0002's rationale (Q24). When the twelfth month is initialized, the app writes estimated indexes and sets a stored `estimated` flag on it (Q32, Q32c). Each meter gets July's current index plus that meter's kWh or litre delta in the previous period's August (Q31), or in this year's July when there is no previous period (Q31c). The delta is a total per meter: HC + HP when the source month was HC/HP (Q31d). When this year's August is HC/HP, the total is split 30 % HC, 70 % HP (Q31e). August is an **estimated month** while the flag is set. Confirming the real reading removes the flag, and the confirmation lists the indexes still equal to their estimate (Q32b). While August is estimated, the settlement view shows "Régularisation estimée", with the estimated balance and next advance (Q33). Once August is read but the period isn't closed yet, a banner reminds you to tell the tenant that the final settlement comes in October, when the water bills arrive (Q37).
 
 **The next advance and the next period.** The next monthly tenant bill advance is the total tenant shares / 12, rounded **up** to the euro (Q9c, Excel now `ROUNDUP`). The settlement view shows it with the exact average (Q9). "Nouvelle période" is allowed once the previous period's twelfth month is estimated (Q3b), and freely when the previous period's file doesn't exist (Q10b). So the September transfer is never left without a period to record it (Q11 no longer applies). It prefills `monthlyTenantBillAdvance` with the next advance the previous settlement shows at that moment, still editable (Q12b, Q34). That is the one exception to functional breakdown Q21's "no prefill in v1". It is not updated afterwards.
 
-**2025-2026 is imported**, which reverses functional breakdown Q22, so that 2026-2027 has a previous period. A one-off, non-randomized mode of `scripts/extract-golden.py` writes the file to this repo's root, gitignored, and you upload it to the data repo (Q16). It is closed with `settings.closedOn: "2026-09-12"` (Q17). Paying a settlement in instalments, which you offered the tenant for 2025-2026, stays outside the app in v1 (Q25).
+**2025-2026 is imported**, which reverses functional breakdown Q22, so that 2026-2027 has a previous period. A one-off, non-randomized mode of `scripts/extract-golden.py` writes the file to this repo's root, gitignored, and you upload it to the data repo (Q16). It is closed with `closedOn: "2026-09-12"` (Q17). Paying a settlement in instalments, which you offered the tenant for 2025-2026, stays outside the app in v1 (Q25).
 
 ## Decision index
 
 - Q1 (v01): a period is closed by an explicit "Clôturer la période" action, not derived from the data.
 - Q2 (v01): a closed period is locked; every cell is read-only.
 - Q3b (v07): "Nouvelle période" is allowed once the previous period's twelfth month is estimated.
-- Q4c (v09): the closing marker is `settings.closedOn: "YYYY-MM-DD"`, absent while open.
+- Q4c (v09): the closing marker is the top-level `closedOn: "YYYY-MM-DD"`, absent while open.
 - Q5 (v02): a closed period can't be reopened.
-- Q6 (v02): closing needs a reading date in every month and every tenant share computable; `0` advances are listed, not blocking.
-- Q7b (v03): the lock covers `settings`; future settings are decided key by key.
+- Q6 (v02): closing needs the twelve months complete and none estimated; `0` advances are listed, not blocking.
+- Q7b (v03): the lock covers the top-level values; future ones are decided key by key.
 - Q8 (v02): a patch queued before the close reached the file applies as usual and is flagged.
 - Q9 (v02): the settlement view shows the exact average and the rounded next advance.
 - Q9c (v03): the next monthly tenant bill advance is rounded up to the euro; Excel uses `ROUNDUP`.
@@ -41,8 +43,8 @@ The settlement view is "provisoire" for any open period (functional breakdown Q2
 - Q31d (v08): the delta is a total per meter; HC + HP when the source month was HC/HP.
 - Q31e (v09): an HC/HP August splits the estimated total 30 % HC, 70 % HP.
 - Q32 (v07): the estimate is written into August's index keys.
-- Q32b (v08): August is estimated while it has indexes but no reading date; the reading date makes it read.
-- Q32c (v08): an "Estimer les relevés" button writes the estimate, enabled once the eleventh month has its reading date.
+- Q32b (v08): August is estimated while its `estimated` flag is set; confirming the real reading removes it.
+- Q32c (v08): the estimate is written when the twelfth month is initialized.
 - Q33 (v07): while August is estimated, the settlement view shows "Régularisation estimée".
 - Q34 (v07): the next period's advance is the estimated one communicated in mid-August.
 - Q35 (v08): a period is closed once the water bills are in (October); nothing is editable after closing.
@@ -57,13 +59,9 @@ These had to be settled to write the outcome down. Object to any of them before 
 
 - **A new ADR 0006**, "A period is closed explicitly once its water bills are in, and its last month is estimated to give the next advance early". It meets the bar: surprising without context (no reopening, closing a month after the last reading, estimates stored as indexes), hard to reverse (the file meaning of an index without a reading date), and the result of a real trade-off (the correction history it replaced is described there as the rejected option).
   - OK
-- **ADR 0001** gets one paragraph: in the twelfth month, indexes stored without a `readingDate` are estimates, not typed values. **ADR 0002**'s last sentence is reworded as in Q24. **ADR 0004 is not changed.**
-  - OK
-- **`docs/period-file.md`** gets `settings.closedOn`, the closed-period lock, and the estimated twelfth month (indexes without `readingDate`). Validation: a `closedOn` that isn't a `YYYY-MM-DD` date opens the file read-only.
-  - OK
 - **The 30/70 ratio** (Q31e) is a constant in the code in v1, not a period setting.
   - That's a reasonnable figure from 10 years of readings
-- **The estimate applies only to the twelfth month.** "Estimer les relevés" doesn't exist on other months.
+- **The estimate applies only to the twelfth month.**
   - Add a grilling ticket to add the estimate feature for all the months. Not needed in v1.
 - **"Nouvelle période" is also allowed when the twelfth month is read**, not only estimated. That covers the case where you skip the estimate and type the actual August reading.
   - yes

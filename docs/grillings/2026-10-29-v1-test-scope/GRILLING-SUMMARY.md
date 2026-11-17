@@ -1,10 +1,12 @@
 # Grilling summary — v1 test scope (issue #6)
 
+_Partly superseded on 2026-11-17 by the grilling `2026-11-17-simplify-file-structure-and-formulas`; the replaced passages are corrected below._
+
 ## Shared understanding
 
 v1 tests the logic where it lives, at the narrowest seam that still shows the behaviour that matters, and adds no end-to-end layer.
 
-`src/domain/` (formulas, inheritance from the previous month, patch apply) is tested with Vitest in the Node environment through its exported functions. The formulas are checked against a golden record: every computed cell of the sheet (deltas, bills, landlord and tenant shares per month and section, the column N totals, the balance and the settlement amount and direction), compared with `toBeCloseTo(expected, 6)` so summation order cannot fail a test while a sub-cent mistake still does.
+`src/domain/` (formulas, patch apply) is tested with Vitest in the Node environment through its exported functions. The formulas are checked against a golden record: every computed cell of the sheet (deltas, bills, landlord and tenant shares per month and section, the column N totals, the balance and the settlement amount and direction), compared with `toBeCloseTo(expected, 6)` so summation order cannot fail a test while a sub-cent mistake still does.
 
 The golden record is not the real 2025-2026 data. The issue's starting point was "test against the spreadsheet's computed values", and the period file grilling named `Période-092025-092026` as the record; but the `.xlsx` is gitignored as private consumption data and the repo is public. So the inputs are randomized in a copy of the workbook and Excel itself recalculates the expected values, keeping Excel as the oracle:
 
@@ -12,7 +14,7 @@ The golden record is not the real 2025-2026 data. The issue's starting point was
 - Randomized: each water and electricity meter's monthly delta and each water softener purchase, multiplied by a factor between 0.85 and 1.15; indexes rebuilt from the first previous index so they keep increasing, rounded to whole litres or kWh; softener amounts to two decimals.
 - Set: the internet bill to 30 every month; the heat pump maintenance to 169 in the months that already have one.
 - Kept real: unit prices and fees (public tariffs), reading dates, occupant counts, tariff modes, the monthly tenant bill advance and the advances received.
-- The user opens the copy in Excel and saves it; a second Python script extracts `tests/fixtures/golden-period.json` (a valid period file, shape of `docs/period-file.md`) and `tests/fixtures/golden-expected.json` (every computed cell). Both scripts and both fixtures are committed; the copied workbook stays gitignored.
+- The user opens the copy in Excel and saves it; a second Python script extracts `tests/fixtures/golden-period.json` (a valid period file; it is regenerated for the shape of `docs/period-file.md` and the new water treatment formula) and `tests/fixtures/golden-expected.json` (every computed cell). Both scripts and both fixtures are committed; the copied workbook stays gitignored.
 
 The issue's "ADR 0003 cases excepted" no longer applies: ADR 0003 is superseded and the fixed sheet is the reference.
 
@@ -20,7 +22,7 @@ The issue's "ADR 0003 cases excepted" no longer applies: ADR 0003 is superseded 
 
 The four Netlify functions keep the specs copied from `french-gas-stations-scraper`, adapted to the data repo and the login allowlist, since they are the security boundary.
 
-Component tests (`@vue/test-utils`, `happy-dom`) cover only the period table and the "Saisie du mois" form, with the sync composable mocked: they assert the patch handed over on blur and that inherited values are shown. No Playwright end-to-end tests in v1: sign-in goes through real GitHub OAuth and the two risky paths are covered above.
+Component tests (`@vue/test-utils`, `happy-dom`) cover only the period table and the "Saisie du mois" form, with the sync composable mocked: they assert the patch handed over on blur. No Playwright end-to-end tests in v1: sign-in goes through real GitHub OAuth and the two risky paths are covered above.
 
 A GitHub Actions workflow on pull requests runs install, `pnpm audit signatures`, the tests with coverage, then the build; Netlify only builds. Coverage has no threshold and shows as a table in the run's job summary, with no pull request comment.
 

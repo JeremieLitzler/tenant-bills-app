@@ -1,5 +1,7 @@
 # Grilling summary — Data commit messages (issue #11)
 
+_Note 2026-11-17 (grilling `2026-11-17-simplify-file-structure-and-formulas`): the `settings` group below now means the top-level values of the period file (`monthlyTenantBillAdvance`, `heatPumpInvoiceEstimate`, `closedOn`); the commit message of a month initialization (a queued patch carrying a whole month, ADR 0007) is not decided yet._
+
 ## Shared understanding
 
 Every write to the data repo `JeremieLitzler/tenant-bills-data` is one GitHub Contents API `PUT` on one period file, so it is one commit, and only its message is ours to choose: author and committer are the signed-in GitHub user. The message follows the English conventional-commit style of the app repo, with `data` as type and the period name as scope, so the history of the data repo reads per period at a glance.
