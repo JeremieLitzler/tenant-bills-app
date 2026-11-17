@@ -46,8 +46,8 @@ export const fr = {
         waterTreatment: "Traitement de l'eau",
       },
       lines: {
-        'common.windowStart': 'Du',
-        'common.readingDate': 'Au',
+        'common.startDate': 'Du',
+        'common.endDate': 'Au',
         'common.landlordOccupants': 'Occupants bailleur',
         'common.tenantOccupants': 'Occupants locataire',
         'common.tenantBillAdvance': 'Avance sur charges reçue',

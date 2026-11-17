@@ -100,12 +100,12 @@ describe('period page', () => {
   })
 
   describe('period table', () => {
-    // September typed in full, October with only its readings: the rest is inherited or derived.
+    // September typed in full, October with only its main meter reading.
     function tableJson() {
       const json = periodJson()
       Object.assign(json.months[0].common, {
-        readingDatePrevious: '2026-08-12',
-        readingDate: '2026-09-11',
+        startDate: '2026-08-12',
+        endDate: '2026-09-11',
         landlordOccupants: 1,
         tenantOccupants: 1,
         tenantBillAdvance: 70,
@@ -155,30 +155,21 @@ describe('period page', () => {
       expect(wrapper.get('[data-testid="section-waterTreatment"]').text()).toBe(
         "Traitement de l'eau",
       )
-      expect(wrapper.get('[data-testid="line-common.windowStart"] th').text()).toBe('Du')
-      expect(wrapper.get('[data-testid="line-common.readingDate"] th').text()).toBe('Au')
+      expect(wrapper.get('[data-testid="line-common.startDate"] th').text()).toBe('Du')
+      expect(wrapper.get('[data-testid="line-common.endDate"] th').text()).toBe('Au')
       expect(wrapper.get('[data-testid="line-common.tenantBillAdvance"] th').text()).toBe(
         'Avance sur charges reçue',
       )
     })
 
-    it('styles typed, inherited, derived and computed values differently', async () => {
+    it('styles typed and computed values differently', async () => {
       const { cells } = await openTable()
 
-      // October: the occupants are inherited, the previous index is derived, the reading is typed.
-      // The computed figure is September's: figures read each month's stored values only.
-      const occupants = cells('common.landlordOccupants')[1]
-      const previous = cells('waterConsumption.mainMeterPrevious')[1]
-      const typed = cells('waterConsumption.mainMeter')[1]
-      const delta = cells('waterConsumption.deltaMain')[0]
-      expect(occupants.attributes('data-provenance')).toBe('inherited')
-      expect(previous.attributes('data-provenance')).toBe('derived')
+      const typed = cells('waterConsumption.mainMeter')[0]
+      const computed = cells('waterConsumption.deltaMain')[0]
       expect(typed.attributes('data-provenance')).toBe('typed')
-      expect(delta.attributes('data-provenance')).toBe('computed')
-      const classes = [occupants, previous, typed, delta].map((c) => c.classes().join(' '))
-      expect(new Set(classes).size).toBe(4)
-      expect(occupants.text()).toBe('1')
-      expect(previous.text()).toBe('533,117')
+      expect(computed.attributes('data-provenance')).toBe('computed')
+      expect(typed.classes()).not.toEqual(computed.classes())
     })
 
     it('shows the water indexes in m³ and the consumption figures', async () => {
@@ -186,7 +177,7 @@ describe('period page', () => {
 
       expect(cells('waterConsumption.mainMeter')[0].text()).toBe('533,117')
       expect(cells('waterConsumption.deltaMain')[0].text()).toBe('3,117')
-      expect(cells('common.windowStart')[0].text()).toBe('12/08/2026')
+      expect(cells('common.startDate')[0].text()).toBe('12/08/2026')
       expect(cells('waterConsumption.bill')[0].text()).toMatch(/^\d+,\d{2}\s€$/)
       expect(cells('waterTreatment.bill')[0].text()).toMatch(/^\d+,\d{2}\s€$/)
     })
@@ -203,7 +194,7 @@ describe('period page', () => {
     })
 
     it('keeps the table and shows the read-only notice for a file breaking a rule', async () => {
-      const { wrapper } = await openTable({ ...tableJson(), schemaVersion: 2 })
+      const { wrapper } = await openTable({ ...tableJson(), schemaVersion: 1 })
 
       expect(wrapper.get('[data-testid="period-read-only"]').text()).toContain('lecture seule')
       expect(wrapper.find('[data-testid="period-table"]').exists()).toBe(true)

@@ -1,9 +1,8 @@
 // The lines of the period table, in display order: one definition per row, reused by the "Saisie du
 // mois" form (F6). A line is an input of the period file or a computed figure. More sections join
 // as their figures land (F4).
-import { resolveMonthWindowStart, resolveValue, type Resolved } from '@/domain/inheritance'
 import type { MonthFigures } from '@/domain/periodFigures'
-import type { ReadonlyPeriodFile, SectionInputs, SectionName } from '@/domain/periodFile'
+import type { MonthEntry, SectionInputs, SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3'
@@ -16,12 +15,8 @@ export interface PeriodLine {
   label: string
   kind: LineKind
   computed: boolean
-  // The cell's value: from the file (typed, inherited or derived) or from the figures (computed).
-  read: (
-    file: ReadonlyPeriodFile,
-    figures: MonthFigures,
-    month: string,
-  ) => Resolved<string | number> | undefined
+  // The cell's value: as stored in the month (docs/period-file.md) or from the figures (computed).
+  read: (entry: MonthEntry, figures: MonthFigures) => string | number | undefined
 }
 
 export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment'] as const).map((id) => ({
@@ -43,9 +38,9 @@ function input<S extends SectionName>(
     label: labelOf(id),
     kind,
     computed: false,
-    // Safe: every input is a number or a string.
-    read: (file, _figures, month) =>
-      resolveValue(file, month, section, key) as Resolved<string | number> | undefined,
+    // Safe: every input is a number or a string. A malformed read-only month may lack the section.
+    read: (entry) =>
+      (entry[section] as Record<string, string | number> | undefined)?.[key],
   }
 }
 
@@ -57,25 +52,14 @@ function computed(section: FigureSection, key: string, kind: LineKind): PeriodLi
     label: labelOf(id),
     kind,
     computed: true,
-    read: (_file, figures) => {
-      const value = (figures[section] as unknown as Record<string, number | undefined>)[key]
-      return value === undefined ? undefined : { value, provenance: 'computed' }
-    },
+    read: (_entry, figures) =>
+      (figures[section] as unknown as Record<string, number | undefined>)[key],
   }
 }
 
-const windowStart: PeriodLine = {
-  id: 'common.windowStart',
-  section: 'common',
-  label: labelOf('common.windowStart'),
-  kind: 'date',
-  computed: false,
-  read: (file, _figures, month) => resolveMonthWindowStart(file, month),
-}
-
 export const LINES: PeriodLine[] = [
-  windowStart,
-  input('common', 'readingDate', 'date'),
+  input('common', 'startDate', 'date'),
+  input('common', 'endDate', 'date'),
   input('common', 'landlordOccupants', 'int'),
   input('common', 'tenantOccupants', 'int'),
   input('common', 'tenantBillAdvance', 'money'),

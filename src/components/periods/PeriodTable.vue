@@ -6,16 +6,15 @@ import { computed } from 'vue'
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { usePeriod } from '@/composables/usePeriods'
-import type { Provenance } from '@/domain/inheritance'
 import { fr } from '@/i18n/fr'
 
-import { formatValue, LINES, type PeriodLine, SECTIONS } from './periodLines'
+import PeriodCell from './PeriodCell.vue'
+import { LINES, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
 const { file, figures } = usePeriod(() => props.periodId)
@@ -30,33 +29,19 @@ function monthLabel(month: string): string {
   })
 }
 
+// A read-only file can hold malformed entries: show only those with a month.
 const columns = computed(() =>
-  (figures.value?.months ?? []).map((monthFigures) => ({
-    month: monthFigures.month,
-    label: monthLabel(monthFigures.month),
-    figures: monthFigures,
-  })),
+  (file.value?.months ?? [])
+    .map((entry, index) => ({ entry, figures: figures.value?.months[index] }))
+    .filter(({ entry }) => typeof entry?.month === 'string')
+    .map(({ entry, figures }) => ({
+      month: entry.month,
+      label: monthLabel(entry.month),
+      entry,
+      figures,
+    })),
 )
 
-const PROVENANCE_CLASS: Record<Provenance, string> = {
-  typed: '',
-  inherited: 'italic text-muted-foreground',
-  derived: 'text-muted-foreground',
-  computed: 'font-medium',
-}
-
-function cell(line: PeriodLine, column: (typeof columns.value)[number]) {
-  const resolved = line.read(file.value!, column.figures, column.month)
-  if (!resolved) {
-    // An uncomputable figure is "—", never zero; an input not typed yet stays blank.
-    return { provenance: undefined, text: line.computed ? fr.period.table.empty : '', css: '' }
-  }
-  return {
-    provenance: resolved.provenance,
-    text: formatValue(line.kind, resolved.value),
-    css: PROVENANCE_CLASS[resolved.provenance],
-  }
-}
 </script>
 
 <template>
@@ -80,15 +65,13 @@ function cell(line: PeriodLine, column: (typeof columns.value)[number]) {
           :data-testid="`line-${line.id}`"
         >
           <TableHead scope="row">{{ line.label }}</TableHead>
-          <TableCell
+          <PeriodCell
             v-for="column in columns"
             :key="column.month"
-            class="text-right tabular-nums"
-            :class="cell(line, column).css"
-            :data-provenance="cell(line, column).provenance"
-          >
-            {{ cell(line, column).text }}
-          </TableCell>
+            :line="line"
+            :entry="column.entry"
+            :figures="column.figures"
+          />
         </TableRow>
       </template>
     </TableBody>
