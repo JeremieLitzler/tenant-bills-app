@@ -1,5 +1,5 @@
 import type { MonthEntry } from '../periodFile'
-import { addBill, all, roundCents, sum, type Figure, type OccupantRatios } from './figureMath'
+import { addBill, allDefined, roundCents, type Figure, type OccupantRatios } from './figureMath'
 
 export interface ElectricityFigures {
   deltaMainBase: Figure
@@ -33,13 +33,20 @@ const REGISTERS: Register[] = ['Base', 'Hc', 'Hp']
 
 export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): ElectricityFigures {
   const e = entry.electricity
+  // Without a tariff mode no register is known to apply: everything that depends on it is "—".
+  // shortcut: silent dash until validatePeriodFile reports it, see #122.
+  const active: Register[] | undefined = !e.tariffMode
+    ? undefined
+    : e.tariffMode === 'hchp'
+      ? ['Hc', 'Hp']
+      : ['Base']
   // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
-  const active: Register[] = e.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
   const deltas = (meter: 'main' | 'studio') =>
     Object.fromEntries(
       REGISTERS.map((kind) => {
+        if (!active) return [kind, undefined]
         if (!active.includes(kind)) return [kind, 0]
-        const operands = all(e[`${meter}${kind}`], e[`${meter}${kind}Previous`])
+        const operands = allDefined(e[`${meter}${kind}`], e[`${meter}${kind}Previous`])
         return [kind, operands && operands[0] - operands[1]]
       }),
     ) as Record<Register, Figure>
@@ -48,17 +55,17 @@ export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): 
   const units = subscriptionUnits(entry)
 
   const share = (deltaOf: Record<Register, Figure>, ratio: number | undefined): Figure => {
-    if (!e.tariffMode) return undefined
-    const energy = active.map((kind) => all(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`]))
-    const fixed = all(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
-    if (!fixed || energy.some((terms) => !terms)) return undefined
+    if (!active) return undefined
+    const fixed = allDefined(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
+    if (!fixed) return undefined
     const [count, perUnit, cta, occupantRatio, vat] = fixed
-    const kwhCost = sum(
-      energy.map((terms) => {
-        const [kwh, excise, price] = terms!
-        return kwh * (excise + price)
-      }),
-    )
+    let kwhCost = 0
+    for (const kind of active) {
+      const terms = allDefined(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`])
+      if (!terms) return undefined
+      const [kwh, excise, price] = terms
+      kwhCost += kwh * (excise + price)
+    }
     return roundCents((kwhCost + (count * perUnit + cta) * occupantRatio) * vat)
   }
   const landlordShare = share(main, ratios?.landlord)

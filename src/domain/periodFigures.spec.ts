@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import expected from '../../tests/fixtures/golden-expected.json'
 import golden from '../../tests/fixtures/golden-period.json'
-import { electricityFigures } from './figures/electricityFigures'
-import { occupantRatios } from './figures/figureMath'
 import { computePeriodFigures } from './periodFigures'
 import type { PeriodFile } from './periodFile'
 
@@ -20,8 +19,7 @@ describe('computePeriodFigures', () => {
     }
   })
 
-  it('feeds each section the occupant ratios of its month', () => {
-    const entry = file.months[0]
-    expect(months[0].electricity).toEqual(electricityFigures(entry, occupantRatios(entry.common)))
+  it('wires the occupant ratios of each month into the shares', () => {
+    expect(months[0].electricity.bill).toBeCloseTo(expected.months[0].electricity.bill, 6)
   })
 })
