@@ -9,7 +9,7 @@ import { fr } from '@/i18n/fr'
 export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3' | 'text'
 
 
-type FigureSection = 'waterConsumption' | 'waterTreatment' | 'electricity'
+type FigureSection = 'waterConsumption' | 'waterTreatment' | 'waterSoftener' | 'electricity' | 'internet'
 
 export interface PeriodLine {
   id: string
@@ -23,7 +23,7 @@ export interface PeriodLine {
   read: (entry: MonthEntry, figures: MonthFigures) => string | number | undefined
 }
 
-export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment', 'electricity'] as const).map((id) => ({
+export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment', 'waterSoftener', 'electricity', 'internet', 'heatPumpMaintenance'] as const).map((id) => ({
   id,
   label: fr.period.table.sections[id],
 }))
@@ -116,6 +116,11 @@ export const LINES: PeriodLine[] = [
   computed('waterTreatment', 'landlordShare', 'money'),
   computed('waterTreatment', 'tenantShare', 'money'),
   computed('waterTreatment', 'bill', 'money'),
+  input('waterSoftener', 'description', 'text'),
+  input('waterSoftener', 'quantity', 'number'),
+  input('waterSoftener', 'unitPrice', 'money'),
+  computed('waterSoftener', 'landlordShare', 'money'),
+  computed('waterSoftener', 'tenantShare', 'money'),
   input('electricity', 'tariffMode', 'text'),
   input('electricity', 'subscriptionUnit', 'text'),
   ...electricityMeterLines,
@@ -130,6 +135,10 @@ export const LINES: PeriodLine[] = [
   computed('electricity', 'landlordShare', 'money'),
   computed('electricity', 'tenantShare', 'money'),
   computed('electricity', 'bill', 'money'),
+  input('internet', 'billedAmount', 'money'),
+  computed('internet', 'landlordShare', 'money'),
+  computed('internet', 'tenantShare', 'money'),
+  input('heatPumpMaintenance', 'billedAmount', 'money'),
 ]
 
 // Whether the line is a tariff line the month's tariff mode does not read. Without a mode no
