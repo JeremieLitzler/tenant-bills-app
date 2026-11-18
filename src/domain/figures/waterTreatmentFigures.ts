@@ -7,7 +7,7 @@ import {
   type Figure,
   type OccupantRatios,
 } from './figureMath'
-import { waterVolumes } from './waterConsumptionFigures'
+import { waterVolumes } from './waterVolumes'
 
 export interface WaterTreatmentFigures {
   landlordShare: Figure

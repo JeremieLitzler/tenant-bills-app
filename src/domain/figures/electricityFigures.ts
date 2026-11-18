@@ -28,40 +28,53 @@ function subscriptionUnits(entry: MonthEntry): Figure {
   return Number.isNaN(days) || days < 0 ? undefined : days
 }
 
-type Register = 'Base' | 'Hc' | 'Hp'
-const REGISTERS: Register[] = ['Base', 'Hc', 'Hp']
+type ElectricityTariff = 'Base' | 'Hc' | 'Hp'
+const ELECTRICITY_TARIFFS: ElectricityTariff[] = ['Base', 'Hc', 'Hp']
 
 export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): ElectricityFigures {
-  const e = entry.electricity
+  const electricityInputs = entry.electricity
   // Without a tariff mode no register is known to apply: everything that depends on it is "—".
   // shortcut: silent dash until validatePeriodFile reports it, see #122.
-  const active: Register[] | undefined = !e.tariffMode
+  const active: ElectricityTariff[] | undefined = !electricityInputs.tariffMode
     ? undefined
-    : e.tariffMode === 'hchp'
+    : electricityInputs.tariffMode === 'hchp'
       ? ['Hc', 'Hp']
       : ['Base']
   // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
   const deltas = (meter: 'main' | 'studio') =>
     Object.fromEntries(
-      REGISTERS.map((kind) => {
+      ELECTRICITY_TARIFFS.map((kind) => {
         if (!active) return [kind, undefined]
         if (!active.includes(kind)) return [kind, 0]
-        const operands = allDefined(e[`${meter}${kind}`], e[`${meter}${kind}Previous`])
+        const operands = allDefined(
+          electricityInputs[`${meter}${kind}`],
+          electricityInputs[`${meter}${kind}Previous`],
+        )
         return [kind, operands && operands[0] - operands[1]]
       }),
-    ) as Record<Register, Figure>
+    ) as Record<ElectricityTariff, Figure>
   const main = deltas('main')
   const studio = deltas('studio')
   const units = subscriptionUnits(entry)
 
-  const share = (deltaOf: Record<Register, Figure>, ratio: number | undefined): Figure => {
+  const share = (deltaOf: Record<ElectricityTariff, Figure>, ratio: number | undefined): Figure => {
     if (!active) return undefined
-    const fixed = allDefined(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
+    const fixed = allDefined(
+      units,
+      electricityInputs.subscriptionPerUnit,
+      electricityInputs.ctaTax,
+      ratio,
+      electricityInputs.vat,
+    )
     if (!fixed) return undefined
     const [count, perUnit, cta, occupantRatio, vat] = fixed
     let kwhCost = 0
     for (const kind of active) {
-      const terms = allDefined(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`])
+      const terms = allDefined(
+        deltaOf[kind],
+        electricityInputs.excisePerKwh,
+        electricityInputs[`kwhPrice${kind}`],
+      )
       if (!terms) return undefined
       const [kwh, excise, price] = terms
       kwhCost += kwh * (excise + price)
