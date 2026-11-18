@@ -30,6 +30,12 @@ describe('waterSoftenerFigures', () => {
     expect(figures.tenantShare).toBeUndefined()
   })
 
+  it('costs nothing for a quantity of 0 without a unit price', () => {
+    const month = structuredClone(months[0])
+    month.waterSoftener = { quantity: 0 }
+    expect(figuresOf(month).tenantShare).toBe(0)
+  })
+
   it('makes the shares uncomputable without occupants', () => {
     const month = structuredClone(months[0])
     delete month.common.tenantOccupants
