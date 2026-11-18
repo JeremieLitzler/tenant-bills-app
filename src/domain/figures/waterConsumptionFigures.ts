@@ -1,5 +1,12 @@
 import type { WaterConsumptionInputs } from '../periodFile'
-import { addBill, all, roundCents, sum, type Figure, type OccupantRatios } from './figureMath'
+import {
+  addBill,
+  allDefined,
+  roundCents,
+  sum,
+  type Figure,
+  type OccupantRatios,
+} from './figureMath'
 
 export interface WaterConsumptionFigures {
   deltaMain: Figure
@@ -12,7 +19,7 @@ export interface WaterConsumptionFigures {
 
 // A water index is typed in litres; a delta is in m³.
 function delta(current: Figure, previous: Figure): Figure {
-  const operands = all(current, previous)
+  const operands = allDefined(current, previous)
   return operands && (operands[0] - operands[1]) / 1000
 }
 
@@ -24,7 +31,9 @@ export function waterVolumes(water: WaterConsumptionInputs) {
     water.studioUnsoftenedMeterPrevious,
   )
   const deltaStudioSoftened = delta(water.studioSoftenedMeter, water.studioSoftenedMeterPrevious)
-  const studioVolume = all(deltaStudioUnsoftened, deltaStudioSoftened)?.reduce((a, b) => a + b)
+  const studioVolume = allDefined(deltaStudioUnsoftened, deltaStudioSoftened)?.reduce(
+    (a, b) => a + b,
+  )
   return { deltaMain, deltaStudioUnsoftened, deltaStudioSoftened, studioVolume }
 }
 
@@ -34,7 +43,7 @@ export function waterConsumptionFigures(
 ): WaterConsumptionFigures {
   const { deltaMain, deltaStudioUnsoftened, deltaStudioSoftened, studioVolume } =
     waterVolumes(water)
-  const prices = all(
+  const prices = allDefined(
     water.pricePerM3,
     water.resourceWithdrawalFee,
     water.drinkingWaterFee,

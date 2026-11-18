@@ -1,5 +1,12 @@
 import type { WaterConsumptionInputs, WaterTreatmentInputs } from '../periodFile'
-import { addBill, all, roundCents, sum, type Figure, type OccupantRatios } from './figureMath'
+import {
+  addBill,
+  allDefined,
+  roundCents,
+  sum,
+  type Figure,
+  type OccupantRatios,
+} from './figureMath'
 import { waterVolumes } from './waterConsumptionFigures'
 
 export interface WaterTreatmentFigures {
@@ -15,12 +22,12 @@ export function waterTreatmentFigures(
   ratios?: OccupantRatios,
 ): WaterTreatmentFigures {
   const { deltaMain, studioVolume } = waterVolumes(water)
-  const collection = all(
+  const collection = allDefined(
     treatment.collectionConsumptionDistributor,
     treatment.collectionConsumptionCommunity,
     treatment.sanitationPerformance,
   )
-  const collectionSubscription = all(
+  const collectionSubscription = allDefined(
     treatment.monthlySubscriptionDistributor,
     treatment.monthlySubscriptionCommunity,
   )

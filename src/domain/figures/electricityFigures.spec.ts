@@ -9,7 +9,6 @@ import { occupantRatios } from './figureMath'
 const months = (golden as unknown as PeriodFile).months
 const figuresOf = (month: MonthEntry) => electricityFigures(month, occupantRatios(month.common))
 const july = 10 // the base > hchp switch month
-const august = 11 // back to base, billed per month
 
 describe('electricityFigures', () => {
   it('matches the golden record cell for cell, tariff switch months included', () => {
@@ -21,13 +20,24 @@ describe('electricityFigures', () => {
     })
   })
 
-  it('ignores leftover values in the inactive mode keys', () => {
-    const noisy = structuredClone(months)
-    Object.assign(noisy[0].electricity, { mainHc: 9e6, mainHcPrevious: 1, kwhPriceHc: 99 })
-    Object.assign(noisy[july].electricity, { mainBase: 9e6, kwhPriceBase: 99 })
-    delete noisy[august].electricity.kwhPriceHp
-    for (const i of [0, july, august]) {
-      expect(figuresOf(noisy[i])).toEqual(figuresOf(months[i]))
+  it('ignores leftover values in every key of the inactive mode', () => {
+    const inactiveKeys = {
+      base: ['mainHc', 'mainHp', 'studioHc', 'studioHp', 'kwhPriceHc', 'kwhPriceHp'],
+      hchp: ['mainBase', 'studioBase', 'kwhPriceBase'],
+    } as const
+    for (const [index, mode] of [
+      [0, 'base'],
+      [july, 'hchp'],
+    ] as const) {
+      expect(months[index].electricity.tariffMode).toBe(mode)
+      const noisy = structuredClone(months[index])
+      const electricity = noisy.electricity as Record<string, unknown>
+      for (const key of inactiveKeys[mode]) {
+        electricity[key] = 9e6
+        if (key.startsWith('kwhPrice')) continue
+        electricity[`${key}Previous`] = 1
+      }
+      expect(figuresOf(noisy)).toEqual(figuresOf(months[index]))
     }
   })
 
@@ -53,8 +63,12 @@ describe('electricityFigures', () => {
 
     expect(emptied((m) => delete m.electricity.vat).landlordShare).toBeUndefined()
     expect(emptied((m) => delete m.common.startDate).bill).toBeUndefined()
-    expect(emptied((m) => delete m.electricity.tariffMode).bill).toBeUndefined()
     expect(emptied((m) => (m.common.endDate = '2000-01-01')).subscriptionUnits).toBeUndefined()
+
+    const noMode = emptied((m) => delete m.electricity.tariffMode)
+    const { subscriptionUnits, ...everythingElse } = noMode
+    expect(subscriptionUnits).toBe(41) // the days do not depend on the tariff mode
+    expect(Object.values(everythingElse).every((figure) => figure === undefined)).toBe(true)
 
     const hchp = emptied((m) => delete m.electricity.mainHpPrevious, july)
     expect(hchp.landlordShare).toBeUndefined()

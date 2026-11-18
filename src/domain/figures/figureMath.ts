@@ -11,14 +11,14 @@ export function roundCents(value: number): number {
 }
 
 // The operands, or undefined as soon as one is missing.
-export function all(...values: Figure[]): number[] | undefined {
+export function allDefined(...values: Figure[]): number[] | undefined {
   return values.every((value) => value !== undefined) ? (values as number[]) : undefined
 }
 
 export const sum = (values: number[]) => values.reduce((total, value) => total + value, 0)
 
 export function addBill(landlordShare: Figure, tenantShare: Figure): Figure {
-  const shares = all(landlordShare, tenantShare)
+  const shares = allDefined(landlordShare, tenantShare)
   return shares && roundCents(shares[0] + shares[1])
 }
 
@@ -29,7 +29,7 @@ export interface OccupantRatios {
 
 // No occupant at all has no ratio: uncomputable rather than a division by zero.
 export function occupantRatios(common: CommonInputs): OccupantRatios | undefined {
-  const occupants = all(common.landlordOccupants, common.tenantOccupants)
+  const occupants = allDefined(common.landlordOccupants, common.tenantOccupants)
   const total = occupants && occupants[0] + occupants[1]
   return occupants && total
     ? { landlord: occupants[0] / total, tenant: occupants[1] / total }
