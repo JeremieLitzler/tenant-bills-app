@@ -45,11 +45,22 @@ const columns = computed(() =>
 </script>
 
 <template>
-  <Table v-if="file && figures" data-testid="period-table">
+  <!-- shortcut: the phone month width assumes a 2rem page gutter, adjust if the layout changes -->
+  <Table
+    v-if="file && figures"
+    data-testid="period-table"
+    container-class="max-h-[calc(100vh-8rem)] overflow-auto scroll-pt-10 scroll-pl-40 max-md:scroll-pl-24 max-md:snap-x max-md:snap-mandatory"
+    class="w-max min-w-full border-separate border-spacing-0 [&_td]:snap-start max-md:[&_td]:w-[calc(100vw-8rem)] max-md:[&_td]:whitespace-normal"
+  >
     <TableHeader>
       <TableRow>
-        <TableHead>{{ fr.period.table.label }}</TableHead>
-        <TableHead v-for="column in columns" :key="column.month" data-testid="period-month">
+        <TableHead class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-24 max-md:min-w-24 max-md:whitespace-normal">{{ fr.period.table.label }}</TableHead>
+        <TableHead
+          v-for="column in columns"
+          :key="column.month"
+          class="bg-background sticky top-0 z-20 snap-start"
+          data-testid="period-month"
+        >
           {{ column.label }}
         </TableHead>
       </TableRow>
@@ -57,14 +68,20 @@ const columns = computed(() =>
     <TableBody>
       <template v-for="section in SECTIONS" :key="section.id">
         <TableRow class="bg-muted" :data-testid="`section-${section.id}`">
-          <TableHead :colspan="columns.length + 1">{{ section.label }}</TableHead>
+          <TableHead :colspan="columns.length + 1" class="bg-muted">
+            <span class="sticky left-2">{{ section.label }}</span>
+          </TableHead>
         </TableRow>
         <TableRow
           v-for="line in LINES.filter((l) => l.section === section.id)"
           :key="line.id"
           :data-testid="`line-${line.id}`"
         >
-          <TableHead scope="row">{{ line.label }}</TableHead>
+          <TableHead
+            scope="row"
+            class="bg-background sticky left-0 z-10 w-40 min-w-40 max-md:w-24 max-md:min-w-24 max-md:whitespace-normal"
+            >{{ line.label }}</TableHead
+          >
           <PeriodCell
             v-for="column in columns"
             :key="column.month"
