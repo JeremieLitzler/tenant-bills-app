@@ -5,9 +5,11 @@ import type { MonthFigures } from '@/domain/periodFigures'
 import type { MonthEntry, SectionInputs, SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
-export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3'
+export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3' | 'text'
 
-type FigureSection = 'waterConsumption' | 'waterTreatment'
+export type Tariff = 'Base' | 'Hc' | 'Hp'
+
+type FigureSection = 'waterConsumption' | 'waterTreatment' | 'electricity'
 
 export interface PeriodLine {
   id: string
@@ -15,11 +17,13 @@ export interface PeriodLine {
   label: string
   kind: LineKind
   computed: boolean
+  // The tariff of an electricity line that only applies in one tariff mode (empty in the other).
+  tariff?: Tariff
   // The cell's value: as stored in the month (docs/period-file.md) or from the figures (computed).
   read: (entry: MonthEntry, figures: MonthFigures) => string | number | undefined
 }
 
-export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment'] as const).map((id) => ({
+export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment', 'electricity'] as const).map((id) => ({
   id,
   label: fr.period.table.sections[id],
 }))
@@ -30,6 +34,7 @@ function input<S extends SectionName>(
   section: S,
   key: keyof SectionInputs[S] & string,
   kind: LineKind,
+  tariff?: Tariff,
 ): PeriodLine {
   const id = `${section}.${key}`
   return {
@@ -38,13 +43,19 @@ function input<S extends SectionName>(
     label: labelOf(id),
     kind,
     computed: false,
+    tariff,
     // Safe: every input is a number or a string. A malformed read-only month may lack the section.
     read: (entry) =>
       (entry[section] as Record<string, string | number> | undefined)?.[key],
   }
 }
 
-function computed(section: FigureSection, key: string, kind: LineKind): PeriodLine {
+function computed(
+  section: FigureSection,
+  key: string,
+  kind: LineKind,
+  tariff?: Tariff,
+): PeriodLine {
   const id = `${section}.${key}`
   return {
     id,
@@ -52,10 +63,27 @@ function computed(section: FigureSection, key: string, kind: LineKind): PeriodLi
     label: labelOf(id),
     kind,
     computed: true,
+    tariff,
     read: (_entry, figures) =>
       (figures[section] as unknown as Record<string, number | undefined>)[key],
   }
 }
+
+const TARIFFS: Tariff[] = ['Base', 'Hc', 'Hp']
+
+// Per meter, per tariff: previous index, current index, then the delta.
+const electricityMeterLines = (['main', 'studio'] as const).flatMap((meter) =>
+  TARIFFS.flatMap((tariff) => [
+    input('electricity', `${meter}${tariff}Previous`, 'number', tariff),
+    input('electricity', `${meter}${tariff}`, 'number', tariff),
+    computed(
+      'electricity',
+      `delta${meter === 'main' ? 'Main' : 'Studio'}${tariff}`,
+      'number',
+      tariff,
+    ),
+  ]),
+)
 
 export const LINES: PeriodLine[] = [
   input('common', 'startDate', 'date'),
@@ -90,9 +118,30 @@ export const LINES: PeriodLine[] = [
   computed('waterTreatment', 'landlordShare', 'money'),
   computed('waterTreatment', 'tenantShare', 'money'),
   computed('waterTreatment', 'bill', 'money'),
+  input('electricity', 'tariffMode', 'text'),
+  input('electricity', 'subscriptionUnit', 'text'),
+  ...electricityMeterLines,
+  input('electricity', 'excisePerKwh', 'number'),
+  input('electricity', 'kwhPriceBase', 'number', 'Base'),
+  input('electricity', 'kwhPriceHc', 'number', 'Hc'),
+  input('electricity', 'kwhPriceHp', 'number', 'Hp'),
+  input('electricity', 'subscriptionPerUnit', 'money'),
+  computed('electricity', 'subscriptionUnits', 'number'),
+  input('electricity', 'ctaTax', 'money'),
+  input('electricity', 'vat', 'number'),
+  computed('electricity', 'landlordShare', 'money'),
+  computed('electricity', 'tenantShare', 'money'),
+  computed('electricity', 'bill', 'money'),
 ]
 
-const FORMATS: Record<Exclude<LineKind, 'date' | 'int'>, Intl.NumberFormatOptions> = {
+// Whether the month's tariff mode leaves the line empty. Without a mode no tariff is ruled out.
+export function isNotApplicable(line: PeriodLine, entry: MonthEntry): boolean {
+  const mode = entry.electricity?.tariffMode
+  if (!line.tariff || !mode) return false
+  return (mode === 'hchp') === (line.tariff === 'Base')
+}
+
+const FORMATS: Record<Exclude<LineKind, 'date' | 'int' | 'text'>, Intl.NumberFormatOptions> = {
   money: { style: 'currency', currency: 'EUR' },
   number: { maximumFractionDigits: 5 },
   litres: { minimumFractionDigits: 3 },
@@ -103,6 +152,7 @@ const FORMATS: Record<Exclude<LineKind, 'date' | 'int'>, Intl.NumberFormatOption
 export function formatValue(kind: LineKind, value: string | number): string {
   if (kind === 'date') return String(value).split('-').reverse().join('/')
   if (kind === 'int') return String(value)
+  if (kind === 'text') return fr.period.table.values[value as keyof typeof fr.period.table.values] ?? String(value)
   const shown = kind === 'litres' ? Number(value) / 1000 : Number(value)
   return shown.toLocaleString('fr-FR', FORMATS[kind])
 }
