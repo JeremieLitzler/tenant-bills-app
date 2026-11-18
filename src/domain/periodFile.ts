@@ -113,10 +113,10 @@ export const FIELD_CATALOGUE: Catalogue = {
   common: {
     startDate: 'not-inherited',
     endDate: 'not-inherited',
-    estimated: 'not-inherited',
     landlordOccupants: 'inherited',
     tenantOccupants: 'inherited',
     tenantBillAdvance: 'not-inherited',
+    estimated: 'not-inherited',
   },
   waterConsumption: {
     mainMeter: 'not-inherited',

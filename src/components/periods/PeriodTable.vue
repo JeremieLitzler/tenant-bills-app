@@ -3,7 +3,13 @@
 // the period; every edit goes through the patch queue (ADR 0010).
 import { computed } from 'vue'
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
@@ -35,6 +41,7 @@ const columns = computed(() =>
       figures,
     })),
 )
+
 </script>
 
 <template>
@@ -46,10 +53,7 @@ const columns = computed(() =>
   >
     <TableHeader>
       <TableRow>
-        <TableHead
-          class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal"
-          >{{ fr.period.table.label }}</TableHead
-        >
+        <TableHead class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal">{{ fr.period.table.label }}</TableHead>
         <TableHead
           v-for="column in columns"
           :key="column.month"
