@@ -1,6 +1,9 @@
 // The patch contract of docs/period-file.md ("Patches", ADR 0010). Vue-free.
 import type { MonthEntry, PeriodFile } from './periodFile'
 
+// The `field` of a patch whose value is a whole month object (initializing a month).
+export const MONTH_FIELD = 'month'
+
 export interface Patch {
   period: string
   // Null for a top-level value (`closedOn`, ...).
@@ -17,7 +20,8 @@ type Bag = Record<string, unknown>
 
 // Applies one patch to `file` in place. Never creates or removes a section object; `value: null`
 // removes the key, except `common.tenantBillAdvance`, set to `0`. A month patch appends the month
-// and never overwrites an existing one; a patch for a month the file lacks is ignored.
+// only when it comes after the last one (never overwrites, never breaks the order the validation
+// requires); a patch for a month the file lacks is ignored.
 export function applyPatch(file: PeriodFile, patch: Patch): void {
   const { month, field, value } = patch
   if (month === null) {
@@ -26,10 +30,9 @@ export function applyPatch(file: PeriodFile, patch: Patch): void {
     else top[field] = value
     return
   }
-  if (field === 'month') {
-    if (!file.months.some((entry) => entry.month === month)) {
-      file.months.push(value as MonthEntry)
-    }
+  if (field === MONTH_FIELD) {
+    const last = file.months.at(-1)
+    if (!last || month > last.month) file.months.push(value as MonthEntry)
     return
   }
   const [section, key] = field.split('.')

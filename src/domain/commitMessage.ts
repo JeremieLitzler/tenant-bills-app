@@ -1,13 +1,13 @@
 // The subject (and body) of a drain commit (docs/architecture.md, "Data commits"). Vue-free.
-import type { Patch } from './applyPatch'
+import { MONTH_FIELD, type Patch } from './applyPatch'
 
 const edits = (count: number) => `${count} ${count === 1 ? 'edit' : 'edits'}`
 
 // `patches` all belong to `period`. A month initialization uses its own subject; the other edits
 // queued with it are counted in the body.
 export function commitMessage(period: string, patches: Patch[]): string {
-  const initialized = patches.find((patch) => patch.field === 'month')
-  const counted = patches.filter((patch) => patch.field !== 'month')
+  const initialized = patches.find((patch) => patch.field === MONTH_FIELD)
+  const counted = patches.filter((patch) => patch.field !== MONTH_FIELD)
   const perMonth = new Map<string, number>()
   let settings = 0
   for (const patch of counted) {

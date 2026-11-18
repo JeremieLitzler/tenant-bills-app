@@ -1,23 +1,23 @@
-// Period state, a singleton composable (docs/architecture.md, "State"). The only module reaching
-// src/sync/. For now it holds the period list and the periods opened so far; the queue and the
-// pending count come with F3 (#30). It imports the session state, never the reverse.
+// Period state, a singleton composable (docs/architecture.md, "State"). The module of the loaded
+// periods: the list, one period's loading and refresh, and `setCell`, which composes the loaded copy
+// with the save queue (src/composables/useSaveQueue.ts). It imports the session state, never the
+// reverse. Concerns that will grow with #50 (sync status) and #51 (sign-in drain) belong in
+// useSaveQueue.ts, not here.
 import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
-import { pendingCountFor, setPendingCounts } from '@/composables/pendingPatches'
-import { useSession } from '@/composables/useSession'
+import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
+import { pendingCountFor } from '@/composables/pendingPatches'
+import { useSaveQueue } from '@/composables/useSaveQueue'
 import { applyPatch } from '@/domain/applyPatch'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
-import { drainQueue } from '@/sync/drainQueue'
-import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 import {
   getPeriodFile,
   getPeriodSha,
   listPeriodIds,
   MisconfiguredError,
   NotFoundError,
-  UnauthorizedError,
 } from '@/sync/periodsApi'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
@@ -65,9 +65,7 @@ async function loadPeriodIds(): Promise<void> {
     listStatus.value = 'ready'
   } catch (error) {
     listStatus.value = failureStatus(error)
-    if (error instanceof UnauthorizedError) {
-      useSession().expire()
-    }
+    expireOnUnauthorized(error)
   }
 }
 
@@ -92,9 +90,7 @@ async function loadPeriod(id: string): Promise<void> {
       return
     }
     periodEntries.value[id] = entryWith(failureStatus(error))
-    if (error instanceof UnauthorizedError) {
-      useSession().expire()
-    }
+    expireOnUnauthorized(error)
   }
 }
 
@@ -125,46 +121,25 @@ async function refreshPeriod(id: string): Promise<void> {
     })
   } catch (error) {
     entry.refresh = 'failed'
-    if (error instanceof UnauthorizedError) {
-      useSession().expire()
-    }
+    expireOnUnauthorized(error)
   }
 }
 
-async function syncPendingCounts(): Promise<void> {
-  const counts: Record<string, number> = {}
-  for (const patch of await listPatches()) counts[patch.period] = (counts[patch.period] ?? 0) + 1
-  setPendingCounts(counts)
-}
-
-// Sends the queue; the loaded copies take the new SHAs. A failure keeps the queue (the status
-// display and the retries are a later ticket); a 401 ends the session.
-async function drain(): Promise<void> {
-  try {
-    for (const [id, sha] of await drainQueue()) {
-      const entry = periodEntries.value[id]
-      if (entry) entry.sha = sha
-    }
-  } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      useSession().expire()
-    }
-  }
-  await syncPendingCounts()
-}
-
-// Queues the patch, applies it to the loaded copy at once, then drains. A file breaking a
-// validation rule is never written.
+// Queues the patch, applies it to the loaded copy, drains, and takes the new SHAs. Throws when the
+// period cannot be edited (not loaded, read-only or closed): the caller checks `isReadOnly` first.
 async function setCell(id: string, month: string | null, field: string, value: unknown) {
   const entry = periodEntries.value[id]
-  if (entry?.status !== 'ready' || !entry.file || entry.problems.length) {
-    return
+  if (entry?.status !== 'ready' || !entry.file || entry.problems.length || entry.file.closedOn) {
+    throw new Error(`The period ${id} cannot be edited`)
   }
   const patch = { period: id, month, field, value }
-  await enqueuePatch(patch)
+  const saveQueue = useSaveQueue()
+  await saveQueue.enqueue(patch)
   applyPatch(entry.file, patch)
-  await syncPendingCounts()
-  await drain()
+  for (const [periodId, sha] of await saveQueue.drain()) {
+    const written = periodEntries.value[periodId]
+    if (written) written.sha = sha
+  }
 }
 
 // One period, called by a page on setup with its route param. Loads the file when it is not held
@@ -206,7 +181,8 @@ export function usePeriod(id: MaybeRefOrGetter<string>) {
         pendingCountFor(toValue(id)) === 0,
     ),
     refresh: () => refreshPeriod(toValue(id)),
-    // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained.
+    // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained and
+    // throws when the period cannot be edited.
     setCell: (month: string | null, field: string, value: unknown) =>
       setCell(toValue(id), month, field, value),
   }

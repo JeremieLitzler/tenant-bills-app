@@ -24,6 +24,10 @@ vi.mock('@/sync/periodsApi', () => ({
 
 vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
 
+const enqueue = vi.fn<(patch: unknown) => Promise<void>>()
+const drain = vi.fn<() => Promise<Map<string, string>>>()
+vi.mock('@/composables/useSaveQueue', () => ({ useSaveQueue: () => ({ enqueue, drain }) }))
+
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
   document.cookie = `gh_login=${signedInAs}; Path=/`
@@ -38,6 +42,10 @@ beforeEach(() => {
   getPeriodSha.mockReset()
   pendingCountFor.mockReset()
   pendingCountFor.mockReturnValue(0)
+  enqueue.mockReset()
+  enqueue.mockResolvedValue()
+  drain.mockReset()
+  drain.mockResolvedValue(new Map())
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
 })
 
@@ -351,5 +359,53 @@ describe('usePeriod, refresh', () => {
     await period.refresh()
 
     expect(session.isSignedIn.value).toBe(false)
+  })
+})
+
+describe('usePeriod, setCell', () => {
+  async function openWritable(json: unknown = validPeriodJson()) {
+    getPeriodFile.mockResolvedValue({ json, sha: 'sha-1' })
+    const { usePeriod } = await loadPeriods()
+    return openPeriod(usePeriod)
+  }
+
+  it('queues the patch, updates the loaded copy at once and takes the new SHA', async () => {
+    const period = await openWritable()
+    drain.mockResolvedValue(new Map([['2026-2027', 'sha-2']]))
+
+    await period.setCell('2026-09', 'internet.billedAmount', 21)
+
+    expect(enqueue).toHaveBeenCalledWith({
+      period: '2026-2027',
+      month: '2026-09',
+      field: 'internet.billedAmount',
+      value: 21,
+    })
+    expect(period.file.value?.months[0].internet).toEqual({ billedAmount: 21 })
+    expect(period.sha.value).toBe('sha-2')
+  })
+
+  it('takes a top-level value with a null month', async () => {
+    const period = await openWritable()
+
+    await period.setCell(null, 'closedOn', '2027-10-11')
+
+    expect(period.file.value?.closedOn).toBe('2027-10-11')
+  })
+
+  it('throws, and queues nothing, when the file is read-only', async () => {
+    const period = await openWritable({ ...validPeriodJson(), schemaVersion: 1 })
+
+    await expect(period.setCell('2026-09', 'internet.billedAmount', 21)).rejects.toThrow()
+
+    expect(enqueue).not.toHaveBeenCalled()
+  })
+
+  it('throws, and queues nothing, when the period is closed', async () => {
+    const period = await openWritable({ ...validPeriodJson(), closedOn: '2027-10-11' })
+
+    await expect(period.setCell('2026-09', 'internet.billedAmount', 21)).rejects.toThrow()
+
+    expect(enqueue).not.toHaveBeenCalled()
   })
 })

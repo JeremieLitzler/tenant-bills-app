@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
 import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
@@ -9,6 +9,13 @@ import { fr } from '@/i18n/fr'
 
 const route = useRoute('/periods/[period]')
 const period = usePeriod(() => route.params.period)
+
+// Demo of #48 until F5 (#32) builds the table: `setCell('2026-09', 'internet.billedAmount', 21)`
+// in the browser console edits the open period. Development only; remove with the table's arrival.
+if (import.meta.env.DEV) {
+  window.setCell = period.setCell
+  onBeforeUnmount(() => delete window.setCell)
+}
 
 const refreshMessage = computed(() => {
   switch (period.refreshStatus.value) {
