@@ -38,6 +38,11 @@ const view = computed(() => {
     text: formatValue(props.line.kind, value),
   }
 })
+
+// The value stays displayed as stored; the warning only highlights it.
+const warning = computed(() =>
+  view.value.provenance === 'not-applicable' ? undefined : props.figures?.warnings[props.line.id],
+)
 </script>
 
 <template>
@@ -50,10 +55,13 @@ const view = computed(() => {
       'ring-destructive ring-2 ring-inset': invalid,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
+      'bg-destructive/10 text-destructive': warning,
     }"
     role="gridcell"
     :aria-selected="selected"
     :data-provenance="view.provenance"
+    :data-warning="warning"
+    :title="warning && fr.period.table.warnings[warning]"
   >
     <input
       v-if="editing"

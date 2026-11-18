@@ -55,6 +55,10 @@ export const fr = {
       label: 'Ligne',
       empty: '—',
       keyboardHint: '💡 Naviguez dans le tableau avec les touches fléchées.',
+      warnings: {
+        indexBelowPrevious: "L'index est inférieur à l'index précédent",
+        endBeforeStart: 'La date de fin précède la date de début',
+      },
       sections: {
         common: 'Commun',
         waterConsumption: "Consommation d'eau",

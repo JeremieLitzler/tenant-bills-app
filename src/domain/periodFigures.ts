@@ -2,6 +2,7 @@
 // by the views (docs/architecture.md, docs/reference/sheet-formulas.md). Vue-free.
 // Each section's figures live in ./figures; this file assembles them month by month.
 import type { MonthEntry, ReadonlyPeriodFile } from './periodFile'
+import { monthWarnings, type MonthWarnings } from './monthWarnings'
 import { electricityFigures, type ElectricityFigures } from './figures/electricityFigures'
 import { occupantRatios, type Figure } from './figures/figureMath'
 import {
@@ -34,6 +35,7 @@ export interface MonthFigures {
   waterSoftener: WaterSoftenerFigures
   internet: InternetFigures
   heatPumpMaintenance: HeatPumpMaintenanceFigures
+  warnings: MonthWarnings
 }
 
 export interface PeriodFigures {
@@ -50,6 +52,7 @@ function monthFigures(entry: MonthEntry): MonthFigures {
     waterSoftener: waterSoftenerFigures(entry.waterSoftener, ratios),
     internet: internetFigures(entry.internet, ratios),
     heatPumpMaintenance: heatPumpMaintenanceFigures(entry.heatPumpMaintenance),
+    warnings: monthWarnings(entry),
   }
 }
 
