@@ -24,6 +24,7 @@ function subscriptionUnits(entry: MonthEntry): Figure {
   if (!startDate || !endDate) return undefined
   const days = (Date.parse(endDate) - Date.parse(startDate)) / DAY_MS
   // A negative count is an end date before the start date: uncomputable, not a negative bill.
+  // shortcut: silent dash until validatePeriodFile reports it, see #121.
   return Number.isNaN(days) || days < 0 ? undefined : days
 }
 
