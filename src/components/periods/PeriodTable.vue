@@ -45,16 +45,15 @@ const columns = computed(() =>
 </script>
 
 <template>
-  <!-- shortcut: the phone month width assumes a 2rem page gutter, adjust if the layout changes -->
   <Table
     v-if="file && figures"
     data-testid="period-table"
-    container-class="max-h-[calc(100vh-8rem)] overflow-auto scroll-pt-10 scroll-pl-40 max-md:scroll-pl-24 max-md:snap-x max-md:snap-mandatory"
-    class="w-max min-w-full border-separate border-spacing-0 [&_td]:snap-start max-md:[&_td]:w-[calc(100vw-8rem)] max-md:[&_td]:whitespace-normal"
+    container-class="max-h-[calc(100vh-8rem)] overflow-auto scroll-pt-10 scroll-pl-40 max-md:scroll-pl-32 [container-type:inline-size] max-md:[scrollbar-width:none] max-md:snap-x max-md:snap-mandatory"
+    class="w-max min-w-full border-separate border-spacing-0 [&_td]:snap-start max-md:[&_td]:w-[calc(100cqw-8rem)] max-md:[&_td]:whitespace-normal"
   >
     <TableHeader>
       <TableRow>
-        <TableHead class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-24 max-md:min-w-24 max-md:whitespace-normal">{{ fr.period.table.label }}</TableHead>
+        <TableHead class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal">{{ fr.period.table.label }}</TableHead>
         <TableHead
           v-for="column in columns"
           :key="column.month"
@@ -79,7 +78,7 @@ const columns = computed(() =>
         >
           <TableHead
             scope="row"
-            class="bg-background sticky left-0 z-10 w-40 min-w-40 max-md:w-24 max-md:min-w-24 max-md:whitespace-normal"
+            class="bg-background sticky left-0 z-10 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal"
             >{{ line.label }}</TableHead
           >
           <PeriodCell
