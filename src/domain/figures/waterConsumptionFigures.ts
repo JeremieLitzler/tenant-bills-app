@@ -1,4 +1,5 @@
 import type { WaterConsumptionInputs } from '../periodFile'
+import { waterVolumes } from './waterVolumes'
 import {
   addBill,
   allDefined,
@@ -15,26 +16,6 @@ export interface WaterConsumptionFigures {
   landlordShare: Figure
   tenantShare: Figure
   bill: Figure
-}
-
-// A water index is typed in litres; a delta is in m³.
-function delta(current: Figure, previous: Figure): Figure {
-  const operands = allDefined(current, previous)
-  return operands && (operands[0] - operands[1]) / 1000
-}
-
-// The volumes the water treatment shares reuse.
-export function waterVolumes(water: WaterConsumptionInputs) {
-  const deltaMain = delta(water.mainMeter, water.mainMeterPrevious)
-  const deltaStudioUnsoftened = delta(
-    water.studioUnsoftenedMeter,
-    water.studioUnsoftenedMeterPrevious,
-  )
-  const deltaStudioSoftened = delta(water.studioSoftenedMeter, water.studioSoftenedMeterPrevious)
-  const studioVolume = allDefined(deltaStudioUnsoftened, deltaStudioSoftened)?.reduce(
-    (a, b) => a + b,
-  )
-  return { deltaMain, deltaStudioUnsoftened, deltaStudioSoftened, studioVolume }
 }
 
 export function waterConsumptionFigures(
