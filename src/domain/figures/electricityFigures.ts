@@ -1,4 +1,4 @@
-import type { MonthEntry } from '../periodFile'
+import type { ElectricityInputs, MonthEntry } from '../periodFile'
 import { addBill, allDefined, roundCents, type Figure, type OccupantRatios } from './figureMath'
 
 export interface ElectricityFigures {
@@ -29,60 +29,61 @@ function subscriptionUnits(entry: MonthEntry): Figure {
 }
 
 type ElectricityTariff = 'Base' | 'Hc' | 'Hp'
+type TariffDeltas = Record<ElectricityTariff, Figure>
 const ELECTRICITY_TARIFFS: ElectricityTariff[] = ['Base', 'Hc', 'Hp']
 
-export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): ElectricityFigures {
-  const electricityInputs = entry.electricity
-  // Without a tariff mode no register is known to apply: everything that depends on it is "—".
-  // shortcut: silent dash until validatePeriodFile reports it, see #122.
-  const active: ElectricityTariff[] | undefined = !electricityInputs.tariffMode
-    ? undefined
-    : electricityInputs.tariffMode === 'hchp'
-      ? ['Hc', 'Hp']
-      : ['Base']
-  // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
-  const deltas = (meter: 'main' | 'studio') =>
-    Object.fromEntries(
-      ELECTRICITY_TARIFFS.map((kind) => {
-        if (!active) return [kind, undefined]
-        if (!active.includes(kind)) return [kind, 0]
-        const operands = allDefined(
-          electricityInputs[`${meter}${kind}`],
-          electricityInputs[`${meter}${kind}Previous`],
-        )
-        return [kind, operands && operands[0] - operands[1]]
-      }),
-    ) as Record<ElectricityTariff, Figure>
-  const main = deltas('main')
-  const studio = deltas('studio')
-  const units = subscriptionUnits(entry)
+// The tariffs the month's mode reads. Without a mode no tariff is known to apply: everything that
+// depends on it is "—". shortcut: silent dash until validatePeriodFile reports it, see #122.
+function activeTariffs(inputs: ElectricityInputs): ElectricityTariff[] | undefined {
+  if (!inputs.tariffMode) return undefined
+  return inputs.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
+}
 
-  const share = (deltaOf: Record<ElectricityTariff, Figure>, ratio: number | undefined): Figure => {
-    if (!active) return undefined
-    const fixed = allDefined(
-      units,
-      electricityInputs.subscriptionPerUnit,
-      electricityInputs.ctaTax,
-      ratio,
-      electricityInputs.vat,
-    )
-    if (!fixed) return undefined
-    const [count, perUnit, cta, occupantRatio, vat] = fixed
-    let kwhCost = 0
-    for (const kind of active) {
-      const terms = allDefined(
-        deltaOf[kind],
-        electricityInputs.excisePerKwh,
-        electricityInputs[`kwhPrice${kind}`],
-      )
-      if (!terms) return undefined
-      const [kwh, excise, price] = terms
-      kwhCost += kwh * (excise + price)
-    }
-    return roundCents((kwhCost + (count * perUnit + cta) * occupantRatio) * vat)
+// The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
+function tariffDeltas(
+  inputs: ElectricityInputs,
+  meter: 'main' | 'studio',
+  active: ElectricityTariff[] | undefined,
+): TariffDeltas {
+  return Object.fromEntries(
+    ELECTRICITY_TARIFFS.map((tariff) => {
+      if (!active) return [tariff, undefined]
+      if (!active.includes(tariff)) return [tariff, 0]
+      const operands = allDefined(inputs[`${meter}${tariff}`], inputs[`${meter}${tariff}Previous`])
+      return [tariff, operands && operands[0] - operands[1]]
+    }),
+  ) as TariffDeltas
+}
+
+function electricityShare(
+  inputs: ElectricityInputs,
+  active: ElectricityTariff[] | undefined,
+  deltas: TariffDeltas,
+  units: Figure,
+  ratio: number | undefined,
+): Figure {
+  if (!active) return undefined
+  const fixed = allDefined(units, inputs.subscriptionPerUnit, inputs.ctaTax, ratio, inputs.vat)
+  if (!fixed) return undefined
+  const [count, perUnit, cta, occupantRatio, vat] = fixed
+  let kwhCost = 0
+  for (const tariff of active) {
+    const terms = allDefined(deltas[tariff], inputs.excisePerKwh, inputs[`kwhPrice${tariff}`])
+    if (!terms) return undefined
+    const [kwh, excise, price] = terms
+    kwhCost += kwh * (excise + price)
   }
-  const landlordShare = share(main, ratios?.landlord)
-  const tenantShare = share(studio, ratios?.tenant)
+  return roundCents((kwhCost + (count * perUnit + cta) * occupantRatio) * vat)
+}
+
+export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): ElectricityFigures {
+  const inputs = entry.electricity
+  const active = activeTariffs(inputs)
+  const main = tariffDeltas(inputs, 'main', active)
+  const studio = tariffDeltas(inputs, 'studio', active)
+  const units = subscriptionUnits(entry)
+  const landlordShare = electricityShare(inputs, active, main, units, ratios?.landlord)
+  const tenantShare = electricityShare(inputs, active, studio, units, ratios?.tenant)
   return {
     deltaMainBase: main.Base,
     deltaMainHc: main.Hc,
