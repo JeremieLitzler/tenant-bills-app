@@ -245,7 +245,7 @@ With variables:
 
 ## Heat pump maintenance
 
-The tenant pays all of the bill: the landlord share is 0 and the tenant share is the month's `billedAmount`.
+The tenant pays all of the bill, so there is no landlord/tenant split: the one figure per month is `bill`, equal to the month's `billedAmount` (0 when the month has none).
 
 The annual amount (`heatPumpInvoiceEstimate`) is split when a month is initialized: `=round([annual_rate]/12,2)` for the first eleven months, and `=[annual_rate]-round([annual_rate]/12,2)*11` for the twelfth. The 2025-2026 period types 154 in August only.
 
