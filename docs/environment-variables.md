@@ -40,7 +40,7 @@ No variable has a fallback. A missing, empty or malformed variable refuses every
 Each environment uses its own OAuth app and its own branch of the one data repo.
 
 - Production: the production Netlify site, `DATA_BRANCH=main`.
-- Staging: a second Netlify site, `tenant-bills-staging`, `DATA_BRANCH=staging`, with its own OAuth app. It has no automatic builds: a GitHub Actions job on each pull request builds the branch and deploys it to the site's fixed URL with `netlify deploy --prod`. 
+- Staging: a second Netlify site, `tenant-bills-staging`, `DATA_BRANCH=staging`, with its own OAuth app. It has no automatic builds: a GitHub Actions job on each pull request builds the branch and deploys it to the site's fixed URL with `netlify deploy --prod`.
 
 ### How the staging deploy is wired
 

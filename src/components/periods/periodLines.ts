@@ -1,15 +1,19 @@
 // The lines of the period table, in display order: one definition per row, reused by the "Saisie du
 // mois" form (F6). A line is an input of the period file or a computed figure. More sections join
 // as their figures land (F4).
-import { ELECTRICITY_TARIFFS, TARIFFS_BY_MODE, type ElectricityTariff } from '@/domain/electricityTariffs'
+import {
+  ELECTRICITY_TARIFFS,
+  TARIFFS_BY_MODE,
+  type ElectricityTariff,
+} from '@/domain/electricityTariffs'
 import type { MonthFigures } from '@/domain/periodFigures'
 import type { MonthEntry, SectionInputs, SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3' | 'text'
 
-
-type FigureSection = 'waterConsumption' | 'waterTreatment' | 'waterSoftener' | 'electricity' | 'internet'
+type FigureSection =
+  'waterConsumption' | 'waterTreatment' | 'waterSoftener' | 'electricity' | 'internet'
 
 export interface PeriodLine {
   id: string
@@ -23,7 +27,17 @@ export interface PeriodLine {
   read: (entry: MonthEntry, figures: MonthFigures) => string | number | undefined
 }
 
-export const SECTIONS = (['common', 'waterConsumption', 'waterTreatment', 'waterSoftener', 'electricity', 'internet', 'heatPumpMaintenance'] as const).map((id) => ({
+export const SECTIONS = (
+  [
+    'common',
+    'waterConsumption',
+    'waterTreatment',
+    'waterSoftener',
+    'electricity',
+    'internet',
+    'heatPumpMaintenance',
+  ] as const
+).map((id) => ({
   id,
   label: fr.period.table.sections[id],
 }))
@@ -45,8 +59,7 @@ function input<S extends SectionName>(
     computed: false,
     tariff,
     // Safe: every input is a number or a string. A malformed read-only month may lack the section.
-    read: (entry) =>
-      (entry[section] as Record<string, string | number> | undefined)?.[key],
+    read: (entry) => (entry[section] as Record<string, string | number> | undefined)?.[key],
   }
 }
 
@@ -160,7 +173,8 @@ const FORMATS: Record<Exclude<LineKind, 'date' | 'int' | 'text'>, Intl.NumberFor
 export function formatValue(kind: LineKind, value: string | number): string {
   if (kind === 'date') return String(value).split('-').reverse().join('/')
   if (kind === 'int') return String(value)
-  if (kind === 'text') return fr.period.table.values[value as keyof typeof fr.period.table.values] ?? String(value)
+  if (kind === 'text')
+    return fr.period.table.values[value as keyof typeof fr.period.table.values] ?? String(value)
   const shown = kind === 'litres' ? Number(value) / 1000 : Number(value)
   return shown.toLocaleString('fr-FR', FORMATS[kind])
 }
