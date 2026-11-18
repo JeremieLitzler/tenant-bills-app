@@ -77,7 +77,8 @@ function subscriptionUnits(entry: MonthEntry): Figure {
   const { startDate, endDate } = entry.common
   if (!startDate || !endDate) return undefined
   const days = (Date.parse(endDate) - Date.parse(startDate)) / DAY_MS
-  return Number.isNaN(days) ? undefined : days
+  // A negative count is an end date before the start date: uncomputable, not a negative bill.
+  return Number.isNaN(days) || days < 0 ? undefined : days
 }
 
 type Register = 'Base' | 'Hc' | 'Hp'
@@ -104,9 +105,14 @@ function electricityFigures(entry: MonthEntry, ratios?: { landlord: number; tena
     const energy = active.map((kind) => all(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`]))
     const fixed = all(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
     if (!fixed || energy.some((terms) => !terms)) return undefined
-    const [count, perUnit, cta, share, vat] = fixed
-    const kwhCost = sum(energy.map((terms) => terms![0] * (terms![1] + terms![2])))
-    return roundCents((kwhCost + (count * perUnit + cta) * share) * vat)
+    const [count, perUnit, cta, occupantRatio, vat] = fixed
+    const kwhCost = sum(
+      energy.map((terms) => {
+        const [kwh, excise, price] = terms!
+        return kwh * (excise + price)
+      }),
+    )
+    return roundCents((kwhCost + (count * perUnit + cta) * occupantRatio) * vat)
   }
   const landlordShare = share(main, ratios?.landlord)
   const tenantShare = share(studio, ratios?.tenant)
