@@ -14,6 +14,8 @@ describe('waterTreatmentFigures', () => {
   it('matches the golden record cell for cell', () => {
     months.forEach((month, i) => {
       const got = figuresOf(month) as unknown as Record<string, number | undefined>
+      // A cell missing from the golden record, or a figure without one, must fail.
+      expect(Object.keys(got).sort()).toEqual(Object.keys(expected.months[i].waterTreatment).sort())
       for (const [key, value] of Object.entries(expected.months[i].waterTreatment)) {
         expect(got[key], `${month.month} ${key}`).toBeCloseTo(value as number, 6)
       }
