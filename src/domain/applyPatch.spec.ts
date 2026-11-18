@@ -53,4 +53,12 @@ describe('applyPatch', () => {
     expect(f.months).toHaveLength(2)
     expect(f.months[1].internet).toEqual({})
   })
+
+  it('ignores a month that is not after the last one', () => {
+    const f = file()
+    f.months = f.months.slice(0, 2)
+    const earlier = { ...validPeriodJson().months[0], month: '2026-08' }
+    applyPatch(f, patch('2026-08', 'month', earlier))
+    expect(f.months.map((m) => m.month)).toEqual(['2026-09', '2026-10'])
+  })
 })

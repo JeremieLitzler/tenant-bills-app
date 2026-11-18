@@ -49,7 +49,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
     └── fixtures/                   # sheet values, example period files
 ```
 
-- `src/domain/` and `src/sync/` import nothing from Vue, enforced by the `app/vue-free` block of `eslint.config.js` (guarded by `eslint.config.spec.ts`). The UI reaches `src/sync/` through one composable.
+- `src/domain/` and `src/sync/` import nothing from Vue, enforced by the `app/vue-free` block of `eslint.config.js` (guarded by `eslint.config.spec.ts`). The UI reaches `src/sync/` through two composables: `usePeriods.ts` (the loaded periods) and `useSaveQueue.ts` (the queue), which only `usePeriods.ts` imports.
 - Imports are explicit: no auto-import plugin, so the lint rule above sees every Vue import.
 - Types live with the code that owns them; there is no `src/types/`. Other folders (`utils/`, `services/`, ...) are created only when something needs them.
 - Tests are colocated `*.spec.ts` files next to the code they test.
@@ -79,7 +79,7 @@ Shared state is held in **singleton composables**, as in `french-gas-stations-sc
 
 ### Periods: `src/composables/usePeriods.ts`
 
-One module, the only one reaching `src/sync/`, with two functions over the same module-level state.
+One module, the only one a consumer calls, with two functions over the same module-level state. It reaches `src/sync/` for the period files and, for the queue, through `useSaveQueue.ts` (below).
 
 ```ts
 // Collection-wide: the period list, the queue, the sync status.
@@ -106,7 +106,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
   refresh(): Promise<void>                           // compares the remote SHA, replaces the copy only if it differs
   figures: Readonly<Ref<PeriodFigures | undefined>>  // computed once from src/domain/
   isClosed: Readonly<Ref<boolean>>
-  setCell(month: string, field: string, value: unknown): void  // enqueues a patch (ADR 0010)
+  setCell(month: string | null, field: string, value: unknown): Promise<void>  // enqueues a patch (ADR 0010), applies it to the loaded copy, drains; null month for a top-level value; throws when the period is not ready, read-only or closed
   initializeNextMonth(): void                        // copies the last month into a new one, one patch carrying the whole month (ADR 0007)
   estimateReadings(): void                           // the twelfth month's estimate, written as patches
   close(): void                                      // "Clôturer la période", written as a patch
@@ -121,6 +121,14 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 - The sync status is app-wide, because one `drainQueue()` drains one queue across all periods. The app shell shows the pending-count badge on every route, so progress stays visible when you move from one period to another.
 
 - The list comes from `listPeriodIds()` in `src/sync/periodsApi.ts`, which asks the proxy for `?path=periods`. A missing periods folder (GitHub 404) is an empty list, not an error. Until F7 (#34) builds `/periods`, the list is shown by `src/components/periods/PeriodList.vue` on the home page.
+
+### Save queue: `src/composables/useSaveQueue.ts`
+
+Settled in `docs/implementation-feedbacks/2026-11-18-issue-48/` (issue #48). The queue, the drain, the pending-count mirror (`pendingPatches.ts`) and the last error live here, apart from the loaded periods, because they change for their own reasons (#50 sync status, #51 sign-in drain, #52 409).
+
+- `enqueue(patch)` stores the patch in IndexedDB and refreshes the per-period counts. `drain()` calls `drainQueue()` and resolves with the new SHA of every period written, even when another period failed. `lastError` holds the error of the last failed drain and is cleared by the next successful one; it is also written with `console.error`. A 401 ends the session.
+- It never touches the loaded periods. `usePeriod(id).setCell` is the only door for a consumer: it refuses an edit when the period cannot be edited, enqueues the patch, applies it to the loaded copy, drains, and writes the new SHAs into the entries. Consumers never orchestrate the queue themselves.
+- Until F5 (#32) builds the table, the period page exposes `window.setCell(month, field, value)` in development only, to try an edit from the console.
 
 ### Data proxy: `netlify/functions/github-api-proxy`
 

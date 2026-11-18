@@ -1,9 +1,10 @@
 import 'fake-indexeddb/auto'
+import { IDBFactory } from 'fake-indexeddb'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Patch } from '@/domain/applyPatch'
-import { drainQueue } from '@/sync/drainQueue'
+import { DrainError, drainQueue } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 
 import { validPeriodJson } from '../../tests/helpers/periodFile'
@@ -40,6 +41,12 @@ const cell = (field: string, value: unknown, month: string | null = '2026-09'): 
   value,
 })
 const remoteFile = () => JSON.parse(remote.text)
+const otherPeriod = (field: string, value: unknown): Patch => ({
+  period: '2025-2026',
+  month: '2025-09',
+  field,
+  value,
+})
 
 beforeEach(async () => {
   const json = validPeriodJson()
@@ -48,8 +55,7 @@ beforeEach(async () => {
   remote = { text: serialized(json), sha: 1 }
   commits = []
   stubGithub()
-  await drainQueue().catch(() => undefined) // empties what a failed test left queued
-  commits = []
+  indexedDB = new IDBFactory() // an empty queue for every test
 })
 
 describe('drainQueue', () => {
@@ -120,5 +126,25 @@ describe('drainQueue', () => {
     )
     await expect(drainQueue()).rejects.toThrow()
     expect(await listPatches()).toHaveLength(1)
+  })
+
+  it('drains the other periods when one fails, and says what was written', async () => {
+    const github = globalThis.fetch
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) =>
+        url.includes('2025-2026') ? new Response('{}', { status: 500 }) : github(url, init),
+      ),
+    )
+    const failing = otherPeriod('internet.billedAmount', 1)
+    await enqueuePatch(failing)
+    await enqueuePatch(cell('internet.billedAmount', 22))
+
+    const error = await drainQueue().catch((caught: unknown) => caught)
+
+    expect(error).toBeInstanceOf(DrainError)
+    expect((error as DrainError).written).toEqual(new Map([['2026-2027', 'sha2']]))
+    expect(remoteFile().months[0].internet.billedAmount).toBe(22)
+    expect(await listPatches()).toEqual([failing])
   })
 })

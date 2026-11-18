@@ -65,6 +65,16 @@ describe('period page', () => {
     expect(wrapper.find('[data-testid="period-read-only"]').exists()).toBe(false)
   })
 
+  it('exposes setCell on window while the page is open, for the console demo of #48', async () => {
+    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    const { wrapper } = await openPeriodPage()
+    await flushPromises()
+
+    expect(typeof window.setCell).toBe('function')
+    wrapper.unmount()
+    expect(window.setCell).toBeUndefined()
+  })
+
   it('does not fetch the file again when going to another page and back', async () => {
     getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
     const { router, wrapper } = await openPeriodPage()
