@@ -182,6 +182,32 @@ describe('period page', () => {
       expect(cells('waterTreatment.bill')[0].text()).toMatch(/^\d+,\d{2}\s€$/)
     })
 
+    it('shows every electricity line, with the other tariff mode as not applicable', async () => {
+      const json = tableJson()
+      Object.assign(json.months[0].electricity, {
+        tariffMode: 'base',
+        subscriptionUnit: 'month',
+        mainBasePrevious: 100,
+        mainBase: 150,
+        // Leftover of the inactive mode: kept in the file, never shown.
+        mainHc: 999,
+        kwhPriceHc: 0.5,
+      })
+      Object.assign(json.months[1].electricity, { tariffMode: 'hchp', mainBase: 888 })
+      const { wrapper, cells } = await openTable(json)
+
+      expect(wrapper.get('[data-testid="section-electricity"]').text()).toBe('Électricité')
+      expect(cells('electricity.mainBase')[0].text()).toBe('150')
+      expect(cells('electricity.deltaMainBase')[0].text()).toBe('50')
+      for (const id of ['mainHc', 'deltaMainHp', 'kwhPriceHc']) {
+        expect(cells(`electricity.${id}`)[0].attributes('data-provenance')).toBe('not-applicable')
+        expect(cells(`electricity.${id}`)[0].text()).toBe('Non applicable')
+      }
+      expect(cells('electricity.mainBase')[1].attributes('data-provenance')).toBe('not-applicable')
+      expect(cells('electricity.mainBase')[1].text()).not.toContain('888')
+      expect(cells('electricity.bill')[0].exists()).toBe(true)
+    })
+
     it('shows "—" in the amounts when an input is missing', async () => {
       const json = tableJson()
       delete (json.months[0].waterConsumption as Record<string, unknown>).pricePerM3

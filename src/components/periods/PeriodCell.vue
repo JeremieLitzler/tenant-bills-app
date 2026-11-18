@@ -7,12 +7,16 @@ import type { MonthEntry } from '@/domain/periodFile'
 import type { MonthFigures } from '@/domain/periodFigures'
 import { fr } from '@/i18n/fr'
 
-import { formatValue, type PeriodLine } from './periodLines'
+import { formatValue, isNotApplicable, type PeriodLine } from './periodLines'
 
 const props = defineProps<{ line: PeriodLine; entry: MonthEntry; figures?: MonthFigures }>()
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
 const view = computed(() => {
+  // A leftover value of the inactive tariff mode is never shown.
+  if (isNotApplicable(props.line, props.entry)) {
+    return { provenance: 'not-applicable', text: fr.period.table.notApplicable }
+  }
   const value = props.figures ? props.line.read(props.entry, props.figures) : undefined
   if (value === undefined) {
     // An uncomputable figure is "—", never zero; an input not typed yet stays blank.
@@ -28,7 +32,10 @@ const view = computed(() => {
 <template>
   <TableCell
     class="text-right tabular-nums"
-    :class="{ 'font-medium': view.provenance === 'computed' }"
+    :class="{
+      'font-medium': view.provenance === 'computed',
+      'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
+    }"
     :data-provenance="view.provenance"
   >
     {{ view.text }}
