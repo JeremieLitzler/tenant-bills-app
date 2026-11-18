@@ -15,7 +15,7 @@ const props = defineProps<{ line: PeriodLine; entry: MonthEntry; figures?: Month
 const view = computed(() => {
   // A leftover value of the inactive tariff mode is never shown.
   if (isNotApplicable(props.line, props.entry)) {
-    return { provenance: 'not-applicable', text: fr.period.table.notApplicable }
+    return { provenance: 'not-applicable', text: '' }
   }
   const value = props.figures ? props.line.read(props.entry, props.figures) : undefined
   if (value === undefined) {
