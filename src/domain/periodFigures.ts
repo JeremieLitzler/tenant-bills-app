@@ -9,14 +9,31 @@ import {
   type WaterConsumptionFigures,
 } from './figures/waterConsumptionFigures'
 import { waterTreatmentFigures, type WaterTreatmentFigures } from './figures/waterTreatmentFigures'
+import { waterSoftenerFigures, type WaterSoftenerFigures } from './figures/waterSoftenerFigures'
+import { internetFigures, type InternetFigures } from './figures/internetFigures'
+import {
+  heatPumpMaintenanceFigures,
+  type HeatPumpMaintenanceFigures,
+} from './figures/heatPumpMaintenanceFigures'
 
-export type { ElectricityFigures, Figure, WaterConsumptionFigures, WaterTreatmentFigures }
+export type {
+  ElectricityFigures,
+  Figure,
+  HeatPumpMaintenanceFigures,
+  InternetFigures,
+  WaterConsumptionFigures,
+  WaterSoftenerFigures,
+  WaterTreatmentFigures,
+}
 
 export interface MonthFigures {
   month: string
   waterConsumption: WaterConsumptionFigures
   waterTreatment: WaterTreatmentFigures
   electricity: ElectricityFigures
+  waterSoftener: WaterSoftenerFigures
+  internet: InternetFigures
+  heatPumpMaintenance: HeatPumpMaintenanceFigures
 }
 
 export interface PeriodFigures {
@@ -30,6 +47,9 @@ function monthFigures(entry: MonthEntry): MonthFigures {
     waterConsumption: waterConsumptionFigures(entry.waterConsumption, ratios),
     waterTreatment: waterTreatmentFigures(entry.waterTreatment, entry.waterConsumption, ratios),
     electricity: electricityFigures(entry, ratios),
+    waterSoftener: waterSoftenerFigures(entry.waterSoftener, ratios),
+    internet: internetFigures(entry.internet, ratios),
+    heatPumpMaintenance: heatPumpMaintenanceFigures(entry.heatPumpMaintenance),
   }
 }
 

@@ -13,4 +13,11 @@ describe('splitHeatPumpAnnual', () => {
   it('gives zero every month for an annual amount of 0', () => {
     expect(splitHeatPumpAnnual(0)).toEqual(Array(12).fill(0))
   })
+
+  it('sums exactly to the annual amount', () => {
+    for (const annual of [154, 100, 100.01, 99.99, 1, 0.07, 1234.56, 333.33]) {
+      const total = splitHeatPumpAnnual(annual).reduce((sum, part) => sum + part, 0)
+      expect(total).toBeCloseTo(annual, 6)
+    }
+  })
 })
