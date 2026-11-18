@@ -1,3 +1,4 @@
+import { ELECTRICITY_TARIFFS, TARIFFS_BY_MODE, type ElectricityTariff } from '../electricityTariffs'
 import type { ElectricityInputs, MonthEntry } from '../periodFile'
 import { addBill, allDefined, roundCents, type Figure, type OccupantRatios } from './figureMath'
 
@@ -28,22 +29,20 @@ function subscriptionUnits(entry: MonthEntry): Figure {
   return Number.isNaN(days) || days < 0 ? undefined : days
 }
 
-type ElectricityTariff = 'Base' | 'Hc' | 'Hp'
 type TariffDeltas = Record<ElectricityTariff, Figure>
-const ELECTRICITY_TARIFFS: ElectricityTariff[] = ['Base', 'Hc', 'Hp']
 
 // The tariffs the month's mode reads. Without a mode no tariff is known to apply: everything that
 // depends on it is "—". shortcut: silent dash until validatePeriodFile reports it, see #122.
-function activeTariffs(inputs: ElectricityInputs): ElectricityTariff[] | undefined {
+function activeTariffs(inputs: ElectricityInputs): readonly ElectricityTariff[] | undefined {
   if (!inputs.tariffMode) return undefined
-  return inputs.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
+  return TARIFFS_BY_MODE[inputs.tariffMode]
 }
 
 // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
 function tariffDeltas(
   inputs: ElectricityInputs,
   meter: 'main' | 'studio',
-  active: ElectricityTariff[] | undefined,
+  active: readonly ElectricityTariff[] | undefined,
 ): TariffDeltas {
   return Object.fromEntries(
     ELECTRICITY_TARIFFS.map((tariff) => {
@@ -57,7 +56,7 @@ function tariffDeltas(
 
 function electricityShare(
   inputs: ElectricityInputs,
-  active: ElectricityTariff[] | undefined,
+  active: readonly ElectricityTariff[] | undefined,
   deltas: TariffDeltas,
   units: Figure,
   ratio: number | undefined,

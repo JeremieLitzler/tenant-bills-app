@@ -1,6 +1,9 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { formatValue, isInactiveTariffLine, LINES } from '@/components/periods/periodLines'
+import { computePeriodFigures } from '@/domain/periodFigures'
+
 import { validPeriodJson } from '../../../tests/helpers/periodFile'
 
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
@@ -206,6 +209,48 @@ describe('period page', () => {
       expect(cells('electricity.mainBase')[1].attributes('data-provenance')).toBe('not-applicable')
       expect(cells('electricity.mainBase')[1].text()).not.toContain('888')
       expect(cells('electricity.bill')[0].exists()).toBe(true)
+    })
+
+    it('shows every computed electricity line as the figures give it', async () => {
+      const json = tableJson()
+      Object.assign(json.months[0].electricity, {
+        tariffMode: 'hchp',
+        subscriptionUnit: 'day',
+        mainHcPrevious: 100,
+        mainHc: 160,
+        mainHpPrevious: 200,
+        mainHp: 230,
+        studioHcPrevious: 10,
+        studioHc: 25,
+        studioHpPrevious: 20,
+        studioHp: 40,
+        excisePerKwh: 0.02,
+        kwhPriceBase: 0.2,
+        kwhPriceHc: 0.15,
+        kwhPriceHp: 0.25,
+        subscriptionPerUnit: 0.5,
+        ctaTax: 3,
+        vat: 1.2,
+      })
+      const { cells } = await openTable(json)
+
+      const figures = computePeriodFigures(json as never).months[0]
+      const shown = LINES.filter(
+        (line) =>
+          line.section === 'electricity' &&
+          line.computed &&
+          !isInactiveTariffLine(line, json.months[0] as never),
+      )
+      const key = (id: string) => id.split('.')[1]
+      expect(shown.length).toBeGreaterThan(5)
+      for (const line of shown) {
+        const value = (figures.electricity as unknown as Record<string, number | undefined>)[
+          key(line.id)
+        ]
+        // Every input is typed, so no figure may be uncomputable.
+        expect(value, line.id).toBeDefined()
+        expect(cells(line.id)[0].text(), line.id).toBe(formatValue(line.kind, value!))
+      }
     })
 
     it('shows "—" in the amounts when an input is missing', async () => {
