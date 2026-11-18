@@ -1,0 +1,77 @@
+import type { MonthEntry } from '../periodFile'
+import { addBill, all, roundCents, sum, type Figure, type OccupantRatios } from './figureMath'
+
+export interface ElectricityFigures {
+  deltaMainBase: Figure
+  deltaMainHc: Figure
+  deltaMainHp: Figure
+  deltaStudioBase: Figure
+  deltaStudioHc: Figure
+  deltaStudioHp: Figure
+  subscriptionUnits: Figure
+  landlordShare: Figure
+  tenantShare: Figure
+  bill: Figure
+}
+
+const DAY_MS = 86_400_000
+
+// Days between "Du" and "Au" (ISO dates), or one unit for a per-month subscription.
+function subscriptionUnits(entry: MonthEntry): Figure {
+  if (entry.electricity.subscriptionUnit === 'month') return 1
+  if (entry.electricity.subscriptionUnit !== 'day') return undefined
+  const { startDate, endDate } = entry.common
+  if (!startDate || !endDate) return undefined
+  const days = (Date.parse(endDate) - Date.parse(startDate)) / DAY_MS
+  // A negative count is an end date before the start date: uncomputable, not a negative bill.
+  return Number.isNaN(days) || days < 0 ? undefined : days
+}
+
+type Register = 'Base' | 'Hc' | 'Hp'
+const REGISTERS: Register[] = ['Base', 'Hc', 'Hp']
+
+export function electricityFigures(entry: MonthEntry, ratios?: OccupantRatios): ElectricityFigures {
+  const e = entry.electricity
+  // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
+  const active: Register[] = e.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
+  const deltas = (meter: 'main' | 'studio') =>
+    Object.fromEntries(
+      REGISTERS.map((kind) => {
+        if (!active.includes(kind)) return [kind, 0]
+        const operands = all(e[`${meter}${kind}`], e[`${meter}${kind}Previous`])
+        return [kind, operands && operands[0] - operands[1]]
+      }),
+    ) as Record<Register, Figure>
+  const main = deltas('main')
+  const studio = deltas('studio')
+  const units = subscriptionUnits(entry)
+
+  const share = (deltaOf: Record<Register, Figure>, ratio: number | undefined): Figure => {
+    if (!e.tariffMode) return undefined
+    const energy = active.map((kind) => all(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`]))
+    const fixed = all(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
+    if (!fixed || energy.some((terms) => !terms)) return undefined
+    const [count, perUnit, cta, occupantRatio, vat] = fixed
+    const kwhCost = sum(
+      energy.map((terms) => {
+        const [kwh, excise, price] = terms!
+        return kwh * (excise + price)
+      }),
+    )
+    return roundCents((kwhCost + (count * perUnit + cta) * occupantRatio) * vat)
+  }
+  const landlordShare = share(main, ratios?.landlord)
+  const tenantShare = share(studio, ratios?.tenant)
+  return {
+    deltaMainBase: main.Base,
+    deltaMainHc: main.Hc,
+    deltaMainHp: main.Hp,
+    deltaStudioBase: studio.Base,
+    deltaStudioHc: studio.Hc,
+    deltaStudioHp: studio.Hp,
+    subscriptionUnits: units,
+    landlordShare,
+    tenantShare,
+    bill: addBill(landlordShare, tenantShare),
+  }
+}
