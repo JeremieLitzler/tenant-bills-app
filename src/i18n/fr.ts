@@ -46,7 +46,6 @@ export const fr = {
         waterTreatment: "Traitement de l'eau",
         electricity: 'Électricité',
       },
-      notApplicable: 'Non applicable',
       values: { base: 'Base', hchp: 'HC/HP', day: 'Par jour', month: 'Par mois' },
       lines: {
         'common.startDate': 'Du',

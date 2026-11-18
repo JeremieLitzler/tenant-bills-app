@@ -201,7 +201,7 @@ describe('period page', () => {
       expect(cells('electricity.deltaMainBase')[0].text()).toBe('50')
       for (const id of ['mainHc', 'deltaMainHp', 'kwhPriceHc']) {
         expect(cells(`electricity.${id}`)[0].attributes('data-provenance')).toBe('not-applicable')
-        expect(cells(`electricity.${id}`)[0].text()).toBe('Non applicable')
+        expect(cells(`electricity.${id}`)[0].text()).toBe('')
       }
       expect(cells('electricity.mainBase')[1].attributes('data-provenance')).toBe('not-applicable')
       expect(cells('electricity.mainBase')[1].text()).not.toContain('888')
