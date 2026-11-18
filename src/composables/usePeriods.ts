@@ -3,11 +3,14 @@
 // pending count come with F3 (#30). It imports the session state, never the reverse.
 import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
-import { pendingCountFor } from '@/composables/pendingPatches'
+import { pendingCountFor, setPendingCounts } from '@/composables/pendingPatches'
 import { useSession } from '@/composables/useSession'
+import { applyPatch } from '@/domain/applyPatch'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
 import type { PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
+import { drainQueue } from '@/sync/drainQueue'
+import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 import {
   getPeriodFile,
   getPeriodSha,
@@ -128,6 +131,42 @@ async function refreshPeriod(id: string): Promise<void> {
   }
 }
 
+async function syncPendingCounts(): Promise<void> {
+  const counts: Record<string, number> = {}
+  for (const patch of await listPatches()) counts[patch.period] = (counts[patch.period] ?? 0) + 1
+  setPendingCounts(counts)
+}
+
+// Sends the queue; the loaded copies take the new SHAs. A failure keeps the queue (the status
+// display and the retries are a later ticket); a 401 ends the session.
+async function drain(): Promise<void> {
+  try {
+    for (const [id, sha] of await drainQueue()) {
+      const entry = periodEntries.value[id]
+      if (entry) entry.sha = sha
+    }
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      useSession().expire()
+    }
+  }
+  await syncPendingCounts()
+}
+
+// Queues the patch, applies it to the loaded copy at once, then drains. A file breaking a
+// validation rule is never written.
+async function setCell(id: string, month: string | null, field: string, value: unknown) {
+  const entry = periodEntries.value[id]
+  if (entry?.status !== 'ready' || !entry.file || entry.problems.length) {
+    return
+  }
+  const patch = { period: id, month, field, value }
+  await enqueuePatch(patch)
+  applyPatch(entry.file, patch)
+  await syncPendingCounts()
+  await drain()
+}
+
 // One period, called by a page on setup with its route param. Loads the file when it is not held
 // yet and again when the identifier changes. `file` is read-only: every edit goes through the
 // patch queue (ADR 0010), never into the object.
@@ -167,6 +206,9 @@ export function usePeriod(id: MaybeRefOrGetter<string>) {
         pendingCountFor(toValue(id)) === 0,
     ),
     refresh: () => refreshPeriod(toValue(id)),
+    // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained.
+    setCell: (month: string | null, field: string, value: unknown) =>
+      setCell(toValue(id), month, field, value),
   }
 }
 

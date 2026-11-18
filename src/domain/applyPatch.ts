@@ -1,0 +1,43 @@
+// The patch contract of docs/period-file.md ("Patches", ADR 0010). Vue-free.
+import type { MonthEntry, PeriodFile } from './periodFile'
+
+export interface Patch {
+  period: string
+  // Null for a top-level value (`closedOn`, ...).
+  month: string | null
+  // `<section>.<key>`, a top-level key, or `month` for a whole month object.
+  field: string
+  value: unknown
+}
+
+// The queue key of a patch: a retyped cell has the same key, so it replaces its queued patch.
+export const patchKey = (patch: Patch) => `${patch.period}|${patch.month ?? ''}|${patch.field}`
+
+type Bag = Record<string, unknown>
+
+// Applies one patch to `file` in place. Never creates or removes a section object; `value: null`
+// removes the key, except `common.tenantBillAdvance`, set to `0`. A month patch appends the month
+// and never overwrites an existing one; a patch for a month the file lacks is ignored.
+export function applyPatch(file: PeriodFile, patch: Patch): void {
+  const { month, field, value } = patch
+  if (month === null) {
+    const top = file as unknown as Bag
+    if (value === null) delete top[field]
+    else top[field] = value
+    return
+  }
+  if (field === 'month') {
+    if (!file.months.some((entry) => entry.month === month)) {
+      file.months.push(value as MonthEntry)
+    }
+    return
+  }
+  const [section, key] = field.split('.')
+  const target = file.months.find((entry) => entry.month === month)?.[
+    section as keyof MonthEntry
+  ] as Bag | undefined
+  if (!target) return
+  if (value !== null) target[key] = value
+  else if (field === 'common.tenantBillAdvance') target[key] = 0
+  else delete target[key]
+}
