@@ -126,3 +126,38 @@ export async function getPeriodFile(id: string): Promise<PeriodFileContent> {
   }
   return { json: JSON.parse(decodeBase64Utf8(answer.content)), sha: answer.sha }
 }
+
+function encodeBase64Utf8(text: string): string {
+  return btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+}
+
+// Writes one period file as one commit and returns the new SHA. `sha` is the SHA being replaced;
+// a 409 means the file changed meanwhile (the rebase is a later ticket).
+export async function putPeriodFile(
+  id: string,
+  text: string,
+  sha: string,
+  message: string,
+): Promise<string> {
+  const response = await fetch(PROXY_PATH, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      path: `${PERIODS_FOLDER}/${id}.json`,
+      message,
+      content: encodeBase64Utf8(text),
+      sha,
+    }),
+  })
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+  if (!response.ok) {
+    return throwHttpError(response, `Saving the period ${id}`)
+  }
+  const answer = (await response.json()) as { content?: { sha?: unknown } }
+  if (typeof answer?.content?.sha !== 'string') {
+    throw new Error(`Saving the period ${id} returned no SHA`)
+  }
+  return answer.content.sha
+}
