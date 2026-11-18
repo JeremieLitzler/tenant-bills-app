@@ -15,6 +15,12 @@ const NOT_A_LINE: Record<string, string> = {
   'common.estimated': 'a flag of the estimated twelfth month, not a figure (docs/period-file.md)',
 }
 
+// Computed figures that repeat an input line already shown, each with its reason.
+const NOT_A_FIGURE_LINE: Record<string, string> = {
+  'internet.bill': 'equals the internet.billedAmount line',
+  'heatPumpMaintenance.bill': 'equals the heatPumpMaintenance.billedAmount line',
+}
+
 const lineIds = LINES.map((line) => line.id)
 const sections = SECTIONS.map((section) => section.id as SectionName)
 
@@ -34,7 +40,7 @@ describe('period table lines', () => {
         (key) => `${section}.${key}`,
       ),
     )
-    expect(expected.filter((id) => !lineIds.includes(id))).toEqual([])
+    expect(expected.filter((id) => !lineIds.includes(id) && !(id in NOT_A_FIGURE_LINE))).toEqual([])
   })
 
   it('has a French label for every line, and no label without a line', () => {

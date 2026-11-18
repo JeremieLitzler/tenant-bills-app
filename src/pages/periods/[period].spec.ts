@@ -253,6 +253,24 @@ describe('period page', () => {
       }
     })
 
+    it('shows the softener, internet and heat pump lines, a purchase only in its own month', async () => {
+      const json = tableJson()
+      Object.assign(json.months[0].waterSoftener, { description: 'Sel', quantity: 2, unitPrice: 10 })
+      Object.assign(json.months[0].internet, { billedAmount: 30 })
+      Object.assign(json.months[0].heatPumpMaintenance, { billedAmount: 12 })
+      const { wrapper, cells } = await openTable(json)
+
+      for (const id of ['waterSoftener', 'internet', 'heatPumpMaintenance']) {
+        expect(wrapper.find(`[data-testid="section-${id}"]`).exists()).toBe(true)
+      }
+      expect(cells('waterSoftener.description')[0].text()).toBe('Sel')
+      expect(cells('waterSoftener.quantity')[1].text()).toBe('')
+      expect(cells('waterSoftener.tenantShare')[0].text()).not.toBe('—')
+      expect(cells('internet.billedAmount')[0].text()).toContain('30')
+      expect(cells('heatPumpMaintenance.billedAmount')[0].text()).toContain('12')
+      expect(cells('heatPumpMaintenance.billedAmount')[1].text()).toBe('')
+    })
+
     it('shows "—" in the amounts when an input is missing', async () => {
       const json = tableJson()
       delete (json.months[0].waterConsumption as Record<string, unknown>).pricePerM3
