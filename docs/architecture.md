@@ -38,6 +38,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 │   │   └── ui/                     # shadcn-vue
 │   ├── composables/
 │   ├── domain/                     # Vue-free: formulas, period file types, patch apply
+│   │   └── figures/                # the figures of each section, one file and one spec per section
 │   ├── i18n/                       # fr.ts: every UI string, a plain typed object
 │   ├── lib/                        # shadcn-vue's cn helper, safeRedirect, the gh_login cookie reader
 │   ├── pages/                      # file-based routes
