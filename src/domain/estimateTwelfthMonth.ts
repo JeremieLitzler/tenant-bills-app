@@ -1,5 +1,6 @@
 // The estimated twelfth month (docs/period-file.md, "The estimated twelfth month"; docs/scenarios.md,
 // Case 6; issue #61). Called by `initializeMonth` when the twelfth month is initialized. Vue-free.
+import { TARIFFS_BY_MODE } from './electricityTariffs'
 import { ELECTRICITY_METERS, HC_SHARE, WATER_METERS } from './monthConstants'
 import type { MonthEntry } from './periodFile'
 
@@ -20,7 +21,7 @@ function waterDelta(month: MonthEntry, meter: string): number | undefined {
 
 function electricityDelta(month: MonthEntry, meter: string): number | undefined {
   const e = month.electricity as Bag
-  const registers = e.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
+  const registers = TARIFFS_BY_MODE[e.tariffMode === 'hchp' ? 'hchp' : 'base']
   let total = 0
   for (const r of registers) {
     const [cur, prev] = [e[meter + r], e[`${meter}${r}Previous`]]

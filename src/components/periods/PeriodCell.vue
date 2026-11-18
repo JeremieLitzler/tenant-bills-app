@@ -7,14 +7,14 @@ import type { MonthEntry } from '@/domain/periodFile'
 import type { MonthFigures } from '@/domain/periodFigures'
 import { fr } from '@/i18n/fr'
 
-import { formatValue, isNotApplicable, type PeriodLine } from './periodLines'
+import { formatValue, isInactiveTariffLine, type PeriodLine } from './periodLines'
 
 const props = defineProps<{ line: PeriodLine; entry: MonthEntry; figures?: MonthFigures }>()
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
 const view = computed(() => {
   // A leftover value of the inactive tariff mode is never shown.
-  if (isNotApplicable(props.line, props.entry)) {
+  if (isInactiveTariffLine(props.line, props.entry)) {
     return { provenance: 'not-applicable', text: '' }
   }
   const value = props.figures ? props.line.read(props.entry, props.figures) : undefined

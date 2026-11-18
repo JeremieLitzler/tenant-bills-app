@@ -1,13 +1,13 @@
 // The lines of the period table, in display order: one definition per row, reused by the "Saisie du
 // mois" form (F6). A line is an input of the period file or a computed figure. More sections join
 // as their figures land (F4).
+import { ELECTRICITY_TARIFFS, TARIFFS_BY_MODE, type ElectricityTariff } from '@/domain/electricityTariffs'
 import type { MonthFigures } from '@/domain/periodFigures'
 import type { MonthEntry, SectionInputs, SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 export type LineKind = 'date' | 'int' | 'money' | 'number' | 'litres' | 'm3' | 'text'
 
-export type Tariff = 'Base' | 'Hc' | 'Hp'
 
 type FigureSection = 'waterConsumption' | 'waterTreatment' | 'electricity'
 
@@ -18,7 +18,7 @@ export interface PeriodLine {
   kind: LineKind
   computed: boolean
   // The tariff of an electricity line that only applies in one tariff mode (empty in the other).
-  tariff?: Tariff
+  tariff?: ElectricityTariff
   // The cell's value: as stored in the month (docs/period-file.md) or from the figures (computed).
   read: (entry: MonthEntry, figures: MonthFigures) => string | number | undefined
 }
@@ -34,7 +34,7 @@ function input<S extends SectionName>(
   section: S,
   key: keyof SectionInputs[S] & string,
   kind: LineKind,
-  tariff?: Tariff,
+  tariff?: ElectricityTariff,
 ): PeriodLine {
   const id = `${section}.${key}`
   return {
@@ -54,7 +54,7 @@ function computed(
   section: FigureSection,
   key: string,
   kind: LineKind,
-  tariff?: Tariff,
+  tariff?: ElectricityTariff,
 ): PeriodLine {
   const id = `${section}.${key}`
   return {
@@ -69,11 +69,9 @@ function computed(
   }
 }
 
-const TARIFFS: Tariff[] = ['Base', 'Hc', 'Hp']
-
 // Per meter, per tariff: previous index, current index, then the delta.
 const electricityMeterLines = (['main', 'studio'] as const).flatMap((meter) =>
-  TARIFFS.flatMap((tariff) => [
+  ELECTRICITY_TARIFFS.flatMap((tariff) => [
     input('electricity', `${meter}${tariff}Previous`, 'number', tariff),
     input('electricity', `${meter}${tariff}`, 'number', tariff),
     computed(
@@ -134,11 +132,12 @@ export const LINES: PeriodLine[] = [
   computed('electricity', 'bill', 'money'),
 ]
 
-// Whether the month's tariff mode leaves the line empty. Without a mode no tariff is ruled out.
-export function isNotApplicable(line: PeriodLine, entry: MonthEntry): boolean {
+// Whether the line is a tariff line the month's tariff mode does not read. Without a mode no
+// tariff is ruled out.
+export function isInactiveTariffLine(line: PeriodLine, entry: MonthEntry): boolean {
   const mode = entry.electricity?.tariffMode
   if (!line.tariff || !mode) return false
-  return (mode === 'hchp') === (line.tariff === 'Base')
+  return !(TARIFFS_BY_MODE[mode] as readonly ElectricityTariff[]).includes(line.tariff)
 }
 
 const FORMATS: Record<Exclude<LineKind, 'date' | 'int' | 'text'>, Intl.NumberFormatOptions> = {
