@@ -78,6 +78,8 @@ describe('computePeriodFigures, water and electricity', () => {
     delete broken.months[1].electricity.vat
     delete broken.months[july].electricity.mainHpPrevious
     delete broken.months[2].common.startDate
+    delete broken.months[3].electricity.tariffMode
+    broken.months[4].common.endDate = '2026-01-01' // before its start date
     const months = computePeriodFigures(broken).months
     const [first, second, third] = months
     expect(first.electricity.deltaStudioBase).toBeUndefined()
@@ -90,6 +92,9 @@ describe('computePeriodFigures, water and electricity', () => {
     expect(second.electricity.landlordShare).toBeUndefined()
     expect(third.electricity.subscriptionUnits).toBeUndefined()
     expect(third.electricity.bill).toBeUndefined()
+    expect(months[3].electricity.bill).toBeUndefined()
+    expect(months[4].electricity.subscriptionUnits).toBeUndefined()
+    expect(months[4].electricity.bill).toBeUndefined()
     expect(months[july].electricity.landlordShare).toBeUndefined()
     expect(months[july].electricity.tenantShare).toBeCloseTo(
       expected.months[july].electricity.tenantShare,
