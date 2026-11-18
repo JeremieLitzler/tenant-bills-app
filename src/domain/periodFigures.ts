@@ -20,10 +20,24 @@ export interface WaterTreatmentFigures {
   bill: Figure
 }
 
+export interface ElectricityFigures {
+  deltaMainBase: Figure
+  deltaMainHc: Figure
+  deltaMainHp: Figure
+  deltaStudioBase: Figure
+  deltaStudioHc: Figure
+  deltaStudioHp: Figure
+  subscriptionUnits: Figure
+  landlordShare: Figure
+  tenantShare: Figure
+  bill: Figure
+}
+
 export interface MonthFigures {
   month: string
   waterConsumption: WaterConsumptionFigures
   waterTreatment: WaterTreatmentFigures
+  electricity: ElectricityFigures
 }
 
 export interface PeriodFigures {
@@ -52,6 +66,62 @@ function delta(current: Figure, previous: Figure): Figure {
 function addBill(landlordShare: Figure, tenantShare: Figure): Figure {
   const shares = all(landlordShare, tenantShare)
   return shares && roundCents(shares[0] + shares[1])
+}
+
+const DAY_MS = 86_400_000
+
+// Days between "Du" and "Au" (ISO dates), or one unit for a per-month subscription.
+function subscriptionUnits(entry: MonthEntry): Figure {
+  if (entry.electricity.subscriptionUnit === 'month') return 1
+  if (entry.electricity.subscriptionUnit !== 'day') return undefined
+  const { startDate, endDate } = entry.common
+  if (!startDate || !endDate) return undefined
+  const days = (Date.parse(endDate) - Date.parse(startDate)) / DAY_MS
+  return Number.isNaN(days) ? undefined : days
+}
+
+type Register = 'Base' | 'Hc' | 'Hp'
+const REGISTERS: Register[] = ['Base', 'Hc', 'Hp']
+
+function electricityFigures(entry: MonthEntry, ratios?: { landlord: number; tenant: number }) {
+  const e = entry.electricity
+  // The keys of the inactive mode are never read: their deltas are 0 and their prices unused.
+  const active: Register[] = e.tariffMode === 'hchp' ? ['Hc', 'Hp'] : ['Base']
+  const deltas = (meter: 'main' | 'studio') =>
+    Object.fromEntries(
+      REGISTERS.map((kind) => {
+        if (!active.includes(kind)) return [kind, 0]
+        const operands = all(e[`${meter}${kind}`], e[`${meter}${kind}Previous`])
+        return [kind, operands && operands[0] - operands[1]]
+      }),
+    ) as Record<Register, Figure>
+  const main = deltas('main')
+  const studio = deltas('studio')
+  const units = subscriptionUnits(entry)
+
+  const share = (deltaOf: Record<Register, Figure>, ratio: number | undefined): Figure => {
+    if (!e.tariffMode) return undefined
+    const energy = active.map((kind) => all(deltaOf[kind], e.excisePerKwh, e[`kwhPrice${kind}`]))
+    const fixed = all(units, e.subscriptionPerUnit, e.ctaTax, ratio, e.vat)
+    if (!fixed || energy.some((terms) => !terms)) return undefined
+    const [count, perUnit, cta, share, vat] = fixed
+    const kwhCost = sum(energy.map((terms) => terms![0] * (terms![1] + terms![2])))
+    return roundCents((kwhCost + (count * perUnit + cta) * share) * vat)
+  }
+  const landlordShare = share(main, ratios?.landlord)
+  const tenantShare = share(studio, ratios?.tenant)
+  return {
+    deltaMainBase: main.Base,
+    deltaMainHc: main.Hc,
+    deltaMainHp: main.Hp,
+    deltaStudioBase: studio.Base,
+    deltaStudioHc: studio.Hc,
+    deltaStudioHp: studio.Hp,
+    subscriptionUnits: units,
+    landlordShare,
+    tenantShare,
+    bill: addBill(landlordShare, tenantShare),
+  }
 }
 
 function monthFigures(entry: MonthEntry): MonthFigures {
@@ -127,6 +197,7 @@ function monthFigures(entry: MonthEntry): MonthFigures {
       tenantShare: treatmentTenant,
       bill: addBill(treatmentLandlord, treatmentTenant),
     },
+    electricity: electricityFigures(entry, ratios),
   }
 }
 
