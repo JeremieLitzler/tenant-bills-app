@@ -37,6 +37,12 @@ export const fr = {
       updated: "La période a été mise à jour avec les modifications de l'autre appareil.",
       failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
     },
+    applyDialog: {
+      inherited: 'Appliquer « {line} » = {value} à tous les mois suivants ?',
+      index: "Définir l'index précédent du mois suivant à {value} ?",
+      yes: 'Oui',
+      no: 'Non',
+    },
     table: {
       label: 'Ligne',
       empty: '—',
