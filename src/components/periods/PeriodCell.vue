@@ -19,7 +19,7 @@ const props = defineProps<{
   invalid?: boolean
 }>()
 const draft = defineModel<string>('draft', { default: '' })
-const emit = defineEmits<{ blur: [] }>()
+const emit = defineEmits<{ blur: [event: FocusEvent] }>()
 const vFocus = { mounted: (el: HTMLElement) => el.focus() }
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
@@ -60,7 +60,7 @@ const view = computed(() => {
       :aria-label="line.label"
       :aria-invalid="invalid"
       class="w-full bg-transparent text-right outline-none"
-      @blur="emit('blur')"
+      @blur="emit('blur', $event)"
     />
     <template v-else>{{ view.text }}</template>
   </TableCell>
