@@ -129,8 +129,18 @@ async function refreshPeriod(id: string): Promise<void> {
 // period cannot be edited (not loaded, read-only or closed): the caller checks `isReadOnly` first.
 async function setCell(id: string, month: string | null, field: string, value: unknown) {
   const entry = periodEntries.value[id]
-  if (entry?.status !== 'ready' || !entry.file || entry.problems.length || entry.file.closedOn) {
-    throw new Error(`The period ${id} cannot be edited`)
+  if (entry?.status !== 'ready' || !entry.file) {
+    throw new Error(
+      `The period ${id} cannot be edited: it is not loaded (status: ${entry?.status})`,
+    )
+  }
+  if (entry.problems.length) {
+    throw new Error(
+      `The period ${id} cannot be edited: it is read-only (${entry.problems.join(', ')})`,
+    )
+  }
+  if (entry.file.closedOn) {
+    throw new Error(`The period ${id} cannot be edited: it is closed (${entry.file.closedOn})`)
   }
   const patch = { period: id, month, field, value }
   const saveQueue = useSaveQueue()
