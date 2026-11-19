@@ -81,7 +81,9 @@ function onBlur(line: (typeof LINES)[number], event: FocusEvent) {
         class="rounded border px-2 py-1"
         data-testid="month-picker"
         :value="month"
-        @change="router.push(`/periods/${periodId}/${($event.target as HTMLSelectElement).value}`)"
+        @change="
+          router.push(`/periods/${periodId}/months/${($event.target as HTMLSelectElement).value}`)
+        "
       >
         <option v-for="m in file.months" :key="m.month" :value="m.month">{{ m.month }}</option>
       </select>

@@ -45,9 +45,9 @@ declare module 'vue-router/auto-routes' {
       { period: ParamValue<false> },
       | never
     >,
-    '/periods/[period]/[month]': RouteRecordInfo<
-      '/periods/[period]/[month]',
-      '/periods/:period/:month',
+    '/periods/[period]/months/[month]': RouteRecordInfo<
+      '/periods/[period]/months/[month]',
+      '/periods/:period/months/:month',
       { month: ParamValue<true>, period: ParamValue<true> },
       { month: ParamValue<false>, period: ParamValue<false> },
       | never
@@ -88,9 +88,9 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/pages/periods/[period]/[month].vue': {
+    'src/pages/periods/[period]/months/[month].vue': {
       routes:
-        | '/periods/[period]/[month]'
+        | '/periods/[period]/months/[month]'
       views:
         | never
       pathParamNames:

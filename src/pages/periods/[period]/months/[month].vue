@@ -5,7 +5,7 @@ import MonthForm from '@/components/periods/MonthForm.vue'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
-const route = useRoute('/periods/[period]/[month]')
+const route = useRoute('/periods/[period]/months/[month]')
 // Loads the period; the form reads it back from the shared state. What a 404 looks like is #15.
 const period = usePeriod(() => route.params.period)
 </script>
