@@ -7,16 +7,20 @@ import { validPeriodJson } from '../../tests/helpers/periodFile'
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
 const pendingCountFor = vi.fn<(id: string) => number>(() => 0)
+const putPeriodFile = vi.fn<(...args: unknown[]) => Promise<string>>()
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string }>>()
 
 class UnauthorizedError extends Error {}
 class NotFoundError extends Error {}
 class MisconfiguredError extends Error {}
+class PeriodExistsError extends Error {}
 
 vi.mock('@/sync/periodsApi', () => ({
   listPeriodIds,
   getPeriodFile,
   getPeriodSha,
+  putPeriodFile,
+  PeriodExistsError,
   UnauthorizedError,
   NotFoundError,
   MisconfiguredError,
@@ -407,5 +411,45 @@ describe('usePeriod, setCell', () => {
     await expect(period.setCell('2026-09', 'internet.billedAmount', 21)).rejects.toThrow()
 
     expect(enqueue).not.toHaveBeenCalled()
+  })
+})
+
+describe('usePeriods, createPeriod', () => {
+  const values = {
+    tenantName: 'Jane Smith',
+    monthlyTenantBillAdvance: 70,
+    heatPumpInvoiceEstimate: 154,
+    startDate: '2027-09-12',
+  }
+
+  it('creates the file without SHA, with the creation message, and lists the period', async () => {
+    putPeriodFile.mockReset()
+    putPeriodFile.mockResolvedValue('sha')
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    const { periods } = await loadPeriods()
+    await periods.loadPeriodIds()
+
+    await periods.createPeriod('2027-2028', values)
+
+    const [id, text, sha, message] = putPeriodFile.mock.calls[0]
+    expect([id, sha, message]).toEqual(['2027-2028', undefined, 'data(2027-2028): create period'])
+    expect(JSON.parse(text as string)).toMatchObject({
+      periodName: '2027-2028',
+      months: [{ month: '2027-09', heatPumpMaintenance: { billedAmount: 12.83 } }],
+    })
+    expect(periods.periodIds.value).toEqual(['2026-2027', '2027-2028'])
+  })
+
+  it('refuses an existing period and leaves the list unchanged', async () => {
+    putPeriodFile.mockReset()
+    putPeriodFile.mockRejectedValue(new PeriodExistsError())
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    const { periods } = await loadPeriods()
+    await periods.loadPeriodIds()
+
+    await expect(periods.createPeriod('2026-2027', values)).rejects.toBeInstanceOf(
+      PeriodExistsError,
+    )
+    expect(periods.periodIds.value).toEqual(['2026-2027'])
   })
 })

@@ -30,6 +30,14 @@ export class MisconfiguredError extends Error {
   }
 }
 
+// A creation PUT (no SHA) answered 422: the period file already exists, and was left unchanged.
+export class PeriodExistsError extends Error {
+  constructor() {
+    super('The period already exists')
+    this.name = 'PeriodExistsError'
+  }
+}
+
 async function throwHttpError(response: Response, action: string): Promise<never> {
   if (response.status === 500) {
     const answer: unknown = await response.json().catch(() => undefined)
@@ -132,11 +140,12 @@ function encodeBase64Utf8(text: string): string {
 }
 
 // Writes one period file as one commit and returns the new SHA. `sha` is the SHA being replaced;
-// a 409 means the file changed meanwhile (the rebase is a later ticket).
+// a 409 means the file changed meanwhile (the rebase is a later ticket). Without `sha` the file is
+// created, and GitHub's 422 for a file already there becomes a PeriodExistsError.
 export async function putPeriodFile(
   id: string,
   text: string,
-  sha: string,
+  sha: string | undefined,
   message: string,
 ): Promise<string> {
   const response = await fetch(PROXY_PATH, {
@@ -151,6 +160,9 @@ export async function putPeriodFile(
   })
   if (response.status === 401) {
     throw new UnauthorizedError()
+  }
+  if (response.status === 422 && sha === undefined) {
+    throw new PeriodExistsError()
   }
   if (!response.ok) {
     return throwHttpError(response, `Saving the period ${id}`)

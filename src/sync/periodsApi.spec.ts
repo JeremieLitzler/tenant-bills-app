@@ -6,6 +6,8 @@ import {
   listPeriodIds,
   MisconfiguredError,
   NotFoundError,
+  PeriodExistsError,
+  putPeriodFile,
   UnauthorizedError,
 } from './periodsApi'
 
@@ -183,5 +185,32 @@ describe('a misconfigured proxy', () => {
     stubProxy(500, { error: 'boom' })
 
     await expect(listPeriodIds()).rejects.not.toBeInstanceOf(MisconfiguredError)
+  })
+})
+
+describe('putPeriodFile, creation', () => {
+  it('sends a PUT without SHA and the given message', async () => {
+    const fetchStub = stubProxy(201, { content: { sha: 'new' } })
+
+    await expect(
+      putPeriodFile('2027-2028', '{}', undefined, 'data(2027-2028): create period'),
+    ).resolves.toBe('new')
+
+    const init = (fetchStub.mock.calls[0] as unknown as [string, RequestInit])[1]
+    const sent = JSON.parse(init.body as string)
+    expect(init.method).toBe('PUT')
+    expect(sent).toEqual({
+      path: 'periods/2027-2028.json',
+      message: 'data(2027-2028): create period',
+      content: btoa('{}'),
+    })
+  })
+
+  it('refuses an existing file (GitHub 422)', async () => {
+    stubProxy(422, { message: 'sha was not supplied' })
+
+    await expect(putPeriodFile('2026-2027', '{}', undefined, 'x')).rejects.toBeInstanceOf(
+      PeriodExistsError,
+    )
   })
 })

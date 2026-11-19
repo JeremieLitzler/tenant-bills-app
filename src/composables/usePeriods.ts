@@ -8,6 +8,8 @@ import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from '
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { pendingCountFor } from '@/composables/pendingPatches'
 import { useSaveQueue } from '@/composables/useSaveQueue'
+import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
+import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { applyPatch } from '@/domain/applyPatch'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
 import type { PeriodFile } from '@/domain/periodFile'
@@ -18,6 +20,7 @@ import {
   listPeriodIds,
   MisconfiguredError,
   NotFoundError,
+  putPeriodFile,
 } from '@/sync/periodsApi'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
@@ -125,6 +128,26 @@ async function refreshPeriod(id: string): Promise<void> {
   }
 }
 
+// Creates the period file in one commit (docs/architecture.md, "Period creation commit"). It needs
+// the network: nothing is queued, so offline it rejects (shortcut: a queued creation is the F9
+// grilling). Rejects with PeriodExistsError when the file is already there. The new period joins the
+// list; its copy is loaded on first opening.
+async function createPeriod(id: string, values: NewPeriodValues): Promise<void> {
+  try {
+    await putPeriodFile(
+      id,
+      serializePeriodFile(newPeriodFile(id, values)),
+      undefined,
+      `data(${id}): create period`,
+    )
+  } catch (error) {
+    expireOnUnauthorized(error)
+    throw error
+  }
+  if (!periodIds.value.includes(id)) periodIds.value = [...periodIds.value, id].sort()
+  delete periodEntries.value[id]
+}
+
 // Queues the patch, applies it to the loaded copy, drains, and takes the new SHAs. Throws when the
 // period cannot be edited (not loaded, read-only or closed): the caller checks `isReadOnly` first.
 async function setCell(id: string, month: string | null, field: string, value: unknown) {
@@ -203,6 +226,7 @@ export function usePeriods() {
     periodIds: readonly(periodIds),
     listStatus: readonly(listStatus),
     loadPeriodIds,
+    createPeriod,
     pendingCountFor,
   }
 }

@@ -11,7 +11,7 @@ const bag = (month: MonthEntry, section: SectionName) => month[section] as Bag
 
 // The suggested end day of the month after `start` when it is Thursday to Sunday, otherwise the
 // Sunday before (see `SUGGESTED_END_DAY_OF_MONTH`). Dates are UTC to keep the day stable across time zones.
-function suggestedEndDate(start: string): string {
+export function suggestedEndDate(start: string): string {
   const d = new Date(`${start}T00:00:00Z`)
   d.setUTCMonth(d.getUTCMonth() + 1, SUGGESTED_END_DAY_OF_MONTH)
   const weekday = d.getUTCDay()

@@ -3,7 +3,7 @@
 import { FIELD_CATALOGUE } from './periodFile'
 import type { PeriodFile } from './periodFile'
 
-const SUPPORTED_SCHEMA_VERSION = 2
+export const SUPPORTED_SCHEMA_VERSION = 2
 
 // One code per rule, so the page can word the notice and a test can name the rule.
 export type PeriodFileProblem =
