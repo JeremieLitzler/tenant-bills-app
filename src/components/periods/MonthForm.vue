@@ -64,7 +64,7 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
   <p v-if="file && !entry" data-testid="month-not-found">{{ fr.period.month.notFound }}</p>
   <form
     v-else-if="file && entry && monthFigures"
-    class="mx-auto flex w-full max-w-md flex-col gap-4 md:rounded-lg md:border md:p-6 md:shadow-sm"
+    class="mx-auto flex w-full max-w-lg flex-col gap-4 md:rounded-lg md:border md:p-6 md:shadow-sm"
     @submit.prevent
   >
     <RouterLink
