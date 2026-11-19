@@ -44,7 +44,9 @@ const view = computed(() => {
   <TableCell
     class="text-right tabular-nums"
     :class="{
-      'ring-ring/50 ring-1 ring-inset': selected && !invalid,
+      'ring-ring/50 ring-1 ring-inset': selected && !invalid && !editing,
+      // Editing: the strong outline of the apply dialog buttons, inset so neighbours stay clear.
+      'outline-foreground outline-2 -outline-offset-2': editing && !invalid,
       'ring-destructive ring-2 ring-inset': invalid,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
