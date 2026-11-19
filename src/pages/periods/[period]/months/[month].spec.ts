@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LINES } from '@/components/periods/periodLines'
 
-import { validPeriodJson } from '../../../../tests/helpers/periodFile'
+import { validPeriodJson } from '../../../../../tests/helpers/periodFile'
 
 const getPeriodFile = vi.fn()
 const enqueuePatch = vi.fn()
@@ -28,7 +28,7 @@ async function openForm(edit: (json: ReturnType<typeof validPeriodJson>) => void
   document.cookie = 'gh_login=JeremieLitzler; Path=/'
   const { default: router } = await import('@/router')
   const { default: App } = await import('@/App.vue')
-  await router.push('/periods/2026-2027/2026-09')
+  await router.push('/periods/2026-2027/months/2026-09')
   await router.isReady()
   const wrapper = mount(App, { global: { plugins: [router] }, attachTo: document.body })
   await flushPromises()
@@ -111,13 +111,13 @@ describe('Saisie du mois', () => {
     const { wrapper, router } = await openForm()
     await wrapper.get('[data-testid="month-picker"]').setValue('2026-10')
     await flushPromises()
-    expect(router.currentRoute.value.path).toBe('/periods/2026-2027/2026-10')
+    expect(router.currentRoute.value.path).toBe('/periods/2026-2027/months/2026-10')
     expect(wrapper.get('[data-testid="to-table"]').attributes('href')).toBe('/periods/2026-2027')
   })
 
   it('says so when the month is not in the period', async () => {
     const { wrapper, router } = await openForm()
-    await router.push('/periods/2026-2027/2030-01')
+    await router.push('/periods/2026-2027/months/2030-01')
     await flushPromises()
     expect(wrapper.find('[data-testid="month-not-found"]').exists()).toBe(true)
   })
