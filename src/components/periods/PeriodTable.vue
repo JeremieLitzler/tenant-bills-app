@@ -220,13 +220,13 @@ watch([row, col], async () => {
       aria-describedby="period-table-hint"
       :aria-activedescendant="cellId(row, col)"
       @keydown="onKeydown"
-      container-class="focus-visible:outline-ring/50 focus-visible:outline-2 focus-visible:outline-offset-2 max-h-[calc(100vh-8rem)] overflow-auto scroll-pt-10 scroll-pl-40 max-md:scroll-pl-32 [container-type:inline-size] max-md:[scrollbar-width:none] max-md:snap-x max-md:snap-mandatory"
-      class="w-max min-w-full border-separate border-spacing-0 [&_td]:snap-start max-md:[&_td]:w-[calc(100cqw-8rem)] max-md:[&_td]:whitespace-normal"
+      container-class="focus-visible:outline-ring/50 focus-visible:outline-2 focus-visible:outline-offset-2 max-h-[calc(100vh-8rem)] overflow-auto scroll-pt-10 scroll-pl-56 max-md:scroll-pl-44 [container-type:inline-size] max-md:[scrollbar-width:none] max-md:snap-x max-md:snap-mandatory"
+      class="w-max min-w-full border-separate border-spacing-0 [&_td]:snap-start max-md:[&_td]:w-[calc(100cqw-11rem)] max-md:[&_td]:whitespace-normal"
     >
       <TableHeader>
         <TableRow>
           <TableHead
-            class="bg-background sticky top-0 left-0 z-30 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal"
+            class="bg-background sticky top-0 left-0 z-30 w-56 min-w-56 max-md:w-44 max-md:min-w-44 max-md:whitespace-normal"
             >{{ fr.period.table.label }}</TableHead
           >
           <TableHead
@@ -259,7 +259,7 @@ watch([row, col], async () => {
           >
             <TableHead
               scope="row"
-              class="bg-background sticky left-0 z-10 w-40 min-w-40 max-md:w-32 max-md:min-w-32 max-md:whitespace-normal"
+              class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-44 max-md:min-w-44 max-md:whitespace-normal"
               >{{ line.label }}</TableHead
             >
             <PeriodCell
