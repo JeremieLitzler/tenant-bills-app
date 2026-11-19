@@ -45,4 +45,9 @@ describe('AppShell, session end', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/sign-in'))
   })
+
+  it('links the app name to the home page', async () => {
+    const { wrapper } = await mountShell('/')
+    expect(wrapper.get('[data-testid="app-name"]').attributes('href')).toBe('/')
+  })
 })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { useSession } from '@/composables/useSession'
 import { fr } from '@/i18n/fr'
@@ -22,7 +22,9 @@ watch(session.isSignedIn, (signedIn) => {
 <template>
   <div data-testid="app-shell" class="flex min-h-screen flex-col">
     <header class="flex items-center justify-between border-b px-4 py-3">
-      <p class="font-semibold">{{ fr.shell.appName }}</p>
+      <RouterLink to="/" class="font-semibold" data-testid="app-name">{{
+        fr.shell.appName
+      }}</RouterLink>
       <p v-if="session.isSignedIn.value" class="flex items-center gap-3 text-sm">
         <span data-testid="session-login">{{ session.login.value }}</span>
         <button type="button" class="underline" @click="session.signOut()">
