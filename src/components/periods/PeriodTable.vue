@@ -104,13 +104,18 @@ function save(): boolean {
   // Case 8: a value of a month with later months may be applied to them (a removal is not offered).
   const found = value === null ? undefined : applyOffer(file.value!, month, line.id, value)
   if (found && value !== null) {
-    offer.value = { ...found, line: line.label, value: formatValue(line.kind, value) }
+    offer.value = {
+      ...found,
+      section: fr.period.table.sections[line.section],
+      line: line.label,
+      value: formatValue(line.kind, value),
+    }
   }
   return true
 }
 
 // The apply dialog (Case 8): "Oui" queues every patch of the offer, anything else changes nothing more.
-const offer = ref<(Offer & { line: string; value: string }) | undefined>()
+const offer = ref<(Offer & { section: string; line: string; value: string }) | undefined>()
 function answer(yes: boolean) {
   if (yes && offer.value)
     for (const p of offer.value.patches) void setCell(p.month, p.field, p.value)
@@ -269,6 +274,7 @@ watch([row, col], async () => {
     </Table>
     <ApplyDialog
       :offer="offer"
+      :section="offer?.section ?? ''"
       :line="offer?.line ?? ''"
       :value="offer?.value ?? ''"
       @answer="answer"
