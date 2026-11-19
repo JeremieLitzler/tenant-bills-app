@@ -221,6 +221,20 @@ describe('period table editing', () => {
     expect(setCell).not.toHaveBeenCalled()
   })
 
+  it('keeps the editor open and marked on Enter with a text that is not a value', async () => {
+    const w = mountEditable()
+    await edit(w, OCCUPANTS)
+    await type(w, 'abc')
+    await key(w, 'Enter')
+    expect(setCell).not.toHaveBeenCalled()
+    expect(lineOf(w)).toBe(`line-${LINES[OCCUPANTS].id}`)
+    expect(input(w).attributes('aria-invalid')).toBe('true')
+    await type(w, '3')
+    expect(input(w).attributes('aria-invalid')).toBe('false')
+    // Leave edit mode so the next test's focus does not save this editor's text.
+    await key(w, 'Escape')
+  })
+
   it('saves when another cell is selected', async () => {
     const w = mountEditable()
     await edit(w, OCCUPANTS)

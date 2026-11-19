@@ -48,6 +48,7 @@ const cellProps = (line: (typeof LINES)[number], colIndex: number) => ({
   id: cellId(rowOf(line), colIndex),
   selected: rowOf(line) === row.value && colIndex === col.value,
   editing: editing.value && rowOf(line) === row.value && colIndex === col.value,
+  invalid: invalid.value && rowOf(line) === row.value && colIndex === col.value,
 })
 const MOVES: Record<string, [number, number]> = {
   ArrowUp: [-1, 0],
@@ -69,6 +70,8 @@ function select(rowIndex: number, colIndex: number) {
 const editing = ref(false)
 const draft = ref('')
 const initial = ref('')
+const invalid = ref(false)
+watch([draft, row, col], () => (invalid.value = false))
 
 const isEditable = (rowIndex: number, colIndex: number) =>
   !isReadOnly.value &&
@@ -88,11 +91,14 @@ function startEditing(rowIndex: number, colIndex: number, typed?: string) {
 }
 
 // Queues the edited cell. Emptying removes the value (`null`); a text that is no valid value is dropped.
-function save() {
-  if (draft.value === initial.value) return
+// Returns false for a text that is no valid value: nothing is queued.
+function save(): boolean {
+  if (draft.value === initial.value) return true
   const line = LINES[row.value]
   const value = parseValue(line, draft.value)
-  if (value !== undefined) void setCell(columns.value[col.value].month, line.id, value)
+  if (value === undefined) return false
+  void setCell(columns.value[col.value].month, line.id, value)
+  return true
 }
 
 function stopEditing(saveIt: boolean) {
@@ -115,7 +121,12 @@ function onEditKeydown(event: KeyboardEvent) {
     stopEditing(false)
   } else if (event.key === 'Enter') {
     event.preventDefault()
-    save()
+    // An invalid text keeps the editor open, marked; leaving the cell any other way drops it.
+    // shortcut: a red ring, until the global toast (#120) warns instead.
+    if (!save()) {
+      invalid.value = true
+      return
+    }
     // The next editable cell down in the same month, else back to selection mode.
     let next = row.value + 1
     while (next < LINES.length && !isEditable(next, col.value)) next++

@@ -16,6 +16,7 @@ const props = defineProps<{
   entry: MonthEntry
   figures?: MonthFigures
   editing?: boolean
+  invalid?: boolean
 }>()
 const draft = defineModel<string>('draft', { default: '' })
 const emit = defineEmits<{ blur: [] }>()
@@ -43,7 +44,8 @@ const view = computed(() => {
   <TableCell
     class="text-right tabular-nums"
     :class="{
-      'ring-ring/50 ring-1 ring-inset': selected,
+      'ring-ring/50 ring-1 ring-inset': selected && !invalid,
+      'ring-destructive ring-2 ring-inset': invalid,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
     }"
@@ -56,6 +58,7 @@ const view = computed(() => {
       v-model="draft"
       v-focus
       :aria-label="line.label"
+      :aria-invalid="invalid"
       class="w-full bg-transparent text-right outline-none"
       @blur="emit('blur')"
     />
