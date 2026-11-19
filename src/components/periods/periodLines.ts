@@ -178,3 +178,39 @@ export function formatValue(kind: LineKind, value: string | number): string {
   const shown = kind === 'litres' ? Number(value) / 1000 : Number(value)
   return shown.toLocaleString('fr-FR', FORMATS[kind])
 }
+
+// Whether the landlord can type in the cell: an input the month's tariff mode reads.
+export const isEditableLine = (line: PeriodLine, entry: MonthEntry) =>
+  !line.computed && !isInactiveTariffLine(line, entry)
+
+// The text the editor starts with: as shown, but a water index stays in m³ and a number has no
+// currency or grouping, so what is typed parses back.
+export function editText(line: PeriodLine, value: string | number | undefined): string {
+  if (value === undefined) return ''
+  if (line.kind === 'date' || line.kind === 'int' || line.kind === 'text') {
+    return formatValue(line.kind, value)
+  }
+  return String(line.kind === 'litres' ? Number(value) / 1000 : value).replace('.', ',')
+}
+
+// The value a typed text stands for: `null` for an empty text (removes the value), `undefined` for
+// a text that is not a valid value (nothing is saved). A water index typed in m³ becomes litres.
+export function parseValue(line: PeriodLine, text: string): string | number | null | undefined {
+  const typed = text.trim()
+  if (typed === '') return null
+  if (line.kind === 'text') {
+    const values = fr.period.table.values
+    const known = (Object.keys(values) as (keyof typeof values)[]).find(
+      (key) => values[key].toLowerCase() === typed.toLowerCase(),
+    )
+    return known ?? (line.id === 'waterSoftener.description' ? typed : undefined)
+  }
+  if (line.kind === 'date') {
+    const [, day, month, year] = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(typed) ?? []
+    return year ? `${year}-${month}-${day}` : undefined
+  }
+  if (line.kind === 'int') return /^\d+$/.test(typed) ? Number(typed) : undefined
+  const number = Number(typed.replace(',', '.'))
+  if (!Number.isFinite(number)) return undefined
+  return line.kind === 'litres' ? Math.round(number * 1000) : number
+}

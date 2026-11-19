@@ -8,7 +8,7 @@ import { FIELD_CATALOGUE, type SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 import { validPeriodJson } from '../../../tests/helpers/periodFile'
-import { LINES, SECTIONS } from './periodLines'
+import { LINES, parseValue, SECTIONS } from './periodLines'
 
 // Keys of a shown section that are deliberately not a table line, each with its reason.
 const NOT_A_LINE: Record<string, string> = {
@@ -53,5 +53,22 @@ describe('period table lines', () => {
     expect(new Set(lineIds).size).toBe(lineIds.length)
     expect(SECTIONS.filter((section) => !section.label)).toEqual([])
     expect(LINES.filter((line) => !sections.includes(line.section))).toEqual([])
+  })
+})
+
+describe('parseValue', () => {
+  const line = (id: string) => LINES.find((l) => l.id === id)!
+  it.each([
+    ['common.startDate', '01/09/2026', '2026-09-01'],
+    ['common.startDate', '1/9', undefined],
+    ['electricity.tariffMode', 'hc/hp', 'hchp'],
+    ['electricity.tariffMode', 'nope', undefined],
+    ['waterSoftener.description', 'Sel', 'Sel'],
+    ['common.tenantBillAdvance', '70,5', 70.5],
+    ['waterConsumption.mainMeter', '1,2345', 1235],
+    ['common.landlordOccupants', '2,5', undefined],
+    ['common.landlordOccupants', '  ', null],
+  ])('%s typed "%s" is %j', (id, text, expected) => {
+    expect(parseValue(line(id), text)).toBe(expected)
   })
 })
