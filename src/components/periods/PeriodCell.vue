@@ -9,7 +9,12 @@ import { fr } from '@/i18n/fr'
 
 import { formatValue, isInactiveTariffLine, type PeriodLine } from './periodLines'
 
-const props = defineProps<{ line: PeriodLine; entry: MonthEntry; figures?: MonthFigures }>()
+const props = defineProps<{
+  line: PeriodLine
+  selected?: boolean
+  entry: MonthEntry
+  figures?: MonthFigures
+}>()
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
 const view = computed(() => {
@@ -33,9 +38,12 @@ const view = computed(() => {
   <TableCell
     class="text-right tabular-nums"
     :class="{
+      'ring-ring ring-2 ring-inset': selected,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
     }"
+    role="gridcell"
+    :aria-selected="selected"
     :data-provenance="view.provenance"
   >
     {{ view.text }}
