@@ -114,6 +114,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 ```
 
 - Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName` or `months`) is an `error`. A `ready` period is never fetched again; a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period]/index.vue`, a placeholder until F5 (#32).
+- `createPeriod` needs the network (decided in #54): it sends the creation `PUT` at once and nothing is queued, so offline it rejects, and an existing period is refused (GitHub's 422 becomes `PeriodExistsError`, the remote file untouched). Creation queued as a whole-file create is left to a grilling under F9 (#36).
 - Every period loaded so far is kept, keyed by its identifier, for the browser session. Periods are loaded lazily: "Estimer les relevés" and `createPeriod` load the previous period themselves.
 - The computed figures are computed once per period, in a `computed()` over `src/domain/`. The table, the form and the settlement view only read them.
 - Views never write `file`. Every edit, estimate or close goes through the queue as a patch.
