@@ -56,7 +56,7 @@ describe('period table selection', () => {
   it('describes the table with the keyboard hint', () => {
     const w = mountTable()
     const hint = w.get(`#${grid(w).attributes('aria-describedby')}`)
-    expect(hint.text()).toBe('Naviguez dans le tableau avec les touches fléchées.')
+    expect(hint.text()).toBe('💡 Naviguez dans le tableau avec les touches fléchées.')
   })
 
   it('moves one cell per arrow and stops at the top-left edges', async () => {
