@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from 'reka-ui'
 
+import { Button } from '@/components/ui/button'
 import type { Offer } from '@/domain/applyOffer'
 import { fr } from '@/i18n/fr'
 
@@ -35,16 +36,12 @@ const message = () =>
         <AlertDialogTitle class="font-semibold">{{ section }}</AlertDialogTitle>
         <AlertDialogDescription>{{ message() }}</AlertDialogDescription>
         <div class="flex justify-end gap-2">
-          <AlertDialogCancel
-            class="rounded-md border px-3 py-1.5 focus-visible:outline-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
-            @click="emit('answer', false)"
-            >{{ fr.period.applyDialog.no }}</AlertDialogCancel
-          >
-          <AlertDialogAction
-            class="bg-primary text-primary-foreground rounded-md px-3 py-1.5 focus-visible:outline-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
-            @click="emit('answer', true)"
-            >{{ fr.period.applyDialog.yes }}</AlertDialogAction
-          >
+          <AlertDialogCancel as-child @click="emit('answer', false)">
+            <Button>{{ fr.period.applyDialog.no }}</Button>
+          </AlertDialogCancel>
+          <AlertDialogAction as-child @click="emit('answer', true)">
+            <Button accent>{{ fr.period.applyDialog.yes }}</Button>
+          </AlertDialogAction>
         </div>
       </AlertDialogContent>
     </AlertDialogPortal>

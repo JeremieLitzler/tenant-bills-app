@@ -4,6 +4,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
+import { Button } from '@/components/ui/button'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
@@ -67,14 +68,17 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
     class="mx-auto flex w-full max-w-lg flex-col gap-4 md:rounded-lg md:border md:p-6 md:shadow-sm"
     @submit.prevent
   >
-    <RouterLink
+    <!-- Stays in view while the form scrolls. -->
+    <Button
+      :as="RouterLink"
+      accent
       :to="`/periods/${periodId}`"
-      class="inline-flex items-center gap-2 self-start rounded border px-3 py-1"
+      class="sticky top-2 z-10 inline-flex items-center gap-2 self-start"
       data-testid="to-table"
     >
       <span aria-hidden="true">&lt;</span>
       {{ fr.period.month.toTable }}
-    </RouterLink>
+    </Button>
     <h2 class="text-xl font-semibold">{{ fr.period.month.title }}</h2>
     <label class="flex flex-col gap-1">
       {{ fr.period.month.picker }}
