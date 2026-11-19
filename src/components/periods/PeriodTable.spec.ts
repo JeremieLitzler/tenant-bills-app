@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { computePeriodFigures } from '@/domain/periodFigures'
 
@@ -129,8 +129,11 @@ describe('period table selection', () => {
 })
 
 describe('period table editing', () => {
+  enableAutoUnmount(afterEach)
   const lineIndex = (id: string) => LINES.findIndex((line) => line.id === id)
   const OCCUPANTS = lineIndex('common.landlordOccupants')
+  // A value the apply dialog does not offer to apply, so the editing tests keep the focus.
+  const ADVANCE = lineIndex('common.tenantBillAdvance')
   const MAIN_METER = lineIndex('waterConsumption.mainMeter')
   const input = (w: W) => w.get('input')
   const type = (w: W, text: string) => input(w).setValue(text)
@@ -151,6 +154,10 @@ describe('period table editing', () => {
     await key(w, 'Enter')
   }
   beforeEach(() => setCell.mockClear())
+  // A test may leave the modal apply dialog open: it would lock the next one.
+  afterEach(() => {
+    document.body.removeAttribute('style')
+  })
 
   it('starts editing on Enter, with the value as text', async () => {
     const w = mountEditable()
@@ -200,11 +207,11 @@ describe('period table editing', () => {
 
   it('gives the focus back to the table on blur, on the edited cell', async () => {
     const w = mountEditable()
-    await edit(w, OCCUPANTS)
+    await edit(w, ADVANCE)
     await type(w, '4')
     await input(w).trigger('blur')
     expect(document.activeElement).toBe(grid(w).element)
-    expect(lineOf(w)).toBe(`line-${LINES[OCCUPANTS].id}`)
+    expect(lineOf(w)).toBe(`line-${LINES[ADVANCE].id}`)
   })
 
   it('lets the focus go where it went when the blur moves it to another element', async () => {
@@ -264,11 +271,11 @@ describe('period table editing', () => {
 
   it('saves on Enter and moves to the next editable cell down, staying in edit mode', async () => {
     const w = mountEditable()
-    await edit(w, OCCUPANTS)
+    await edit(w, ADVANCE)
     await type(w, '4')
     await key(w, 'Enter')
-    expect(setCell).toHaveBeenCalledExactlyOnceWith('2026-09', 'common.landlordOccupants', 4)
-    expect(lineOf(w)).toBe(`line-${LINES[OCCUPANTS + 1].id}`)
+    expect(setCell).toHaveBeenCalledExactlyOnceWith('2026-09', 'common.tenantBillAdvance', 4)
+    expect(lineOf(w)).toBe(`line-${LINES[ADVANCE + 1].id}`)
     expect(inEditMode(w)).toBe(true)
   })
 
@@ -309,5 +316,57 @@ describe('period table editing', () => {
     await type(w, '12,5')
     await input(w).trigger('blur')
     expect(setCell).toHaveBeenCalledExactlyOnceWith('2026-09', 'waterConsumption.mainMeter', 12500)
+  })
+
+  describe('apply dialog (Case 8)', () => {
+    const dialog = () => document.body.querySelector('[role=alertdialog]')
+    const button = (label: string) =>
+      [...document.body.querySelectorAll('[role=alertdialog] button')].find(
+        (b) => b.textContent === label,
+      ) as HTMLElement
+    async function editValue(w: W, lineIdx: number, text: string) {
+      await edit(w, lineIdx)
+      await type(w, text)
+      await input(w).trigger('blur')
+    }
+
+    it('"Oui" applies an inheritable value to every later month', async () => {
+      const w = mountEditable()
+      await editValue(w, OCCUPANTS, '4')
+      expect(dialog()?.textContent).toContain('tous les mois suivants')
+      button('Oui').click()
+      await flushPromises()
+      expect(setCell).toHaveBeenCalledTimes(12)
+      expect(setCell).toHaveBeenLastCalledWith('2027-08', 'common.landlordOccupants', 4)
+      expect(dialog()).toBeNull()
+    })
+
+    it('"Non" changes only the edited month', async () => {
+      const w = mountEditable()
+      await editValue(w, OCCUPANTS, '4')
+      button('Non').click()
+      await flushPromises()
+      expect(setCell).toHaveBeenCalledExactlyOnceWith('2026-09', 'common.landlordOccupants', 4)
+      expect(dialog()).toBeNull()
+    })
+
+    it('a current index sets only the next month previous index', async () => {
+      const w = mountEditable()
+      await editValue(w, MAIN_METER, '12')
+      button('Oui').click()
+      await flushPromises()
+      expect(setCell).toHaveBeenCalledTimes(2)
+      expect(setCell).toHaveBeenLastCalledWith(
+        '2026-10',
+        'waterConsumption.mainMeterPrevious',
+        12000,
+      )
+    })
+
+    it('offers nothing for another value', async () => {
+      const w = mountEditable()
+      await editValue(w, lineIndex('common.tenantBillAdvance'), '70')
+      expect(dialog()).toBeNull()
+    })
   })
 })

@@ -4,11 +4,13 @@
 import { computed, nextTick, ref, watch } from 'vue'
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { applyOffer, type Offer } from '@/domain/applyOffer'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
+import ApplyDialog from './ApplyDialog.vue'
 import PeriodCell from './PeriodCell.vue'
-import { editText, isEditableLine, LINES, parseValue, SECTIONS } from './periodLines'
+import { editText, formatValue, isEditableLine, LINES, parseValue, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
 const { file, figures, isReadOnly, setCell } = usePeriod(() => props.periodId)
@@ -97,8 +99,22 @@ function save(): boolean {
   const line = LINES[row.value]
   const value = parseValue(line, draft.value)
   if (value === undefined) return false
-  void setCell(columns.value[col.value].month, line.id, value)
+  const month = columns.value[col.value].month
+  void setCell(month, line.id, value)
+  // Case 8: a value of a month with later months may be applied to them (a removal is not offered).
+  const found = value === null ? undefined : applyOffer(file.value!, month, line.id, value)
+  if (found && value !== null) {
+    offer.value = { ...found, line: line.label, value: formatValue(line.kind, value) }
+  }
   return true
+}
+
+// The apply dialog (Case 8): "Oui" queues every patch of the offer, anything else changes nothing more.
+const offer = ref<(Offer & { line: string; value: string }) | undefined>()
+function answer(yes: boolean) {
+  if (yes && offer.value)
+    for (const p of offer.value.patches) void setCell(p.month, p.field, p.value)
+  offer.value = undefined
 }
 
 function stopEditing(saveIt: boolean) {
@@ -251,5 +267,11 @@ watch([row, col], async () => {
         </template>
       </TableBody>
     </Table>
+    <ApplyDialog
+      :offer="offer"
+      :line="offer?.line ?? ''"
+      :value="offer?.value ?? ''"
+      @answer="answer"
+    />
   </div>
 </template>
