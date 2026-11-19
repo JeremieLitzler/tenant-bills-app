@@ -7,7 +7,7 @@ import PeriodTable from '@/components/periods/PeriodTable.vue'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
-const route = useRoute('/periods/[period]')
+const route = useRoute('/periods/[period]/')
 const period = usePeriod(() => route.params.period)
 
 // Demo of #48 until F5 (#32) builds the table: `setCell('2026-09', 'internet.billedAmount', 21)`
