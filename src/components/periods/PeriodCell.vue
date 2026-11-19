@@ -43,25 +43,28 @@ const view = computed(() => {
 const warning = computed(() =>
   view.value.provenance === 'not-applicable' ? undefined : props.figures?.warnings[props.line.id],
 )
+
+// ⚠️ comes from CSS so the cell text stays the stored value.
+const warningClass =
+  "bg-destructive/10 text-destructive ring-destructive ring-2 ring-inset before:mr-1 before:content-['⚠️']"
 </script>
 
 <template>
   <TableCell
-    class="text-right tabular-nums"
+    class="relative text-right tabular-nums"
     :class="{
-      'ring-ring/50 ring-1 ring-inset': selected && !invalid && !editing,
+      'ring-ring/50 ring-1 ring-inset': selected && !invalid && !editing && !warning,
       // Editing: the strong outline of the apply dialog buttons, inset so neighbours stay clear.
       'outline-foreground outline-2 -outline-offset-2': editing && !invalid,
       'ring-destructive ring-2 ring-inset': invalid,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
-      'bg-destructive/10 text-destructive': warning,
+      [warningClass]: warning && !editing,
     }"
     role="gridcell"
     :aria-selected="selected"
     :data-provenance="view.provenance"
     :data-warning="warning"
-    :title="warning && fr.period.table.warnings[warning]"
   >
     <input
       v-if="editing"
@@ -73,5 +76,13 @@ const warning = computed(() =>
       @blur="emit('blur', $event)"
     />
     <template v-else>{{ view.text }}</template>
+    <!-- Under the selected cell; above the sticky label column (z-10), below the sticky header (z-20). -->
+    <div
+      v-if="warning && selected && !editing"
+      role="status"
+      class="bg-background text-foreground absolute top-full right-0 z-[15] mt-1 w-56 rounded-md border p-2 text-left text-xs font-normal shadow-md"
+    >
+      {{ fr.period.table.warnings[warning] }}
+    </div>
   </TableCell>
 </template>

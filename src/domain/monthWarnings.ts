@@ -13,7 +13,10 @@ const METERS = {
 export function monthWarnings(entry: MonthEntry): MonthWarnings {
   const warnings: MonthWarnings = {}
   for (const [section, keys] of Object.entries(METERS)) {
-    const inputs = (entry[section as keyof typeof METERS] ?? {}) as Record<string, number | undefined>
+    const inputs = (entry[section as keyof typeof METERS] ?? {}) as Record<
+      string,
+      number | undefined
+    >
     for (const key of keys) {
       const current = inputs[key]
       const previous = inputs[`${key}Previous`]

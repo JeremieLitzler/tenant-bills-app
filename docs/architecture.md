@@ -228,7 +228,7 @@ The period table (F5) uses shadcn-vue's plain `Table` components (`src/component
 
 - The rows come from a list of line definitions: section, key, French label, input or computed, and tariff mode for the electricity lines. Each section starts with a header row.
 - One cell component renders every month cell. It reads the period's file and computed figures from `usePeriod(id)` and writes only through `setCell` (see "State").
-- A cell shows its value as stored, or computed (read-only). Implausible values carry a warning and are never blocked.
+- A cell shows its value as stored, or computed (read-only). Implausible values carry a warning (red ring, ⚠️, and a bubble with the explanation under the cell while it is selected) and are never blocked.
 - A previous index is an ordinary editable cell; editing a current index offers to set the next month's previous index (ADR 0007). Every cell of a closed period is read-only.
 - Every electricity row is always shown. In a month in `base`, the HC and HP cells are empty, styled as not applicable and not editable, and the reverse in `hchp`. The period file keeps the other mode's keys, but no formula of that month reads them.
 
