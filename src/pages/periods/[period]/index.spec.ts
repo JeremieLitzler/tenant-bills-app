@@ -187,17 +187,30 @@ describe('period page', () => {
 
     it('highlights a decreasing index and an end date before the start, still as stored', async () => {
       const json = tableJson()
-      Object.assign(json.months[0].waterConsumption, { mainMeterPrevious: 600000, mainMeter: 533117 })
+      Object.assign(json.months[0].waterConsumption, {
+        mainMeterPrevious: 600000,
+        mainMeter: 533117,
+      })
       Object.assign(json.months[0].common, { startDate: '2026-09-12', endDate: '2026-09-11' })
-      Object.assign(json.months[1].waterConsumption, { mainMeterPrevious: 500000, mainMeter: 500000 })
+      Object.assign(json.months[1].waterConsumption, {
+        mainMeterPrevious: 500000,
+        mainMeter: 500000,
+      })
       const { cells } = await openTable(json)
 
       const decreasing = cells('waterConsumption.mainMeter')[0]
       expect(decreasing.attributes('data-warning')).toBe('indexBelowPrevious')
-      expect(decreasing.attributes('title')).toBe("L'index est inférieur à l'index précédent")
       expect(decreasing.text()).toBe('533,117')
-      expect(cells('common.endDate')[0].attributes('data-warning')).toBe('endBeforeStart')
+      // The explanation shows under the cell once it is selected, and only there.
+      expect(decreasing.find('[role="status"]').exists()).toBe(false)
+      await decreasing.trigger('click')
+      expect(decreasing.get('[role="status"]').text()).toBe(
+        "L'index est inférieur à l'index précédent",
+      )
       expect(cells('common.endDate')[0].text()).toBe('11/09/2026')
+      await cells('common.endDate')[0].trigger('click')
+      expect(decreasing.find('[role="status"]').exists()).toBe(false)
+      expect(cells('common.endDate')[0].attributes('data-warning')).toBe('endBeforeStart')
       expect(cells('waterConsumption.mainMeter')[1].attributes('data-warning')).toBeUndefined()
     })
 
