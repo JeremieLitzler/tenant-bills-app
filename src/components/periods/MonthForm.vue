@@ -63,6 +63,14 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
 <template>
   <p v-if="file && !entry" data-testid="month-not-found">{{ fr.period.month.notFound }}</p>
   <form v-else-if="file && entry && monthFigures" class="flex flex-col gap-4" @submit.prevent>
+    <RouterLink
+      :to="`/periods/${periodId}`"
+      class="inline-flex items-center gap-2 self-start rounded border px-3 py-1"
+      data-testid="to-table"
+    >
+      <span aria-hidden="true">&lt;</span>
+      {{ fr.period.month.toTable }}
+    </RouterLink>
     <h2 class="text-xl font-semibold">{{ fr.period.month.title }}</h2>
     <label class="flex flex-col gap-1">
       {{ fr.period.month.picker }}
@@ -77,9 +85,6 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
         <option v-for="m in file.months" :key="m.month" :value="m.month">{{ m.month }}</option>
       </select>
     </label>
-    <RouterLink :to="`/periods/${periodId}`" data-testid="to-table">{{
-      fr.period.month.toTable
-    }}</RouterLink>
     <fieldset v-for="section in sections" :key="section.id" class="flex flex-col gap-2">
       <legend class="font-semibold">{{ section.label }}</legend>
       <template v-for="line in section.lines" :key="line.id">
