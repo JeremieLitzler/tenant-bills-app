@@ -5,9 +5,11 @@ import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import { Button } from '@/components/ui/button'
+import { applyOffer, type Offer } from '@/domain/applyOffer'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
+import ApplyDialog from './ApplyDialog.vue'
 import {
   fieldText,
   formatValue,
@@ -58,6 +60,24 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
     return
   }
   void setCell(props.month, line.id, value)
+  // Case 8: a value of a month with later months may be applied to them (a removal is not offered).
+  const found = value === null ? undefined : applyOffer(file.value!, props.month, line.id, value)
+  if (found && value !== null) {
+    offer.value = {
+      ...found,
+      section: fr.period.table.sections[line.section],
+      line: line.label,
+      value: formatValue(line.kind, value),
+    }
+  }
+}
+
+// The apply dialog (Case 8): "Oui" queues every patch of the offer, anything else changes nothing more.
+const offer = ref<(Offer & { section: string; line: string; value: string }) | undefined>()
+function answer(yes: boolean) {
+  if (yes && offer.value)
+    for (const p of offer.value.patches) void setCell(p.month, p.field, p.value)
+  offer.value = undefined
 }
 </script>
 
@@ -133,5 +153,12 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
         </template>
       </template>
     </fieldset>
+    <ApplyDialog
+      :offer="offer"
+      :section="offer?.section ?? ''"
+      :line="offer?.line ?? ''"
+      :value="offer?.value ?? ''"
+      @answer="answer"
+    />
   </form>
 </template>
