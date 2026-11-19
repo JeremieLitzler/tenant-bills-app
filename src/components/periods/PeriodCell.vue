@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// One month cell of the period table. It only reads: an edit never goes through the cell's props.
+// One month cell of the period table. It shows the typed text while it is edited; saving is the
+// table's job (the patch queue, ADR 0010).
 import { computed } from 'vue'
 
 import { TableCell } from '@/components/ui/table'
@@ -14,7 +15,11 @@ const props = defineProps<{
   selected?: boolean
   entry: MonthEntry
   figures?: MonthFigures
+  editing?: boolean
 }>()
+const draft = defineModel<string>('draft', { default: '' })
+const emit = defineEmits<{ blur: [] }>()
+const vFocus = { mounted: (el: HTMLElement) => el.focus() }
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
 const view = computed(() => {
@@ -46,6 +51,14 @@ const view = computed(() => {
     :aria-selected="selected"
     :data-provenance="view.provenance"
   >
-    {{ view.text }}
+    <input
+      v-if="editing"
+      v-model="draft"
+      v-focus
+      :aria-label="line.label"
+      class="w-full bg-transparent text-right outline-none"
+      @blur="emit('blur')"
+    />
+    <template v-else>{{ view.text }}</template>
   </TableCell>
 </template>
