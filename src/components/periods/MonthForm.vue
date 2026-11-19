@@ -8,12 +8,15 @@ import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
 import {
-  editText,
+  fieldText,
   formatValue,
+  inputMode,
+  isDecreasingIndex,
   isEditableLine,
   isInactiveTariffLine,
   LINES,
-  parseValue,
+  parseField,
+  type PeriodLine,
   SECTIONS,
 } from './periodLines'
 
@@ -39,30 +42,16 @@ const sections = computed(() =>
   })),
 )
 
-const valueOf = (line: (typeof LINES)[number]) => line.read(entry.value!, monthFigures.value!)
-
-// An index below the previous one is flagged, never refused.
-function isDecreasing(line: (typeof LINES)[number]): boolean {
-  const previous = LINES.find((other) => other.id === `${line.id}Previous`)
-  const [current, before] = [valueOf(line), previous && valueOf(previous)]
-  return typeof current === 'number' && typeof before === 'number' && current < before
-}
-
-const inputMode = (kind: string) =>
-  kind === 'int' ? 'numeric' : kind === 'text' || kind === 'date' ? undefined : 'decimal'
+const valueOf = (line: PeriodLine) => line.read(entry.value!, monthFigures.value!)
 
 const invalid = ref(new Set<string>())
 
 // Unchanged saves nothing, emptying removes the value, a text that is no value is marked.
-function onBlur(line: (typeof LINES)[number], event: FocusEvent) {
+function onBlur(line: PeriodLine, event: FocusEvent) {
   const field = event.target as HTMLInputElement
-  const stored = valueOf(line)
-  const unchanged =
-    field.value === (line.kind === 'date' ? String(stored ?? '') : editText(line, stored))
   invalid.value.delete(line.id)
-  if (unchanged) return
-  // A native date input already gives the stored "YYYY-MM-DD".
-  const value = line.kind === 'date' ? field.value || null : parseValue(line, field.value)
+  if (field.value === fieldText(line, valueOf(line))) return
+  const value = parseField(line, field.value)
   if (value === undefined) {
     invalid.value.add(line.id)
     return
@@ -107,12 +96,11 @@ function onBlur(line: (typeof LINES)[number], event: FocusEvent) {
             {{ line.label }}
             <input
               class="rounded border px-2 py-1"
+              :class="{ 'ring-destructive ring-2': invalid.has(line.id) }"
               :data-testid="`field-${line.id}`"
               :type="line.kind === 'date' ? 'date' : 'text'"
               :inputmode="inputMode(line.kind)"
-              :value="
-                line.kind === 'date' ? String(valueOf(line) ?? '') : editText(line, valueOf(line))
-              "
+              :value="fieldText(line, valueOf(line))"
               :disabled="!canEdit || !isEditableLine(line, entry)"
               :aria-invalid="invalid.has(line.id)"
               @blur="onBlur(line, $event)"
@@ -122,7 +110,7 @@ function onBlur(line: (typeof LINES)[number], event: FocusEvent) {
             {{ fr.period.month.invalid }}
           </p>
           <p
-            v-else-if="isDecreasing(line)"
+            v-else-if="isDecreasingIndex(line, entry, monthFigures)"
             role="status"
             class="text-sm text-amber-600"
             :data-testid="`warning-${line.id}`"

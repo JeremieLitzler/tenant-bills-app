@@ -214,3 +214,29 @@ export function parseValue(line: PeriodLine, text: string): string | number | nu
   if (!Number.isFinite(number)) return undefined
   return line.kind === 'litres' ? Math.round(number * 1000) : number
 }
+
+// The text a form field starts with. A date keeps the stored "YYYY-MM-DD", which a native date
+// input shows in the user's own format.
+export function fieldText(line: PeriodLine, value: string | number | undefined): string {
+  return line.kind === 'date' ? String(value ?? '') : editText(line, value)
+}
+
+// The value a field text stands for, as `parseValue` gives it (`null` removes, `undefined` is no
+// valid value).
+export function parseField(line: PeriodLine, text: string): string | number | null | undefined {
+  return line.kind === 'date' ? text || null : parseValue(line, text)
+}
+
+// The phone keyboard of a field: digits for a count, a decimal pad for an amount or an index.
+export function inputMode(kind: LineKind): 'numeric' | 'decimal' | undefined {
+  if (kind === 'int') return 'numeric'
+  return kind === 'text' || kind === 'date' ? undefined : 'decimal'
+}
+
+// An index below the previous index of its meter. A plausibility warning (#63 will replace this
+// with the domain's): the value is flagged, never refused.
+export function isDecreasingIndex(line: PeriodLine, entry: MonthEntry, figures: MonthFigures) {
+  const previous = LINES.find((other) => other.id === `${line.id}Previous`)
+  const [current, before] = [line.read(entry, figures), previous?.read(entry, figures)]
+  return typeof current === 'number' && typeof before === 'number' && current < before
+}
