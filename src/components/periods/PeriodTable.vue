@@ -2,6 +2,7 @@
 // The period table (F5): one row per line, one column per month present in the file. It only reads
 // the period; every edit goes through `setCell` and the patch queue (ADR 0010).
 import { computed, nextTick, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { applyOffer, type Offer } from '@/domain/applyOffer'
@@ -234,7 +235,12 @@ watch([row, col], async () => {
             class="bg-background sticky top-0 z-20 snap-start"
             data-testid="period-month"
           >
-            {{ column.label }}
+            <RouterLink
+              :to="`/periods/${periodId}/months/${column.month}`"
+              class="underline"
+              :aria-label="`${fr.period.month.title} ${column.label}`"
+              >{{ column.label }}</RouterLink
+            >
           </TableHead>
         </TableRow>
       </TableHeader>

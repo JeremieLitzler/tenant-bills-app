@@ -1,11 +1,18 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { computePeriodFigures } from '@/domain/periodFigures'
 
 import { validPeriodJson } from '../../../tests/helpers/periodFile'
 import PeriodTable from './PeriodTable.vue'
 import { LINES } from './periodLines'
+
+// Month headers link to the form; the table needs a router to resolve them.
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [{ path: '/:p(.*)*', component: { template: '<i />' } }],
+})
 
 // The periods by id, so a test can give the second period fewer months.
 const periods = vi.hoisted(
@@ -41,7 +48,11 @@ function addPeriod(id: string, monthCount = 12) {
 
 function mountTable(periodId = '2026-2027') {
   addPeriod(periodId)
-  return mount(PeriodTable, { props: { periodId }, attachTo: document.body })
+  return mount(PeriodTable, {
+    props: { periodId },
+    global: { plugins: [router] },
+    attachTo: document.body,
+  })
 }
 
 type W = ReturnType<typeof mountTable>
@@ -53,6 +64,15 @@ const lineOf = (w: W) => (selectedCell(w).element.closest('tr') as HTMLElement).
 // The cell of the line at `lineIndex` in `LINES`, in month column `colIndex`.
 const cellAt = (w: W, lineIndex: number, colIndex: number) =>
   w.get(`[data-testid="line-${LINES[lineIndex].id}"]`).findAll('td')[colIndex]
+
+describe('period table month headers', () => {
+  it('link each month to its Saisie du mois form', () => {
+    const w = mountTable()
+    const links = w.findAll('[data-testid="period-month"] a')
+    expect(links).toHaveLength(12)
+    expect(links[0].attributes('href')).toBe('/periods/2026-2027/months/2026-09')
+  })
+})
 
 describe('period table selection', () => {
   it('is a single Tab stop whose active descendant is the first cell', () => {
@@ -146,7 +166,11 @@ describe('period table editing', () => {
     file.months[0].electricity.tariffMode = 'base'
     periods['2026-2027'].figures = computePeriodFigures(file as never)
     periods['2026-2027'].readOnly = readOnly
-    return mount(PeriodTable, { props: { periodId: '2026-2027' }, attachTo: document.body })
+    return mount(PeriodTable, {
+      props: { periodId: '2026-2027' },
+      global: { plugins: [router] },
+      attachTo: document.body,
+    })
   }
   // Selects the first month's cell of the line, then opens its editor.
   async function edit(w: W, lineIdx: number) {
