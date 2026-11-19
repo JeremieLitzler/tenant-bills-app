@@ -15,7 +15,7 @@ import {
 import type { Offer } from '@/domain/applyOffer'
 import { fr } from '@/i18n/fr'
 
-const props = defineProps<{ offer?: Offer; line: string; value: string }>()
+const props = defineProps<{ offer?: Offer; section: string; line: string; value: string }>()
 const emit = defineEmits<{ answer: [yes: boolean] }>()
 
 const message = () =>
@@ -32,14 +32,16 @@ const message = () =>
         @escape-key-down="emit('answer', false)"
         class="bg-background fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg border p-6 shadow-lg"
       >
-        <AlertDialogTitle class="sr-only">{{ line }}</AlertDialogTitle>
+        <AlertDialogTitle class="font-semibold">{{ section }}</AlertDialogTitle>
         <AlertDialogDescription>{{ message() }}</AlertDialogDescription>
         <div class="flex justify-end gap-2">
-          <AlertDialogCancel class="rounded-md border px-3 py-1.5" @click="emit('answer', false)">{{
-            fr.period.applyDialog.no
-          }}</AlertDialogCancel>
+          <AlertDialogCancel
+            class="rounded-md border px-3 py-1.5 focus-visible:outline-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+            @click="emit('answer', false)"
+            >{{ fr.period.applyDialog.no }}</AlertDialogCancel
+          >
           <AlertDialogAction
-            class="bg-primary text-primary-foreground rounded-md px-3 py-1.5"
+            class="bg-primary text-primary-foreground rounded-md px-3 py-1.5 focus-visible:outline-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
             @click="emit('answer', true)"
             >{{ fr.period.applyDialog.yes }}</AlertDialogAction
           >

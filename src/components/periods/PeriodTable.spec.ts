@@ -333,6 +333,7 @@ describe('period table editing', () => {
     it('"Oui" applies an inheritable value to every later month', async () => {
       const w = mountEditable()
       await editValue(w, OCCUPANTS, '4')
+      expect(dialog()?.textContent).toContain('Commun')
       expect(dialog()?.textContent).toContain('tous les mois suivants')
       button('Oui').click()
       await flushPromises()
