@@ -38,7 +38,7 @@ const view = computed(() => {
   <TableCell
     class="text-right tabular-nums"
     :class="{
-      'ring-ring ring-2 ring-inset': selected,
+      'ring-ring/50 ring-1 ring-inset': selected,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
     }"
