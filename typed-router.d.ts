@@ -38,11 +38,18 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/periods/[period]': RouteRecordInfo<
-      '/periods/[period]',
+    '/periods/[period]/': RouteRecordInfo<
+      '/periods/[period]/',
       '/periods/:period',
       { period: ParamValue<true> },
       { period: ParamValue<false> },
+      | never
+    >,
+    '/periods/[period]/[month]': RouteRecordInfo<
+      '/periods/[period]/[month]',
+      '/periods/:period/:month',
+      { month: ParamValue<true>, period: ParamValue<true> },
+      { month: ParamValue<false>, period: ParamValue<false> },
       | never
     >,
     '/sign-in': RouteRecordInfo<
@@ -73,13 +80,21 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/pages/periods/[period].vue': {
+    'src/pages/periods/[period]/index.vue': {
       routes:
-        | '/periods/[period]'
+        | '/periods/[period]/'
       views:
         | never
       pathParamNames:
-        | 'period'
+        | never
+    }
+    'src/pages/periods/[period]/[month].vue': {
+      routes:
+        | '/periods/[period]/[month]'
+      views:
+        | never
+      pathParamNames:
+        | 'month'
     }
     'src/pages/sign-in.vue': {
       routes:

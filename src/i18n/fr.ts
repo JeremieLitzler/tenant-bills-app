@@ -37,6 +37,14 @@ export const fr = {
       updated: "La période a été mise à jour avec les modifications de l'autre appareil.",
       failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
     },
+    month: {
+      title: 'Saisie du mois',
+      picker: 'Mois',
+      toTable: 'Voir le tableau de la période',
+      notFound: 'Ce mois ne fait pas partie de la période.',
+      decreasingIndex: "L'index est inférieur à l'index précédent.",
+      invalid: 'Valeur invalide, elle ne sera pas enregistrée.',
+    },
     applyDialog: {
       inherited: 'Appliquer « {line} » = {value} à tous les mois suivants ?',
       index: "Définir l'index précédent du mois suivant à {value} ?",
