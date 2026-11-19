@@ -198,6 +198,24 @@ describe('period table editing', () => {
     expect(inEditMode(w)).toBe(false)
   })
 
+  it('gives the focus back to the table on blur, on the edited cell', async () => {
+    const w = mountEditable()
+    await edit(w, OCCUPANTS)
+    await type(w, '4')
+    await input(w).trigger('blur')
+    expect(document.activeElement).toBe(grid(w).element)
+    expect(lineOf(w)).toBe(`line-${LINES[OCCUPANTS].id}`)
+  })
+
+  it('lets the focus go where it went when the blur moves it to another element', async () => {
+    const w = mountEditable()
+    const other = document.body.appendChild(document.createElement('button'))
+    await edit(w, OCCUPANTS)
+    await input(w).trigger('blur', { relatedTarget: other })
+    expect(document.activeElement).not.toBe(grid(w).element)
+    other.remove()
+  })
+
   it('queues nothing for an unchanged text', async () => {
     const w = mountEditable()
     await edit(w, OCCUPANTS)

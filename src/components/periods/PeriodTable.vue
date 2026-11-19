@@ -159,8 +159,13 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 // Leaving the cell any other way than the keys saves it.
-function onBlur(rowIndex: number, colIndex: number) {
-  if (editing.value && rowIndex === row.value && colIndex === col.value) stopEditing(true)
+function onBlur(rowIndex: number, colIndex: number, event: FocusEvent) {
+  if (!editing.value || rowIndex !== row.value || colIndex !== col.value) return
+  const table = (event.target as HTMLElement).closest<HTMLElement>('[role=grid]')
+  stopEditing(true)
+  // The input is gone: unless the focus went to another element (Tab, a click on a field), the
+  // keyboard stays on the table, on the edited cell.
+  if (!event.relatedTarget) table?.focus()
 }
 
 function onDblclick(rowIndex: number, colIndex: number) {
@@ -240,7 +245,7 @@ watch([row, col], async () => {
               v-model:draft="draft"
               @click="select(rowOf(line), colIndex)"
               @dblclick="onDblclick(rowOf(line), colIndex)"
-              @blur="onBlur(rowOf(line), colIndex)"
+              @blur="onBlur(rowOf(line), colIndex, $event)"
             />
           </TableRow>
         </template>
