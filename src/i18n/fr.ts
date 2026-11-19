@@ -40,7 +40,7 @@ export const fr = {
     table: {
       label: 'Ligne',
       empty: '—',
-      keyboardHint: 'Naviguez dans le tableau avec les touches fléchées.',
+      keyboardHint: '💡 Naviguez dans le tableau avec les touches fléchées.',
       sections: {
         common: 'Commun',
         waterConsumption: "Consommation d'eau",
