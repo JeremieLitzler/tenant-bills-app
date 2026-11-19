@@ -1,5 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { validPeriodJson } from '../../../tests/helpers/periodFile'
@@ -47,6 +47,10 @@ async function openForm(
   }
   return { wrapper, router, field, fill }
 }
+
+enableAutoUnmount(afterEach)
+// A test may leave the modal apply dialog open: it would lock the next one.
+afterEach(() => document.body.removeAttribute('style'))
 
 beforeEach(() => {
   vi.resetModules()
@@ -138,5 +142,35 @@ describe('Saisie du mois', () => {
     await fill('electricity.tariffMode', 'Base')
     expect([has('electricity.kwhPriceBase'), has('electricity.kwhPriceHc')]).toEqual([true, false])
     expect(field('electricity.tariffMode').element.value).toBe('Base')
+  })
+
+  describe('apply dialog (Case 8)', () => {
+    const dialog = () => document.body.querySelector('[role=alertdialog]')
+    const button = (label: string) =>
+      [...document.body.querySelectorAll('[role=alertdialog] button')].find(
+        (b) => b.textContent === label,
+      ) as HTMLElement
+
+    it('offers to apply an edited value to the later months, "Oui" queues them all', async () => {
+      const { fill } = await openForm()
+      await fill('common.landlordOccupants', '4')
+      expect(dialog()?.textContent).toContain('tous les mois suivants')
+      enqueuePatch.mockClear()
+      button('Oui').click()
+      await flushPromises()
+      expect(enqueuePatch).toHaveBeenCalledTimes(11)
+      expect(dialog()).toBeNull()
+    })
+
+    // The period state outlives a test (a static import), so this value differs from the first test's.
+    it('"Non" changes only the edited month', async () => {
+      const { fill } = await openForm()
+      await fill('common.landlordOccupants', '5')
+      enqueuePatch.mockClear()
+      button('Non').click()
+      await flushPromises()
+      expect(enqueuePatch).not.toHaveBeenCalled()
+      expect(dialog()).toBeNull()
+    })
   })
 })
