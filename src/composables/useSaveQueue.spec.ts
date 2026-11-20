@@ -63,6 +63,21 @@ describe('useSaveQueue', () => {
     expect(queue.lastError.value).toBeUndefined()
   })
 
+  it('tells a failed drain with an error toast, except when the browser is offline', async () => {
+    const { queue } = await load()
+    const { useToasts } = await import('./useToasts')
+    drainQueue.mockRejectedValue(new DrainError(new Error('500'), new Map()))
+
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    await queue.drain()
+    expect(useToasts().toasts.value).toEqual([])
+
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
+    await queue.drain()
+    expect(useToasts().toasts.value).toMatchObject([{ level: 'error' }])
+    expect(useToasts().toasts.value[0].message).toContain("n'ont pas pu être enregistrées")
+  })
+
   it('ends the session on a 401', async () => {
     const { queue, session } = await load()
     drainQueue.mockRejectedValue(new DrainError(new UnauthorizedError(), new Map()))

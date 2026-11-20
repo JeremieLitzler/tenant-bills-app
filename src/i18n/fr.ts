@@ -14,6 +14,11 @@ export const fr = {
       "L'application n'est pas configurée correctement. Consultez les journaux des fonctions Netlify.",
     netlifyLink: 'Ouvrir Netlify',
   },
+  toast: {
+    close: 'Fermer',
+    saveFailed:
+      "Vos modifications n'ont pas pu être enregistrées. Elles sont gardées sur cet appareil.",
+  },
   shell: {
     appName: 'Charges de location',
     signOut: 'Se déconnecter',
@@ -22,11 +27,13 @@ export const fr = {
     title: 'Périodes',
     loading: 'Chargement des périodes…',
     empty: 'Aucune période pour le moment.',
+    retry: 'Réessayer',
     error: 'Impossible de charger les périodes. Merci de réessayer.',
   },
   period: {
     loading: 'Chargement de la période…',
     notFound: 'Période introuvable.',
+    retry: 'Réessayer',
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
-import MisconfiguredNotice from '@/components/MisconfiguredNotice.vue'
+import { TriangleAlert } from '@lucide/vue'
+
 import PeriodTable from '@/components/periods/PeriodTable.vue'
+import { Button } from '@/components/ui/button'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
@@ -16,33 +18,20 @@ if (import.meta.env.DEV) {
   window.setCell = period.setCell
   onBeforeUnmount(() => delete window.setCell)
 }
-
-const refreshMessage = computed(() => {
-  switch (period.refreshStatus.value) {
-    case 'up-to-date':
-      return fr.period.refresh.upToDate
-    case 'updated':
-      return fr.period.refresh.updated
-    case 'failed':
-      return fr.period.refresh.failed
-    default:
-      return undefined
-  }
-})
 </script>
 
 <template>
   <!-- What a 404 page looks like is #15. -->
-  <MisconfiguredNotice v-if="period.status.value === 'misconfigured'" />
-  <p v-else-if="period.status.value === 'loading'" data-testid="period-loading">
+  <p v-if="period.status.value === 'loading'" data-testid="period-loading">
     {{ fr.period.loading }}
   </p>
   <p v-else-if="period.status.value === 'not-found'" data-testid="period-not-found">
     {{ fr.period.notFound }}
   </p>
-  <p v-else-if="period.status.value === 'error'" role="alert" data-testid="period-error">
-    {{ fr.period.error }}
-  </p>
+  <!-- The toast tells what failed (usePeriod); the page only offers to load again. -->
+  <div v-else-if="period.status.value === 'error' || period.status.value === 'misconfigured'">
+    <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
+  </div>
   <div v-else class="flex flex-col gap-4">
     <div class="flex items-center gap-4">
       <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
@@ -60,20 +49,21 @@ const refreshMessage = computed(() => {
         }}
       </button>
     </div>
-    <p
-      v-if="refreshMessage"
-      :role="period.refreshStatus.value === 'failed' ? 'alert' : 'status'"
-      data-testid="period-refresh-result"
+    <div
+      v-if="period.isReadOnly.value"
+      role="status"
+      data-testid="period-read-only"
+      class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
     >
-      {{ refreshMessage }}
-    </p>
-    <div v-if="period.isReadOnly.value" role="status" data-testid="period-read-only">
-      <p>{{ fr.period.readOnlyNotice }}</p>
-      <ul class="list-disc pl-6">
-        <li v-for="problem in period.problems.value" :key="problem">
-          {{ fr.period.problems[problem] }}
-        </li>
-      </ul>
+      <TriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <div>
+        <p>{{ fr.period.readOnlyNotice }}</p>
+        <ul class="list-disc pl-6">
+          <li v-for="problem in period.problems.value" :key="problem">
+            {{ fr.period.problems[problem] }}
+          </li>
+        </ul>
+      </div>
     </div>
     <PeriodTable :period-id="route.params.period" />
   </div>

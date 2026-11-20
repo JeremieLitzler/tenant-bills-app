@@ -8,8 +8,10 @@ import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from '
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { pendingCountFor } from '@/composables/pendingPatches'
 import { useSaveQueue } from '@/composables/useSaveQueue'
+import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
+import { fr } from '@/i18n/fr'
 import { applyPatch } from '@/domain/applyPatch'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
 import type { PeriodFile } from '@/domain/periodFile'
@@ -58,6 +60,11 @@ function failureStatus(error: unknown): 'error' | 'misconfigured' {
   return error instanceof MisconfiguredError ? 'misconfigured' : 'error'
 }
 
+// The load error of the list or of a period, told by a toast (the page keeps a "Réessayer" button).
+function notifyLoadFailure(status: 'error' | 'misconfigured', message: string): void {
+  useToasts().notify(status === 'misconfigured' ? misconfiguredToast : { level: 'error', message })
+}
+
 // Reads the periods folder through the proxy. A 401 ends the session (the app shell then
 // redirects to the sign-in page); the state itself never redirects.
 async function loadPeriodIds(): Promise<void> {
@@ -68,6 +75,7 @@ async function loadPeriodIds(): Promise<void> {
     listStatus.value = 'ready'
   } catch (error) {
     listStatus.value = failureStatus(error)
+    notifyLoadFailure(listStatus.value, fr.periods.error)
     expireOnUnauthorized(error)
   }
 }
@@ -87,12 +95,15 @@ async function loadPeriod(id: string): Promise<void> {
     periodEntries.value[id] = file
       ? entryWith('ready', { file, sha: content.sha, problems })
       : entryWith('error')
+    if (!file) notifyLoadFailure('error', fr.period.error)
   } catch (error) {
     if (error instanceof NotFoundError) {
       periodEntries.value[id] = entryWith('not-found')
       return
     }
-    periodEntries.value[id] = entryWith(failureStatus(error))
+    const status = failureStatus(error)
+    periodEntries.value[id] = entryWith(status)
+    notifyLoadFailure(status, fr.period.error)
     expireOnUnauthorized(error)
   }
 }
@@ -104,16 +115,19 @@ async function refreshPeriod(id: string): Promise<void> {
   if (entry?.status !== 'ready' || entry.refresh === 'refreshing' || pendingCountFor(id) > 0) {
     return
   }
+  const { notify } = useToasts()
   entry.refresh = 'refreshing'
   try {
     if ((await getPeriodSha(id)) === entry.sha) {
       entry.refresh = 'up-to-date'
+      notify({ level: 'info', message: fr.period.refresh.upToDate })
       return
     }
     const content = await getPeriodFile(id)
     const { file, problems } = validatePeriodFile(content.json)
     if (!file) {
       entry.refresh = 'failed'
+      notify({ level: 'error', message: fr.period.refresh.failed })
       return
     }
     periodEntries.value[id] = entryWith('ready', {
@@ -122,8 +136,10 @@ async function refreshPeriod(id: string): Promise<void> {
       problems,
       refresh: 'updated',
     })
+    notify({ level: 'info', message: fr.period.refresh.updated })
   } catch (error) {
     entry.refresh = 'failed'
+    notify({ level: 'error', message: fr.period.refresh.failed })
     expireOnUnauthorized(error)
   }
 }
@@ -214,6 +230,8 @@ export function usePeriod(id: MaybeRefOrGetter<string>) {
         pendingCountFor(toValue(id)) === 0,
     ),
     refresh: () => refreshPeriod(toValue(id)),
+    // The "Réessayer" button of a failed load: the same load again.
+    retry: () => loadPeriod(toValue(id)),
     // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained and
     // throws when the period cannot be edited.
     setCell: (month: string | null, field: string, value: unknown) =>
