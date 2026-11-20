@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
+import ToastStack from '@/components/ToastStack.vue'
 import { useSession } from '@/composables/useSession'
 import { fr } from '@/i18n/fr'
 
@@ -35,5 +36,6 @@ watch(session.isSignedIn, (signedIn) => {
     <main class="flex-1 px-4 py-6">
       <slot />
     </main>
+    <ToastStack />
   </div>
 </template>

@@ -145,7 +145,7 @@ function answer(yes: boolean) {
           <p
             v-else-if="isDecreasingIndex(line, entry, monthFigures)"
             role="status"
-            class="text-sm text-amber-600"
+            class="text-sm text-theme-warning"
             :data-testid="`warning-${line.id}`"
           >
             {{ fr.period.month.decreasingIndex }}

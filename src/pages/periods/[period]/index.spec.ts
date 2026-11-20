@@ -95,7 +95,10 @@ describe('period page', () => {
     const { wrapper } = await openPeriodPage()
     await flushPromises()
 
-    expect(wrapper.get('[data-testid="period-read-only"]').text()).toContain('lecture seule')
+    const notice = wrapper.get('[data-testid="period-read-only"]')
+    expect(notice.text()).toContain('lecture seule')
+    expect(notice.classes()).toContain('border-theme-warning')
+    expect(notice.find('button').exists()).toBe(false)
     expect(wrapper.findAll('[data-testid="period-month"]')).toHaveLength(12)
   })
 
@@ -343,6 +346,22 @@ describe('period page', () => {
     })
   })
 
+  describe('load error', () => {
+    it('shows an error toast and a "Réessayer" button that loads the period again', async () => {
+      getPeriodFile.mockRejectedValueOnce(new Error('502'))
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+
+      expect(wrapper.get('[data-testid="toast"]').text()).toContain('Impossible de charger')
+      getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+      await wrapper.get('[data-testid="period-retry"]').trigger('click')
+      await flushPromises()
+
+      expect(getPeriodFile).toHaveBeenCalledTimes(2)
+      expect(wrapper.get('h1').text()).toBe('2026-2027')
+    })
+  })
+
   describe('Rafraîchir', () => {
     it("shows the other device's changes when the remote file differs", async () => {
       getPeriodFile.mockResolvedValueOnce({ json: periodJson(), sha: 'sha-1' })
@@ -357,7 +376,10 @@ describe('period page', () => {
       await wrapper.get('[data-testid="period-refresh"]').trigger('click')
       await flushPromises()
 
-      expect(wrapper.get('[data-testid="period-refresh-result"]').text()).toContain('mise à jour')
+      const toast = wrapper.get('[data-testid="toast"]')
+      expect(toast.text()).toContain('mise à jour')
+      expect(toast.attributes('role')).toBe('status')
+      expect(wrapper.find('[data-testid="period-refresh-result"]').exists()).toBe(false)
       expect(wrapper.findAll('[data-testid="period-month"]')).toHaveLength(11)
     })
 
@@ -370,7 +392,8 @@ describe('period page', () => {
       await wrapper.get('[data-testid="period-refresh"]').trigger('click')
       await flushPromises()
 
-      expect(wrapper.get('[data-testid="period-refresh-result"]').text()).toContain('à jour')
+      expect(wrapper.get('[data-testid="toast"]').text()).toContain('à jour')
+      expect(wrapper.find('[data-testid="period-refresh-result"]').exists()).toBe(false)
       expect(getPeriodFile).toHaveBeenCalledTimes(1)
     })
 
@@ -395,23 +418,24 @@ describe('period page', () => {
       await wrapper.get('[data-testid="period-refresh"]').trigger('click')
       await flushPromises()
 
-      expect(wrapper.get('[role="alert"]').text()).toContain('Impossible de rafraîchir')
+      expect(wrapper.get('[data-testid="toast"][role="alert"]').text()).toContain(
+        'Impossible de rafraîchir',
+      )
     })
   })
 })
 
 describe('period page with a misconfigured proxy', () => {
-  it('shows the full-page misconfiguration error, without any variable name', async () => {
+  it('shows the misconfiguration toast, without any variable name', async () => {
     const { MisconfiguredError } = await import('@/sync/periodsApi')
     getPeriodFile.mockRejectedValue(new MisconfiguredError())
 
     const { wrapper } = await openPeriodPage()
     await flushPromises()
 
-    const notice = wrapper.find('[data-testid="misconfigured"]')
-    expect(notice.exists()).toBe(true)
-    expect(notice.find('a').attributes('href')).toBe('https://app.netlify.com/')
-    expect(wrapper.find('[data-testid="period-error"]').exists()).toBe(false)
+    const notice = wrapper.get('[data-testid="toast"]')
+    expect(notice.get('a').attributes('href')).toBe('https://app.netlify.com/')
+    expect(wrapper.find('[data-testid="period-retry"]').exists()).toBe(true)
     expect(notice.text()).not.toMatch(/DATA_/)
   })
 })

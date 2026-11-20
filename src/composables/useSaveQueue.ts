@@ -5,12 +5,14 @@ import { readonly, ref } from 'vue'
 
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { setPendingCounts } from '@/composables/pendingPatches'
+import { useToasts } from '@/composables/useToasts'
 import type { Patch } from '@/domain/applyPatch'
+import { fr } from '@/i18n/fr'
 import { DrainError, drainQueue } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 
 // What the last drain failed with, cleared by the next successful one. Read by the sync status
-// and error banner (#50) and by the global toast (#120), neither built yet.
+// (#50, not built yet). A failed drain also tells the landlord through an error toast.
 const lastError = ref<unknown>()
 
 async function syncPendingCounts(): Promise<void> {
@@ -36,6 +38,8 @@ async function drain(): Promise<Map<string, string>> {
     if (error instanceof DrainError) written = error.written
     lastError.value = cause
     console.error(cause)
+    // Offline is F9's work (the sync status), not a toast.
+    if (navigator.onLine) useToasts().notify({ level: 'error', message: fr.toast.saveFailed })
     expireOnUnauthorized(cause)
   }
   await syncPendingCounts()

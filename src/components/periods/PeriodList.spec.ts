@@ -46,15 +46,23 @@ describe('PeriodList on the home page', () => {
     const { wrapper } = await mountApp()
 
     expect(wrapper.find('[data-testid="periods-empty"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="periods-error"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="periods-retry"]').exists()).toBe(false)
   })
 
-  it('shows an error when the list cannot be read', async () => {
-    listPeriodIds.mockRejectedValue(new Error('500'))
+  it('shows an error toast and a "Réessayer" button that loads the list again', async () => {
+    listPeriodIds.mockRejectedValueOnce(new Error('500'))
 
     const { wrapper } = await mountApp()
 
-    expect(wrapper.find('[data-testid="periods-error"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="toast"]').text()).toContain('Impossible de charger')
+    expect(wrapper.get('[data-testid="toast"]').attributes('role')).toBe('alert')
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    await wrapper.get('[data-testid="periods-retry"]').trigger('click')
+    await flushPromises()
+
+    expect(listPeriodIds).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('[data-testid="periods-retry"]').exists()).toBe(false)
+    expect(wrapper.get('main a').text()).toBe('2026-2027')
   })
 
   it('ends on the sign-in page, remembering the path, after a 401', async () => {
@@ -69,17 +77,15 @@ describe('PeriodList on the home page', () => {
 })
 
 describe('PeriodList with a misconfigured proxy', () => {
-  it('replaces the whole page with the misconfiguration error and a Netlify link', async () => {
+  it('shows an error toast with a Netlify link', async () => {
     const { MisconfiguredError } = await import('@/sync/periodsApi')
     listPeriodIds.mockRejectedValue(new MisconfiguredError())
 
     const { wrapper } = await mountApp()
 
-    const notice = wrapper.find('[data-testid="misconfigured"]')
-    expect(notice.exists()).toBe(true)
+    const notice = wrapper.get('[data-testid="toast"]')
     expect(notice.attributes('role')).toBe('alert')
-    expect(notice.find('a').attributes('href')).toBe('https://app.netlify.com/')
-    expect(wrapper.find('[data-testid="periods-error"]').exists()).toBe(false)
+    expect(notice.get('a').attributes('href')).toBe('https://app.netlify.com/')
     expect(notice.text()).not.toMatch(/DATA_|MisconfiguredError/)
   })
 })
