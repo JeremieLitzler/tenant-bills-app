@@ -228,28 +228,27 @@ The period table (F5) uses shadcn-vue's plain `Table` components (`src/component
 ### Rows and cells
 
 - The rows come from a list of line definitions: section, key, French label, input or computed, and tariff mode for the electricity lines. Each section starts with a header row.
-- One cell component renders every month cell. It reads the period's file and computed figures from `usePeriod(id)` and writes only through `setCell` (see "State").
+- One cell component renders every month cell. It reads the period's file and computed figures from `usePeriod(id)` and never writes: the table is read-only, and a month is edited in its "Saisie du mois" form (issue #148, grilling `docs/grillings/2026-11-20-section-tabs/`). No ADR: cheap to reverse.
 - A cell shows its value as stored, or computed (read-only). Implausible values carry a warning (red ring, ⚠️, and a bubble with the explanation under the cell while it is selected) and are never blocked.
-- A previous index is an ordinary editable cell; editing a current index offers to set the next month's previous index (ADR 0007). Every cell of a closed period is read-only.
-- Every electricity row is always shown. In a month in `base`, the HC and HP cells are empty, styled as not applicable and not editable, and the reverse in `hchp`. The period file keeps the other mode's keys, but no formula of that month reads them.
+- The apply dialog (ADR 0007) lives in the form, not in the table.
+- Every electricity row is always shown. In a month in `base`, the HC and HP cells are empty and styled as not applicable, and the reverse in `hchp`. The period file keeps the other mode's keys, but no formula of that month reads them.
 
 ### Keyboard and mouse
 
-The table has a selection mode and an edit mode, as in a spreadsheet. Neither shadcn-vue nor TanStack provides this: it is our own code.
+The table has a selection mode only: no cell can be edited. Neither shadcn-vue nor TanStack provides it: it is our own code.
 
 - The table is a single Tab stop (ARIA grid pattern, `aria-activedescendant` on the table's container). Tab leaves it.
-- Selection mode: the arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, editable or not, and skip section header rows.
-- Enter edits the selected cell, and does nothing on a read-only cell. Typing a character on an editable cell starts editing and replaces the value with it.
-- Edit mode: Enter saves and moves to the next editable cell down in the same month, staying in edit mode. On the month's last editable cell, it saves and returns to selection mode. Escape restores the earlier value, enqueues nothing, and returns to selection mode. Arrow Left and Right move the text cursor.
-- Mouse: a click selects a cell, a double click on an editable cell edits it, and leaving an editing cell any other way saves it (blur).
-- Editing without changing the text enqueues nothing.
+- The arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, computed or not, and skip section header rows.
+- Enter on the selected cell opens the "Saisie du mois" form of that cell's month, with the cell's field focused (route `/periods/<period>/months/<month>?field=<line id>`). On a computed cell, which has no field, the form simply opens.
+- Mouse: a click selects a cell, and a double click selects it and opens the form the same way.
+- Typing a character does nothing.
 
 ### Layout
 
 - The month header and the label column are sticky. The label column has a fixed width.
 - The table's scroll container has scroll padding matching the sticky header and label column, so the selected cell is never scrolled under them. Section titles are sticky inside their full-width header cell, so they stay visible when scrolling sideways.
 - shadcn-vue's `Table.vue` renders a scroll container `div` around the `<table>`. Attributes fall through to that container, but its `class` prop goes to the `<table>`. The container's classes (height, scroll padding) are set by editing `Table.vue`, which is our code once added.
-- The "Saisie du mois" form stays the phone screen for entering a month (Q20 of `docs/grillings/2026-10-26-functional-breakdown/`): touch is clumsy with selection and edit modes. On a phone, the table only needs to be readable. A CSS-only media query does that: a narrower label column with wrapped labels, each month column taking the rest of the width, and horizontal scrolling that snaps one month at a time.
+- The "Saisie du mois" form stays the phone screen for entering a month (Q20 of `docs/grillings/2026-10-26-functional-breakdown/`): touch is clumsy with a selection mode. On a phone, the table only needs to be readable. A CSS-only media query does that: a narrower label column with wrapped labels, each month column taking the rest of the width, and horizontal scrolling that snaps one month at a time.
 
 ### Prototype
 

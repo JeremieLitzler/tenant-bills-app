@@ -23,6 +23,7 @@ vi.mock('@/sync/drainQueue', async (importOriginal) => ({
 async function openForm(
   edit: (json: ReturnType<typeof validPeriodJson>) => void = () => {},
   month = '2026-09',
+  focusField?: string,
 ) {
   const json = validPeriodJson()
   Object.assign(json.months[0].waterConsumption, { mainMeterPrevious: 530000, mainMeter: 533117 })
@@ -34,7 +35,7 @@ async function openForm(
     routes: [{ path: '/periods/:period/months/:month', component: { template: '<i />' } }],
   })
   const wrapper = mount(MonthForm, {
-    props: { periodId: '2026-2027', month },
+    props: { periodId: '2026-2027', month, field: focusField },
     global: { plugins: [router] },
     attachTo: document.body,
   })
@@ -172,5 +173,12 @@ describe('Saisie du mois', () => {
       expect(enqueuePatch).not.toHaveBeenCalled()
       expect(dialog()).toBeNull()
     })
+  })
+})
+
+describe('MonthForm field focus', () => {
+  it('focuses the requested field on arrival', async () => {
+    const { field } = await openForm(undefined, '2026-09', 'common.landlordOccupants')
+    expect(document.activeElement).toBe(field('common.landlordOccupants').element)
   })
 })

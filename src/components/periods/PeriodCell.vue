@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// One month cell of the period table. It shows the typed text while it is edited; saving is the
-// table's job (the patch queue, ADR 0010).
+// One read-only month cell of the period table.
 import { computed } from 'vue'
 
 import { TableCell } from '@/components/ui/table'
@@ -15,12 +14,7 @@ const props = defineProps<{
   selected?: boolean
   entry: MonthEntry
   figures?: MonthFigures
-  editing?: boolean
-  invalid?: boolean
 }>()
-const draft = defineModel<string>('draft', { default: '' })
-const emit = defineEmits<{ blur: [event: FocusEvent] }>()
-const vFocus = { mounted: (el: HTMLElement) => el.focus() }
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
 const view = computed(() => {
@@ -53,32 +47,20 @@ const warningClass =
   <TableCell
     class="relative text-right tabular-nums"
     :class="{
-      'ring-ring/50 ring-1 ring-inset': selected && !invalid && !editing && !warning,
-      // Editing: the strong outline of the apply dialog buttons, inset so neighbours stay clear.
-      'outline-foreground outline-2 -outline-offset-2': editing && !invalid,
-      'ring-destructive ring-2 ring-inset': invalid,
+      'ring-ring/50 ring-1 ring-inset': selected && !warning,
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
-      [warningClass]: warning && !editing,
+      [warningClass]: warning,
     }"
     role="gridcell"
     :aria-selected="selected"
     :data-provenance="view.provenance"
     :data-warning="warning"
   >
-    <input
-      v-if="editing"
-      v-model="draft"
-      v-focus
-      :aria-label="line.label"
-      :aria-invalid="invalid"
-      class="w-full bg-transparent text-right outline-none"
-      @blur="emit('blur', $event)"
-    />
-    <template v-else>{{ view.text }}</template>
+    {{ view.text }}
     <!-- Under the selected cell; above the sticky label column (z-10), below the sticky header (z-20). -->
     <div
-      v-if="warning && selected && !editing"
+      v-if="warning && selected"
       role="status"
       class="bg-background text-foreground absolute top-full right-0 z-[15] mt-1 w-56 rounded-md border p-2 text-left text-xs font-normal shadow-md"
     >

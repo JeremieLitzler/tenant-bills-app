@@ -1,20 +1,19 @@
 <script setup lang="ts">
 // The period table (F5): one row per line, one column per month present in the file. It only reads
-// the period; every edit goes through `setCell` and the patch queue (ADR 0010).
+// the period; a month is edited in its form ("Saisie du mois").
 import { computed, nextTick, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { applyOffer, type Offer } from '@/domain/applyOffer'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
-import ApplyDialog from './ApplyDialog.vue'
 import PeriodCell from './PeriodCell.vue'
-import { editText, formatValue, isEditableLine, LINES, parseValue, SECTIONS } from './periodLines'
+import { LINES, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
-const { file, figures, isReadOnly, setCell } = usePeriod(() => props.periodId)
+const router = useRouter()
+const { file, figures } = usePeriod(() => props.periodId)
 
 // "2026-09" as "septembre 2026". Read in UTC so the local time zone cannot shift the month.
 function monthLabel(month: string): string {
@@ -50,8 +49,6 @@ const cellId = (rowIndex: number, colIndex: number) =>
 const cellProps = (line: (typeof LINES)[number], colIndex: number) => ({
   id: cellId(rowOf(line), colIndex),
   selected: rowOf(line) === row.value && colIndex === col.value,
-  editing: editing.value && rowOf(line) === row.value && colIndex === col.value,
-  invalid: invalid.value && rowOf(line) === row.value && colIndex === col.value,
 })
 const MOVES: Record<string, [number, number]> = {
   ArrowUp: [-1, 0],
@@ -63,69 +60,8 @@ const MOVES: Record<string, [number, number]> = {
 function select(rowIndex: number, colIndex: number) {
   const nextRow = Math.max(0, Math.min(LINES.length - 1, rowIndex))
   const nextCol = Math.max(0, Math.min(columns.value.length - 1, colIndex))
-  // Leaving a cell being edited saves it.
-  if (editing.value && (nextRow !== row.value || nextCol !== col.value)) stopEditing(true)
   row.value = nextRow
   col.value = nextCol
-}
-
-// Edit mode (F5). `initial` is the text the editor started with: an unchanged text saves nothing.
-const editing = ref(false)
-const draft = ref('')
-const initial = ref('')
-const invalid = ref(false)
-watch([draft, row, col], () => (invalid.value = false))
-
-const isEditable = (rowIndex: number, colIndex: number) =>
-  !isReadOnly.value &&
-  !file.value?.closedOn &&
-  !!columns.value[colIndex] &&
-  isEditableLine(LINES[rowIndex], columns.value[colIndex].entry)
-
-function textAt(rowIndex: number, colIndex: number) {
-  const { entry, figures } = columns.value[colIndex]
-  return editText(LINES[rowIndex], LINES[rowIndex].read(entry, figures!))
-}
-
-function startEditing(rowIndex: number, colIndex: number, typed?: string) {
-  initial.value = textAt(rowIndex, colIndex)
-  draft.value = typed ?? initial.value
-  editing.value = true
-}
-
-// Queues the edited cell. Emptying removes the value (`null`); a text that is no valid value is dropped.
-// Returns false for a text that is no valid value: nothing is queued.
-function save(): boolean {
-  if (draft.value === initial.value) return true
-  const line = LINES[row.value]
-  const value = parseValue(line, draft.value)
-  if (value === undefined) return false
-  const month = columns.value[col.value].month
-  void setCell(month, line.id, value)
-  // Case 8: a value of a month with later months may be applied to them (a removal is not offered).
-  const found = value === null ? undefined : applyOffer(file.value!, month, line.id, value)
-  if (found && value !== null) {
-    offer.value = {
-      ...found,
-      section: fr.period.table.sections[line.section],
-      line: line.label,
-      value: formatValue(line.kind, value),
-    }
-  }
-  return true
-}
-
-// The apply dialog (Case 8): "Oui" queues every patch of the offer, anything else changes nothing more.
-const offer = ref<(Offer & { section: string; line: string; value: string }) | undefined>()
-function answer(yes: boolean) {
-  if (yes && offer.value)
-    for (const p of offer.value.patches) void setCell(p.month, p.field, p.value)
-  offer.value = undefined
-}
-
-function stopEditing(saveIt: boolean) {
-  if (saveIt) save()
-  editing.value = false
 }
 
 // Going to a period with fewer months: the selected cell may not exist there, start from the first.
@@ -137,62 +73,28 @@ watch(
   },
 )
 
-function onEditKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    stopEditing(false)
-  } else if (event.key === 'Enter') {
-    event.preventDefault()
-    // An invalid text keeps the editor open, marked; leaving the cell any other way drops it.
-    // shortcut: a red ring, until the global toast (#120) warns instead.
-    if (!save()) {
-      invalid.value = true
-      return
-    }
-    // The next editable cell down in the same month, else back to selection mode.
-    let next = row.value + 1
-    while (next < LINES.length && !isEditable(next, col.value)) next++
-    if (next < LINES.length) {
-      row.value = next
-      startEditing(next, col.value)
-    } else editing.value = false
-  } else return
-  // The input is gone: keep the keyboard on the table.
-  if (!editing.value) (event.currentTarget as HTMLElement).focus()
+// Opens the form of the cell's month with the cell's field focused.
+function openForm(rowIndex: number, colIndex: number) {
+  void router.push({
+    path: `/periods/${props.periodId}/months/${columns.value[colIndex].month}`,
+    query: { field: LINES[rowIndex].id },
+  })
 }
 
 function onKeydown(event: KeyboardEvent) {
-  // Edit mode keeps the arrows for the text cursor.
-  if (editing.value) return onEditKeydown(event)
   const move = MOVES[event.key]
   if (move) {
     event.preventDefault()
     select(row.value + move[0], col.value + move[1])
-  } else if (
-    event.key === 'Enter' ||
-    (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey)
-  ) {
-    // Enter edits the value; typing a character replaces it.
+  } else if (event.key === 'Enter') {
     event.preventDefault()
-    if (isEditable(row.value, col.value)) {
-      startEditing(row.value, col.value, event.key === 'Enter' ? undefined : event.key)
-    }
+    openForm(row.value, col.value)
   }
-}
-
-// Leaving the cell any other way than the keys saves it.
-function onBlur(rowIndex: number, colIndex: number, event: FocusEvent) {
-  if (!editing.value || rowIndex !== row.value || colIndex !== col.value) return
-  const table = (event.target as HTMLElement).closest<HTMLElement>('[role=grid]')
-  stopEditing(true)
-  // The input is gone: unless the focus went to another element (Tab, a click on a field), the
-  // keyboard stays on the table, on the edited cell.
-  if (!event.relatedTarget) table?.focus()
 }
 
 function onDblclick(rowIndex: number, colIndex: number) {
   select(rowIndex, colIndex)
-  if (isEditable(rowIndex, colIndex)) startEditing(rowIndex, colIndex)
+  openForm(rowIndex, colIndex)
 }
 
 watch([row, col], async () => {
@@ -212,7 +114,6 @@ watch([row, col], async () => {
     >
       {{ fr.period.table.keyboardHint }}
     </p>
-    <!-- Tab leaves the table because no cell is a focus stop of its own: keep it so when cells get edited. -->
     <Table
       data-testid="period-table"
       role="grid"
@@ -269,21 +170,12 @@ watch([row, col], async () => {
               :line="line"
               :entry="column.entry"
               :figures="column.figures"
-              v-model:draft="draft"
               @click="select(rowOf(line), colIndex)"
               @dblclick="onDblclick(rowOf(line), colIndex)"
-              @blur="onBlur(rowOf(line), colIndex, $event)"
             />
           </TableRow>
         </template>
       </TableBody>
     </Table>
-    <ApplyDialog
-      :offer="offer"
-      :section="offer?.section ?? ''"
-      :line="offer?.line ?? ''"
-      :value="offer?.value ?? ''"
-      @answer="answer"
-    />
   </div>
 </template>

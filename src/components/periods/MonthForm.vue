@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // "Saisie du mois" (F6): the month's inputs as native fields that save on blur, then its computed
 // figures read-only. Like the table, it only reads the period; every edit goes through `setCell`.
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,8 @@ import {
   SECTIONS,
 } from './periodLines'
 
-const props = defineProps<{ periodId: string; month: string }>()
+// `field`: the id of the line to focus on arrival (the table's Enter and double click).
+const props = defineProps<{ periodId: string; month: string; field?: string }>()
 const router = useRouter()
 const { file, figures, isReadOnly, setCell } = usePeriod(() => props.periodId)
 
@@ -48,6 +49,12 @@ const sections = computed(() =>
 const valueOf = (line: PeriodLine) => line.read(entry.value!, monthFigures.value!)
 
 const invalid = ref(new Set<string>())
+
+// Focuses the requested field when the form appears (the period may still be loading).
+const form = ref<HTMLFormElement>()
+watch(form, (el) => {
+  if (props.field) el?.querySelector<HTMLElement>(`[data-testid="field-${props.field}"]`)?.focus()
+})
 
 // Unchanged saves nothing, emptying removes the value, a text that is no value is marked.
 function onBlur(line: PeriodLine, event: FocusEvent) {
@@ -85,6 +92,7 @@ function answer(yes: boolean) {
   <p v-if="file && !entry" data-testid="month-not-found">{{ fr.period.month.notFound }}</p>
   <form
     v-else-if="file && entry && monthFigures"
+    ref="form"
     class="mx-auto flex w-full max-w-lg flex-col gap-4 md:rounded-lg md:border md:p-6 md:shadow-sm"
     @submit.prevent
   >
