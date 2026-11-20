@@ -14,14 +14,18 @@ const INFO_DURATION_MS = 5000
 
 // Full class strings, so Tailwind sees them.
 const LOOK: Record<ToastLevel, { box: string; iconColor: string; icon: typeof Info }> = {
-  info: { box: 'border-theme-info bg-theme-info/10', iconColor: 'text-theme-info', icon: Info },
+  info: {
+    box: 'border-theme-info bg-[color-mix(in_oklab,var(--theme-info)_10%,var(--background))]',
+    iconColor: 'text-theme-info',
+    icon: Info,
+  },
   warning: {
-    box: 'border-theme-warning bg-theme-warning/10',
+    box: 'border-theme-warning bg-[color-mix(in_oklab,var(--theme-warning)_10%,var(--background))]',
     iconColor: 'text-theme-warning',
     icon: TriangleAlert,
   },
   error: {
-    box: 'border-theme-error bg-theme-error/10',
+    box: 'border-theme-error bg-[color-mix(in_oklab,var(--theme-error)_10%,var(--background))]',
     iconColor: 'text-theme-error',
     icon: CircleX,
   },
