@@ -40,6 +40,9 @@ The day a month's consumption window opens: the previous month's end date.
 The day the meters are read for a month; it closes the month's consumption window for every section.
 _Avoid_: Reading date, index date
 
+**Complete month** (_Mois complet_):
+A month in which every input it requires is present.
+
 **Estimated month** (_Mois estimé_):
 The last month of a period while its indexes are estimated from an earlier month's consumption and its reading is not yet taken; the month carries a stored flag until the real reading is confirmed.
 
@@ -78,6 +81,9 @@ The provisional settlement while the last month of the period is estimated; it g
 
 **Section**:
 One kind of charge tracked in the table: water consumption, water treatment, electricity, water softener, internet, heat pump maintenance.
+
+**Complete section** (_Section complète_):
+A section of one month in which every input it requires is present.
 
 **Delta**:
 The difference between a month's current and previous indexes of a meter, in the unit of its section (cubic metres for water, kWh for electricity).
