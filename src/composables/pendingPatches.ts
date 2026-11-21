@@ -9,8 +9,8 @@ export const pendingCount = computed(() =>
   Object.values(counts.value).reduce((sum, count) => sum + count, 0),
 )
 
-export function pendingCountFor(id: string): number {
-  return counts.value[id] ?? 0
+export function pendingCountFor(periodId: string): number {
+  return counts.value[periodId] ?? 0
 }
 
 export function setPendingCounts(next: Record<string, number>): void {
