@@ -149,6 +149,27 @@ describe('drainQueue', () => {
     expect(await listPatches()).toEqual([failing])
   })
 
+  it('makes one PUT and one commit per period file', async () => {
+    const puts: string[] = []
+    const github = globalThis.fetch
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (init?.method) puts.push(JSON.parse(init.body as string).path)
+        return github(url, init)
+      }),
+    )
+    await enqueuePatch(cell('internet.billedAmount', 22))
+    await enqueuePatch(otherPeriod('internet.billedAmount', 1))
+    await drainQueue()
+    expect(puts).toHaveLength(2)
+    expect(puts.some((url) => url.includes('2025-2026'))).toBe(true)
+    expect(commits.sort()).toEqual([
+      'data(2025-2026): 1 edit in 2025-09',
+      'data(2026-2027): 1 edit in 2026-09',
+    ])
+  })
+
   it('keeps every patch queued on a network error', async () => {
     await enqueuePatch(cell('internet.billedAmount', 30))
     await enqueuePatch(otherPeriod('internet.billedAmount', 1))
