@@ -46,6 +46,28 @@ describe('App', () => {
     await vi.waitFor(() => expect(pendingCount.value).toBe(2))
   })
 
+  it('tells the real count of queued edits when signing out', async () => {
+    vi.doMock('@/sync/patchQueue', () => ({
+      listPatches: async () => [{ period: 'a' }, { period: 'a' }],
+    }))
+    const { default: App } = await import('./App.vue')
+    const { pendingCount } = await import('@/composables/pendingPatches')
+    const { useSession } = await import('@/composables/useSession')
+    const { default: router } = await import('./router')
+    await router.push('/')
+    await router.isReady()
+    const confirm = vi.fn(() => false)
+    vi.stubGlobal('confirm', confirm)
+
+    mount(App, { global: { plugins: [router] } })
+    await vi.waitFor(() => expect(pendingCount.value).toBe(2))
+    await useSession().signOut()
+
+    expect(confirm).toHaveBeenCalledWith(
+      '2 modifications pas encore enregistrées. Se déconnecter quand même ?',
+    )
+  })
+
   it('drains the queue on load and when the browser comes back online, only when signed in', async () => {
     const drainQueue = vi.fn(async () => new Map<string, string>())
     vi.doMock('@/sync/drainQueue', async (importOriginal) => ({
