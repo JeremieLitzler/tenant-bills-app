@@ -26,11 +26,6 @@ async function enqueue(patch: Patch): Promise<void> {
   await syncPendingCounts()
 }
 
-// The patches still waiting for a period, in typing order: a reload applies them to its copy.
-async function queuedFor(period: string): Promise<Patch[]> {
-  return (await listPatches()).filter((patch) => patch.period === period)
-}
-
 // Sends the queue and resolves with the new SHA of every period written, even when another period
 // failed (the queue then keeps its patches, see `lastError`). A 401 ends the session.
 async function drain(): Promise<Map<string, string>> {
@@ -52,5 +47,5 @@ async function drain(): Promise<Map<string, string>> {
 }
 
 export function useSaveQueue() {
-  return { lastError: readonly(lastError), enqueue, drain, queuedFor }
+  return { lastError: readonly(lastError), enqueue, drain }
 }

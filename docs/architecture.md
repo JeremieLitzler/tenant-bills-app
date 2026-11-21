@@ -43,7 +43,7 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 │   ├── lib/                        # shadcn-vue's cn helper, safeRedirect, the gh_login cookie reader
 │   ├── pages/                      # file-based routes
 │   ├── router/
-│   └── sync/                       # Vue-free: IndexedDB patch queue, drainQueue(), 409 rebase, SHA check
+│   └── sync/                       # Vue-free: IndexedDB (patch queue, period copies), drainQueue(), loadPeriodWithCopy(), 409 rebase, SHA check
 └── tests/
     ├── helpers/                    # spec helpers (Netlify event builder)
     └── fixtures/                   # sheet values, example period files
@@ -79,7 +79,7 @@ Shared state is held in **singleton composables**, as in `french-gas-stations-sc
 
 ### Periods: `src/composables/usePeriods.ts`
 
-One module, the only one a consumer calls, with two functions over the same module-level state. It reaches `src/sync/` for the period files and, for the queue, through `useSaveQueue.ts` (below).
+One module, the only one a consumer calls, with two functions over the same module-level state. It reaches `src/sync/` for the period files (`loadPeriodWithCopy()`, see "Local copies" below) and, for the queue, through `useSaveQueue.ts` (below).
 
 ```ts
 // Collection-wide: the period list, the queue, the sync status.
@@ -106,6 +106,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
   refresh(): Promise<void>                           // compares the remote SHA, replaces the copy only if it differs
   figures: Readonly<Ref<PeriodFigures | undefined>>  // computed once from src/domain/
   isClosed: Readonly<Ref<boolean>>
+  drainQueued(): Promise<void>  // sends the queue and gives each written period its new SHA; called by App.vue on app load and on `online`, never by a page
   setCell(month: string | null, field: string, value: unknown): Promise<void>  // enqueues a patch (ADR 0010), applies it to the loaded copy, drains; null month for a top-level value; throws when the period is not ready, read-only or closed
   initializeNextMonth(): void                        // copies the last month into a new one, one patch carrying the whole month (ADR 0007)
   estimateReadings(): void                           // the twelfth month's estimate, written as patches
@@ -128,7 +129,11 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 Settled in `docs/implementation-feedbacks/2026-11-18-issue-48/` (issue #48). The queue, the drain, the pending-count mirror (`pendingPatches.ts`) and the last error live here, apart from the loaded periods, because they change for their own reasons (#50 sync status, #51 sign-in drain, #52 409).
 
 - `enqueue(patch)` stores the patch in IndexedDB and refreshes the per-period counts. `drain()` calls `drainQueue()` and resolves with the new SHA of every period written, even when another period failed. `lastError` holds the error of the last failed drain and is cleared by the next successful one; it is also written with `console.error`. A 401 ends the session.
-- It never touches the loaded periods. `usePeriod(id).setCell` is the only door for a consumer: it refuses an edit when the period cannot be edited, enqueues the patch, applies it to the loaded copy, drains, and writes the new SHAs into the entries. Consumers never orchestrate the queue themselves.
+- It never touches the loaded periods. `usePeriod(id).setCell` is the only door for a consumer that edits: it refuses an edit when the period cannot be edited, enqueues the patch, applies it to the loaded copy, drains, and writes the new SHAs into the entries. Consumers never orchestrate the queue themselves; the one exception is `App.vue`, which calls `usePeriods().drainQueued()` on app load and when the browser comes back `online`, only when signed in (the sign-in trigger is #51's).
+
+### Local copies (#49)
+
+IndexedDB (`tenant-bills`, version 2, `src/sync/localDb.ts`) holds two stores: the patch queue and `period-copies`, the last remote file of each period with its SHA. `loadPeriodWithCopy(id)` (`src/sync/loadPeriod.ts`) reads the remote file and saves it as the copy; when the read fails for any reason except 401, 404 and a misconfigured proxy (offline, a 5xx), it returns the last copy instead, and `usePeriods` tells the landlord with an info toast ("Copie locale affichée."). Either way the queued patches are applied on top, so a reload shows unsaved edits; a file breaking a validation rule is read-only and gets no patches. A drain and "Rafraîchir" refresh the copy. The copy store is a cache: its failures are ignored. The periods list has no local copy (a separate grilling).
 - Until F5 (#32) builds the table, the period page exposes `window.setCell(month, field, value)` in development only, to try an edit from the console.
 
 ### Data proxy: `netlify/functions/github-api-proxy`
@@ -139,7 +144,7 @@ Issue #44. One function forwarding three operations to the GitHub Contents API o
 - `PUT { path, message, content, sha? }` puts one period file; without `sha` GitHub creates it. `GET` of one file is called by `usePeriod` (#45); no `PUT` caller until F3 (#30) and F7 (#34).
 - Only paths under `periods/` are accepted (no empty, `.` or `..` segment, no backslash), and an `owner` or `repo` that is not `DATA_REPO` is refused with 403. The client does not need to send them.
 - The branch is set from `DATA_BRANCH` on every request (`ref` on reads, `branch` on writes); a `ref` or `branch` sent by the client is ignored.
-- No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`; the app then shows a full-page notice (`MisconfiguredNotice`) instead of the period list or page, and touches no local storage.
+- No cookie, or GitHub answering 401 (the dead token cookie is then cleared): 401. GitHub's 404 and 409 are passed through. A missing or malformed `DATA_REPO` or `DATA_BRANCH`: 500 `{ "error": "misconfigured" }`; the app then shows a full-page notice (`MisconfiguredNotice`) instead of the period list or page, and touches no local storage (a successful period read does save its copy, see "Local copies").
 
 ### Session: `src/composables/useSession.ts`
 
