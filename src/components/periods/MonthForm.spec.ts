@@ -2,7 +2,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import { validPeriodJson } from '../../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import MonthForm from './MonthForm.vue'
 import { isInactiveTariffLine, LINES } from './periodLines'
 

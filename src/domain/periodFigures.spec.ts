@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import expected from '../../tests/fixtures/golden-expected.json'
-import golden from '../../tests/fixtures/golden-period.json'
+import expected from '@tests/fixtures/golden-expected.json'
+import golden from '@tests/fixtures/golden-period.json'
 import { computePeriodFigures } from './periodFigures'
 import type { PeriodFile } from './periodFile'
 

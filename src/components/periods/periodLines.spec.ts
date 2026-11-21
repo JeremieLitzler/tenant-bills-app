@@ -7,7 +7,7 @@ import { computePeriodFigures } from '@/domain/periodFigures'
 import { FIELD_CATALOGUE, type SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
-import { validPeriodJson } from '../../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import { LINES, parseValue, SECTIONS } from './periodLines'
 
 // Keys of a shown section that are deliberately not a table line, each with its reason.

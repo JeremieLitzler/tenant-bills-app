@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import expected from '../../../tests/fixtures/golden-expected.json'
-import golden from '../../../tests/fixtures/golden-period.json'
-import type { MonthEntry, PeriodFile } from '../periodFile'
+import expected from '@tests/fixtures/golden-expected.json'
+import golden from '@tests/fixtures/golden-period.json'
+import type { MonthEntry, PeriodFile } from '@/domain/periodFile'
 import { occupantRatios } from './figureMath'
 import { waterTreatmentFigures } from './waterTreatmentFigures'
 

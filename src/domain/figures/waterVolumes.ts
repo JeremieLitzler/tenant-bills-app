@@ -1,4 +1,4 @@
-import type { WaterConsumptionInputs } from '../periodFile'
+import type { WaterConsumptionInputs } from '@/domain/periodFile'
 import { allDefined, sum, type Figure } from './figureMath'
 
 // A water index is typed in litres; a delta is in m³.

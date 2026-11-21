@@ -1,5 +1,9 @@
-import { ELECTRICITY_TARIFFS, TARIFFS_BY_MODE, type ElectricityTariff } from '../electricityTariffs'
-import type { ElectricityInputs, MonthEntry } from '../periodFile'
+import {
+  ELECTRICITY_TARIFFS,
+  TARIFFS_BY_MODE,
+  type ElectricityTariff,
+} from '@/domain/electricityTariffs'
+import type { ElectricityInputs, MonthEntry } from '@/domain/periodFile'
 import { addBill, allDefined, roundCents, type Figure, type OccupantRatios } from './figureMath'
 
 export interface ElectricityFigures {

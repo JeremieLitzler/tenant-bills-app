@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { formatValue, isInactiveTariffLine, LINES } from '@/components/periods/periodLines'
 import { computePeriodFigures } from '@/domain/periodFigures'
 
-import { validPeriodJson } from '../../../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()

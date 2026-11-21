@@ -4,7 +4,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { computePeriodFigures } from '@/domain/periodFigures'
 
-import { validPeriodJson } from '../../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import PeriodTable from './PeriodTable.vue'
 import { LINES, SECTIONS } from './periodLines'
 
