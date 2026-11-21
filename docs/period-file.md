@@ -73,6 +73,8 @@ The status is computed, never stored (ADR 0008):
 
 Each key is marked `inherited` or `not-inherited`. A key ending in `Previous` is the previous index of the meter of the same name.
 
+A section is complete when every key listed under it is present, `0` counting as present, except `estimated` and the exceptions below; a month is complete when its seven sections are (`monthCompleteness`). The electricity section needs only the registers of the month's `tariffMode` (`base`: `mainBase`, `studioBase`, their `Previous` keys and `kwhPriceBase`; `hchp`: the Hc and Hp registers of both meters, their `Previous` keys, `kwhPriceHc` and `kwhPriceHp`). The water softener is complete when empty or when `quantity` is `0`; a non-zero `quantity` also needs `unitPrice` and `description`.
+
 ### `common`
 
 - `startDate` (not-inherited): the date "Du", the previous month's `endDate`.
