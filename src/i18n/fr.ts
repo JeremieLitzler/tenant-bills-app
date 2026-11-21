@@ -37,6 +37,7 @@ export const fr = {
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
+    localCopy: 'Copie locale affichée.',
     refresh: {
       button: 'Rafraîchir',
       refreshing: 'Rafraîchissement…',

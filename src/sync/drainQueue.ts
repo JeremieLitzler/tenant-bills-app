@@ -30,8 +30,7 @@ async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
   for (const patch of patches) applyPatch(file, patch)
   const newSha = await putPeriodFile(id, serializePeriodFile(file), sha, commitMessage(id, patches))
   await removePatches(patches)
-  // The copy is a cache: a failed write must not fail a drain that already committed.
-  await savePeriodCopy({ id, json: file, sha: newSha }).catch(() => undefined)
+  await savePeriodCopy({ id, json: file, sha: newSha })
   return newSha
 }
 

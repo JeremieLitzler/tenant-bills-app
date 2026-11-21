@@ -23,9 +23,9 @@ import {
   MisconfiguredError,
   NotFoundError,
   putPeriodFile,
-  UnauthorizedError,
 } from '@/sync/periodsApi'
-import { readPeriodCopy, savePeriodCopy } from '@/sync/periodCopies'
+import { loadPeriodWithCopy } from '@/sync/loadPeriod'
+import { savePeriodCopy } from '@/sync/periodCopies'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
 
@@ -82,27 +82,6 @@ async function loadPeriodIds(): Promise<void> {
   }
 }
 
-// The remote file, remembered as the local copy; when the remote cannot be reached (offline, a
-// proxy failure) the last copy instead. A 401, a 404 or a misconfigured proxy still throw.
-async function fetchOrCopy(id: string): Promise<{ json: unknown; sha: string }> {
-  try {
-    const content = await getPeriodFile(id)
-    await savePeriodCopy({ id, ...content }).catch(() => undefined)
-    return content
-  } catch (error) {
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof NotFoundError ||
-      error instanceof MisconfiguredError
-    ) {
-      throw error
-    }
-    const copy = await readPeriodCopy(id).catch(() => undefined)
-    if (!copy) throw error
-    return copy
-  }
-}
-
 // Reads one period file through the proxy and validates it. A 401 ends the session, as for the
 // list. A file breaking a validation rule is still `ready`, flagged read-only through `problems`;
 // JSON that is not shaped like a period file is an `error`.
@@ -113,15 +92,12 @@ async function loadPeriod(id: string): Promise<void> {
   }
   periodEntries.value[id] = entryWith('loading')
   try {
-    const content = await fetchOrCopy(id)
-    const { file, problems } = validatePeriodFile(content.json)
-    if (file && !problems.length) {
-      for (const patch of await useSaveQueue().queuedFor(id)) applyPatch(file, patch)
-    }
+    const { file, problems, sha, fromCopy } = await loadPeriodWithCopy(id)
     periodEntries.value[id] = file
-      ? entryWith('ready', { file, sha: content.sha, problems })
+      ? entryWith('ready', { file, sha, problems })
       : entryWith('error')
     if (!file) notifyLoadFailure('error', fr.period.error)
+    else if (fromCopy) useToasts().notify({ level: 'info', message: fr.period.localCopy })
   } catch (error) {
     if (error instanceof NotFoundError) {
       periodEntries.value[id] = entryWith('not-found')
@@ -151,7 +127,7 @@ async function refreshPeriod(id: string): Promise<void> {
     }
     const content = await getPeriodFile(id)
     const { file, problems } = validatePeriodFile(content.json)
-    if (file) await savePeriodCopy({ id, ...content }).catch(() => undefined)
+    if (file) await savePeriodCopy({ id, ...content })
     if (!file) {
       entry.refresh = 'failed'
       notify({ level: 'error', message: fr.period.refresh.failed })
