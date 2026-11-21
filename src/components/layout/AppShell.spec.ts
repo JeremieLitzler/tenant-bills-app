@@ -58,10 +58,12 @@ describe('AppShell, session end', () => {
     setPendingCounts({ a: 1 })
     await wrapper.vm.$nextTick()
     expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('1 modification en attente')
+    expect(wrapper.get('[data-testid="sync-count"]').text()).toBe('1')
 
     setPendingCounts({ a: 2, b: 1 })
     await wrapper.vm.$nextTick()
     expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('3 modifications en attente')
+    expect(wrapper.get('[data-testid="sync-count"]').text()).toBe('3')
 
     window.dispatchEvent(new Event('offline'))
     await wrapper.vm.$nextTick()
