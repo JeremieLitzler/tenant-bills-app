@@ -238,7 +238,7 @@ The period table (F5) uses shadcn-vue's plain `Table` components (`src/component
 The table has a selection mode only: no cell can be edited. Neither shadcn-vue nor TanStack provides it: it is our own code.
 
 - The table is a single Tab stop (ARIA grid pattern, `aria-activedescendant` on the table's container). Tab leaves it.
-- The arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, computed or not, and the section header rows too; the rows of closed sections are skipped. Left and right do nothing on a header row.
+- The arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, computed or not, and the section header rows too; the rows of closed sections are skipped. On a header row, right opens its section and left closes it.
 - Each section is closed on arrival; the common lines are always shown. A header row holds a button with `aria-expanded` (not a Tab stop). Enter or Space on the selected header row, or a click on its button, opens or closes the section. Closing the section of the selected cell moves the selection to its header row. The open sections live in the URL query `?open=electricity,internet` (unknown names ignored), shared with the form.
 - Enter on the selected cell opens the "Saisie du mois" form of that cell's month, with the cell's field focused and its section open (route `/periods/<period>/months/<month>?field=<line id>`). On a computed cell, which has no field, the form simply opens.
 - Mouse: a click selects a cell, and a double click selects it and opens the form the same way.

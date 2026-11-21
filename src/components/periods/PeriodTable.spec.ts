@@ -230,6 +230,18 @@ describe('period table collapsible sections', () => {
     expect(header(w, 'internet').attributes('aria-expanded')).toBe('true')
   })
 
+  it('opens a section with ArrowRight and closes it with ArrowLeft on its header', async () => {
+    const w = await mountTable('2026-2027', '')
+    await header(w, 'internet').trigger('click')
+    await flushPromises()
+    await key(w, 'ArrowLeft')
+    await flushPromises()
+    expect(header(w, 'internet').attributes('aria-expanded')).toBe('false')
+    await key(w, 'ArrowRight')
+    await flushPromises()
+    expect(header(w, 'internet').attributes('aria-expanded')).toBe('true')
+  })
+
   it('skips the rows of closed sections with the arrows', async () => {
     const w = await mountTable('2026-2027', 'internet')
     const lastCommon = LINES.filter((l) => l.section === 'common').length - 1

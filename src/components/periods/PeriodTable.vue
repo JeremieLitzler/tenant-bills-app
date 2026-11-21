@@ -88,7 +88,6 @@ function select(key: string, colIndex: number) {
 function move([down, right]: [number, number]) {
   const at = visibleRows.value.findIndex((r) => r.key === row.value)
   const next = visibleRows.value[Math.max(0, Math.min(visibleRows.value.length - 1, at + down))]
-  // A header row has no month: left and right do nothing there.
   select(next.key, isHeader(next.key) ? col.value : col.value + right)
 }
 
@@ -125,7 +124,9 @@ function onKeydown(event: KeyboardEvent) {
   const arrow = MOVES[event.key]
   if (arrow) {
     event.preventDefault()
-    move(arrow)
+    // On a header row, right opens the section and left closes it.
+    if (isHeader(row.value) && arrow[1]) setOpen(row.value.slice(8), arrow[1] > 0)
+    else move(arrow)
   } else if (event.key === 'Enter' || event.key === ' ') {
     // Also stops a focused header button from clicking itself on top of this.
     if (isHeader(row.value)) {
