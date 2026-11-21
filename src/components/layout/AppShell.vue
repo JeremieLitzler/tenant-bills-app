@@ -3,10 +3,12 @@ import { watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import ToastStack from '@/components/ToastStack.vue'
+import { usePeriods } from '@/composables/usePeriods'
 import { useSession } from '@/composables/useSession'
 import { fr } from '@/i18n/fr'
 
 const session = useSession()
+const { pendingCount, syncState } = usePeriods()
 const route = useRoute()
 const router = useRouter()
 
@@ -26,6 +28,12 @@ watch(session.isSignedIn, (signedIn) => {
       <RouterLink to="/" class="font-semibold" data-testid="app-name">{{
         fr.shell.appName
       }}</RouterLink>
+      <p class="flex items-center gap-3 text-sm" data-testid="sync-badge">
+        <span data-testid="sync-pending">{{
+          fr.shell.pending.replace('{count}', String(pendingCount))
+        }}</span>
+        <span data-testid="sync-state">{{ fr.shell.syncState[syncState] }}</span>
+      </p>
       <p v-if="session.isSignedIn.value" class="flex items-center gap-3 text-sm">
         <span data-testid="session-login">{{ session.login.value }}</span>
         <button type="button" class="underline" @click="session.signOut()">

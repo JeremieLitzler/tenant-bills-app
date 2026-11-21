@@ -26,11 +26,13 @@ vi.mock('@/sync/periodsApi', () => ({
   MisconfiguredError,
 }))
 
-vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
+vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor, pendingCount: { value: 0 } }))
 
 const enqueue = vi.fn<(patch: unknown) => Promise<void>>()
 const drain = vi.fn<() => Promise<Map<string, string>>>()
-vi.mock('@/composables/useSaveQueue', () => ({ useSaveQueue: () => ({ enqueue, drain }) }))
+vi.mock('@/composables/useSaveQueue', () => ({
+  useSaveQueue: () => ({ enqueue, drain, syncState: { value: 'idle' } }),
+}))
 
 const listPatches = vi.fn<() => Promise<unknown[]>>()
 vi.mock('@/sync/patchQueue', () => ({ listPatches }))
@@ -226,6 +228,36 @@ describe('usePeriod', () => {
     expect(again.status.value).toBe('ready')
     expect(again.file.value?.periodName).toBe('2026-2027')
     expect(getPeriodFile).toHaveBeenCalledTimes(1)
+  })
+
+  it('pulls the remote file quietly when a page opens a held period whose SHA changed', async () => {
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
+    const { usePeriod } = await loadPeriods()
+    await openPeriod(usePeriod)
+    getPeriodSha.mockResolvedValue('s2')
+    getPeriodFile.mockResolvedValue({ json: { ...validPeriodJson(), note: 'other' }, sha: 's2' })
+
+    const again = effectScope().run(() => usePeriod('2026-2027', { checkRemote: true }))!
+
+    await vi.waitFor(() => expect(again.sha.value).toBe('s2'))
+    expect(again.file.value).toMatchObject({ note: 'other' })
+  })
+
+  it('skips that check while edits are queued, and stays silent when it fails', async () => {
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
+    const { usePeriod } = await loadPeriods()
+    await openPeriod(usePeriod)
+    pendingCountFor.mockReturnValue(1)
+    effectScope().run(() => usePeriod('2026-2027', { checkRemote: true }))
+    await Promise.resolve()
+    expect(getPeriodSha).not.toHaveBeenCalled()
+
+    pendingCountFor.mockReturnValue(0)
+    getPeriodSha.mockRejectedValue(new Error('offline'))
+    effectScope().run(() => usePeriod('2026-2027', { checkRemote: true }))
+    await vi.waitFor(() => expect(getPeriodSha).toHaveBeenCalledTimes(1))
+    const { useToasts } = await import('./useToasts')
+    expect(useToasts().toasts.value).toEqual([])
   })
 
   it('does not fetch twice when two pages ask while the first request is pending', async () => {

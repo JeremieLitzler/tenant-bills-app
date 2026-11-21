@@ -46,6 +46,23 @@ describe('AppShell, session end', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/sign-in'))
   })
 
+  it('shows the count of queued edits and the sync state on every route', async () => {
+    const { wrapper } = await mountShell('/')
+    const { setPendingCounts } = await import('@/composables/pendingPatches')
+
+    expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('À jour')
+    expect(wrapper.get('[data-testid="sync-pending"]').text()).toContain('0')
+
+    setPendingCounts({ a: 2, b: 1 })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('[data-testid="sync-pending"]').text()).toContain('3')
+
+    window.dispatchEvent(new Event('offline'))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('Hors ligne')
+    window.dispatchEvent(new Event('online'))
+  })
+
   it('links the app name to the home page', async () => {
     const { wrapper } = await mountShell('/')
     expect(wrapper.get('[data-testid="app-name"]').attributes('href')).toBe('/')

@@ -78,6 +78,28 @@ describe('useSaveQueue', () => {
     expect(useToasts().toasts.value[0].message).toContain("n'ont pas pu être enregistrées")
   })
 
+  it('reports idle, saving, error and offline as the sync state', async () => {
+    const { queue } = await load()
+    expect(queue.syncState.value).toBe('idle')
+
+    let finish: (written: Map<string, string>) => void = () => undefined
+    drainQueue.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)))
+    const draining = queue.drain()
+    expect(queue.syncState.value).toBe('saving')
+    finish(new Map())
+    await draining
+    expect(queue.syncState.value).toBe('idle')
+
+    drainQueue.mockRejectedValueOnce(new DrainError(new Error('500'), new Map()))
+    await queue.drain()
+    expect(queue.syncState.value).toBe('error')
+
+    window.dispatchEvent(new Event('offline'))
+    expect(queue.syncState.value).toBe('offline')
+    window.dispatchEvent(new Event('online'))
+    expect(queue.syncState.value).toBe('error')
+  })
+
   it('ends the session on a 401', async () => {
     const { queue, session } = await load()
     drainQueue.mockRejectedValue(new DrainError(new UnauthorizedError(), new Map()))
