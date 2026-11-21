@@ -214,6 +214,16 @@ describe('MonthForm collapsible sections', () => {
     expect(isOpen(wrapper, 'internet')).toBe(false)
   })
 
+  it('opens a panel with ArrowRight and closes it with ArrowLeft on its summary', async () => {
+    const { wrapper } = await openForm(undefined, '2026-09', undefined, '')
+    await summary(wrapper, 'internet').trigger('keydown', { key: 'ArrowRight' })
+    await flushPromises()
+    expect(isOpen(wrapper, 'internet')).toBe(true)
+    await summary(wrapper, 'internet').trigger('keydown', { key: 'ArrowLeft' })
+    await flushPromises()
+    expect(isOpen(wrapper, 'internet')).toBe(false)
+  })
+
   it('ignores an unknown section name', async () => {
     const { wrapper } = await openForm(undefined, '2026-09', undefined, 'nope,internet')
     expect(isOpen(wrapper, 'internet')).toBe(true)

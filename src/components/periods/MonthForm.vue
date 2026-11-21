@@ -154,6 +154,8 @@ function answer(yes: boolean) {
         v-else
         class="flex cursor-pointer items-center gap-2 font-semibold"
         @click.prevent="setOpen(section.id, !isOpen(section.id))"
+        @keydown.right.prevent="setOpen(section.id, true)"
+        @keydown.left.prevent="setOpen(section.id, false)"
       >
         <ChevronDown
           class="size-4 transition-transform"
