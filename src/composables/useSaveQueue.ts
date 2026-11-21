@@ -65,5 +65,5 @@ async function drain(): Promise<Map<string, string>> {
 }
 
 export function useSaveQueue() {
-  return { lastError: readonly(lastError), syncState, enqueue, drain }
+  return { lastError: readonly(lastError), syncState, syncPendingCounts, enqueue, drain }
 }

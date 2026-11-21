@@ -256,6 +256,8 @@ export function usePeriods() {
     loadPeriodIds,
     createPeriod,
     drainQueued,
+    // Reads the queue in IndexedDB into the counts; App.vue runs it on load, before any drain ends.
+    loadPendingCounts: () => useSaveQueue().syncPendingCounts(),
     pendingCount: readonly(pendingCount),
     syncState: useSaveQueue().syncState,
     pendingCountFor,

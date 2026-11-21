@@ -29,6 +29,22 @@ describe('App', () => {
     expect(shell.find('[data-testid="session-login"]').text()).toBe('JeremieLitzler')
   })
 
+  it('reads the queued edits into the badge on load, even when signed out', async () => {
+    document.cookie = 'gh_login=; Path=/; Max-Age=0'
+    vi.doMock('@/sync/patchQueue', () => ({
+      listPatches: async () => [{ period: 'a' }, { period: 'a' }],
+    }))
+    const { default: App } = await import('./App.vue')
+    const { pendingCount } = await import('@/composables/pendingPatches')
+    const { default: router } = await import('./router')
+    await router.push('/sign-in')
+    await router.isReady()
+
+    mount(App, { global: { plugins: [router] } })
+
+    await vi.waitFor(() => expect(pendingCount.value).toBe(2))
+  })
+
   it('drains the queue on load and when the browser comes back online, only when signed in', async () => {
     const drainQueue = vi.fn(async () => new Map<string, string>())
     vi.doMock('@/sync/drainQueue', async (importOriginal) => ({
