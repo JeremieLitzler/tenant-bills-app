@@ -111,9 +111,9 @@ async function loadPeriod(id: string, checkRemote = false): Promise<void> {
 }
 
 // Pulls the other device's changes: compares the remote SHA with the loaded copy and replaces the
-// copy only when they differ. Never runs while edits are pending, so none is discarded. `quiet` is
-// the check made when a page opens: only a pulled change is told, not "up to date" or a failure.
-async function refreshPeriod(id: string, quiet = false): Promise<void> {
+// copy only when they differ. Never runs while edits are pending, so none is discarded. `silentUnlessUpdated`
+// is the check made when a page opens: only a pulled change is told, not "up to date" or a failure.
+async function refreshPeriod(id: string, silentUnlessUpdated = false): Promise<void> {
   const entry = periodEntries.value[id]
   if (entry?.status !== 'ready' || entry.refresh === 'refreshing' || pendingCountFor(id) > 0) {
     return
@@ -123,7 +123,7 @@ async function refreshPeriod(id: string, quiet = false): Promise<void> {
   try {
     if ((await getPeriodSha(id)) === entry.sha) {
       entry.refresh = 'up-to-date'
-      if (!quiet) notify({ level: 'info', message: fr.period.refresh.upToDate })
+      if (!silentUnlessUpdated) notify({ level: 'info', message: fr.period.refresh.upToDate })
       return
     }
     const content = await getPeriodFile(id)
@@ -131,7 +131,7 @@ async function refreshPeriod(id: string, quiet = false): Promise<void> {
     if (file) await savePeriodCopy({ id, ...content })
     if (!file) {
       entry.refresh = 'failed'
-      if (!quiet) notify({ level: 'error', message: fr.period.refresh.failed })
+      if (!silentUnlessUpdated) notify({ level: 'error', message: fr.period.refresh.failed })
       return
     }
     periodEntries.value[id] = entryWith('ready', {
@@ -143,7 +143,7 @@ async function refreshPeriod(id: string, quiet = false): Promise<void> {
     notify({ level: 'info', message: fr.period.refresh.updated })
   } catch (error) {
     entry.refresh = 'failed'
-    if (!quiet) notify({ level: 'error', message: fr.period.refresh.failed })
+    if (!silentUnlessUpdated) notify({ level: 'error', message: fr.period.refresh.failed })
     expireOnUnauthorized(error)
   }
 }

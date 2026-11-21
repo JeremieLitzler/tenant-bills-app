@@ -5,6 +5,7 @@ import { computed, readonly, ref } from 'vue'
 
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { setPendingCounts } from '@/composables/pendingPatches'
+import { useOnline } from '@/composables/useOnline'
 import { useToasts } from '@/composables/useToasts'
 import type { Patch } from '@/domain/applyPatch'
 import { fr } from '@/i18n/fr'
@@ -17,9 +18,7 @@ const lastError = ref<unknown>()
 
 // Drains running now (a counter: `setCell` and the online event can overlap).
 const draining = ref(0)
-const online = ref(navigator.onLine)
-window.addEventListener('online', () => (online.value = true))
-window.addEventListener('offline', () => (online.value = false))
+const { online } = useOnline()
 
 export type SyncState = 'idle' | 'saving' | 'offline' | 'error'
 
