@@ -2,9 +2,7 @@
 // cell, keyed by `patchKey`, so retyping a cell replaces its queued patch; `seq` keeps the order
 // in which the patches must be applied (a month's initialization before its edits).
 import { type Patch, patchKey } from '@/domain/applyPatch'
-
-const DB_NAME = 'tenant-bills'
-const STORE = 'patch-queue'
+import { QUEUE_STORE, request, withStore as withQueueStore } from '@/sync/localDb'
 
 interface QueuedPatch {
   key: string
@@ -12,30 +10,8 @@ interface QueuedPatch {
   patch: Patch
 }
 
-function open(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1)
-    request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: 'key' })
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
-  })
-}
-
-function request<T>(req: IDBRequest<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-async function withStore<T>(run: (store: IDBObjectStore) => Promise<T>): Promise<T> {
-  const db = await open()
-  try {
-    return await run(db.transaction(STORE, 'readwrite').objectStore(STORE))
-  } finally {
-    db.close()
-  }
-}
+const withStore = <T>(run: (store: IDBObjectStore) => Promise<T>) =>
+  withQueueStore(QUEUE_STORE, run)
 
 export async function enqueuePatch(patch: Patch): Promise<void> {
   await withStore(async (store) => {

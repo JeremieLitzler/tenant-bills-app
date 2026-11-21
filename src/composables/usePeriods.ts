@@ -23,7 +23,9 @@ import {
   MisconfiguredError,
   NotFoundError,
   putPeriodFile,
+  UnauthorizedError,
 } from '@/sync/periodsApi'
+import { readPeriodCopy, savePeriodCopy } from '@/sync/periodCopies'
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
 
@@ -80,6 +82,27 @@ async function loadPeriodIds(): Promise<void> {
   }
 }
 
+// The remote file, remembered as the local copy; when the remote cannot be reached (offline, a
+// proxy failure) the last copy instead. A 401, a 404 or a misconfigured proxy still throw.
+async function fetchOrCopy(id: string): Promise<{ json: unknown; sha: string }> {
+  try {
+    const content = await getPeriodFile(id)
+    await savePeriodCopy({ id, ...content }).catch(() => undefined)
+    return content
+  } catch (error) {
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof NotFoundError ||
+      error instanceof MisconfiguredError
+    ) {
+      throw error
+    }
+    const copy = await readPeriodCopy(id).catch(() => undefined)
+    if (!copy) throw error
+    return copy
+  }
+}
+
 // Reads one period file through the proxy and validates it. A 401 ends the session, as for the
 // list. A file breaking a validation rule is still `ready`, flagged read-only through `problems`;
 // JSON that is not shaped like a period file is an `error`.
@@ -90,8 +113,11 @@ async function loadPeriod(id: string): Promise<void> {
   }
   periodEntries.value[id] = entryWith('loading')
   try {
-    const content = await getPeriodFile(id)
+    const content = await fetchOrCopy(id)
     const { file, problems } = validatePeriodFile(content.json)
+    if (file && !problems.length) {
+      for (const patch of await useSaveQueue().queuedFor(id)) applyPatch(file, patch)
+    }
     periodEntries.value[id] = file
       ? entryWith('ready', { file, sha: content.sha, problems })
       : entryWith('error')
@@ -125,6 +151,7 @@ async function refreshPeriod(id: string): Promise<void> {
     }
     const content = await getPeriodFile(id)
     const { file, problems } = validatePeriodFile(content.json)
+    if (file) await savePeriodCopy({ id, ...content }).catch(() => undefined)
     if (!file) {
       entry.refresh = 'failed'
       notify({ level: 'error', message: fr.period.refresh.failed })
@@ -182,10 +209,15 @@ async function setCell(id: string, month: string | null, field: string, value: u
     throw new Error(`The period ${id} cannot be edited: it is closed (${entry.file.closedOn})`)
   }
   const patch = { period: id, month, field, value }
-  const saveQueue = useSaveQueue()
-  await saveQueue.enqueue(patch)
+  await useSaveQueue().enqueue(patch)
   applyPatch(entry.file, patch)
-  for (const [periodId, sha] of await saveQueue.drain()) {
+  await drainQueued()
+}
+
+// Sends the queue and gives each written period its new SHA. Run by `setCell`, on app load and when
+// the browser comes back online (App.vue); the sign-in trigger is #51's.
+async function drainQueued(): Promise<void> {
+  for (const [periodId, sha] of await useSaveQueue().drain()) {
     const written = periodEntries.value[periodId]
     if (written) written.sha = sha
   }
@@ -245,6 +277,7 @@ export function usePeriods() {
     listStatus: readonly(listStatus),
     loadPeriodIds,
     createPeriod,
+    drainQueued,
     pendingCountFor,
   }
 }

@@ -3,6 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { validPeriodJson } from '../../../../../tests/helpers/periodFile'
 
+// The local stores are IndexedDB, which `flushPromises` does not wait for (src/sync/ has its own specs).
+vi.mock('@/sync/periodCopies', () => ({
+  savePeriodCopy: async () => {},
+  readPeriodCopy: async () => undefined,
+}))
+vi.mock('@/sync/patchQueue', () => ({
+  enqueuePatch: async () => {},
+  listPatches: async () => [],
+}))
+
 const getPeriodFile = vi.fn()
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({

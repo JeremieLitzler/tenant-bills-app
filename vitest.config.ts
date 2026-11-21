@@ -26,6 +26,7 @@ export default mergeConfig(
           test: {
             name: 'dom',
             environment: 'happy-dom',
+            setupFiles: ['fake-indexeddb/auto'], // the period state reads the local store
             include: ['src/**/*.spec.ts'],
             exclude: vueFreeFolders.map((folder) => `${folder}/**`),
           },

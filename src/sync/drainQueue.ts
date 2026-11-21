@@ -6,6 +6,7 @@ import { commitMessage } from '@/domain/commitMessage'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { validatePeriodFile } from '@/domain/validatePeriodFile'
 import { listPatches, removePatches } from '@/sync/patchQueue'
+import { savePeriodCopy } from '@/sync/periodCopies'
 import { getPeriodFile, putPeriodFile, UnauthorizedError } from '@/sync/periodsApi'
 
 // The first failure of a drain, with the new SHA of every period written before it, so the loaded
@@ -29,6 +30,8 @@ async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
   for (const patch of patches) applyPatch(file, patch)
   const newSha = await putPeriodFile(id, serializePeriodFile(file), sha, commitMessage(id, patches))
   await removePatches(patches)
+  // The copy is a cache: a failed write must not fail a drain that already committed.
+  await savePeriodCopy({ id, json: file, sha: newSha }).catch(() => undefined)
   return newSha
 }
 

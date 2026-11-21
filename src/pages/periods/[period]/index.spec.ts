@@ -18,7 +18,17 @@ vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   listPeriodIds,
 }))
 
-vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
+vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor, setPendingCounts: () => {} }))
+
+// The local stores are IndexedDB, which `flushPromises` does not wait for (src/sync/ has its own specs).
+vi.mock('@/sync/periodCopies', () => ({
+  savePeriodCopy: async () => {},
+  readPeriodCopy: async () => undefined,
+}))
+vi.mock('@/sync/patchQueue', () => ({
+  enqueuePatch: async () => {},
+  listPatches: async () => [],
+}))
 
 function periodJson(overrides: Record<string, unknown> = {}) {
   return { ...validPeriodJson(), ...overrides }
