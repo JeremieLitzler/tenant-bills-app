@@ -147,4 +147,49 @@ describe('drainQueue', () => {
     expect(remoteFile().months[0].internet.billedAmount).toBe(22)
     expect(await listPatches()).toEqual([failing])
   })
+
+  it('keeps every patch queued on a network error', async () => {
+    await enqueuePatch(cell('internet.billedAmount', 30))
+    await enqueuePatch(otherPeriod('internet.billedAmount', 1))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    await expect(drainQueue()).rejects.toThrow()
+    expect(await listPatches()).toHaveLength(2)
+  })
+
+  it('does not start a second PUT when called during a drain', async () => {
+    await enqueuePatch(cell('internet.billedAmount', 30))
+    const first = drainQueue()
+    const second = drainQueue()
+    expect(second).toBe(first)
+    await first
+    expect(commits).toHaveLength(1)
+  })
+
+  it('sends a patch added during a drain in the next PUT, once the first ends', async () => {
+    await enqueuePatch(cell('internet.billedAmount', 30))
+    const github = globalThis.fetch
+    let added = false
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (init?.method && !added) {
+          added = true
+          await enqueuePatch(cell('electricity.mainBase', 5))
+        }
+        return github(url, init)
+      }),
+    )
+    await drainQueue()
+    expect(commits).toEqual([
+      'data(2026-2027): 1 edit in 2026-09',
+      'data(2026-2027): 1 edit in 2026-09',
+    ])
+    expect(remoteFile().months[0].electricity).toEqual({ mainBase: 5 })
+    expect(await listPatches()).toEqual([])
+  })
 })

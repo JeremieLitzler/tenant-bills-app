@@ -14,6 +14,10 @@ vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   getPeriodFile,
 }))
 vi.mock('@/sync/patchQueue', () => ({ enqueuePatch, listPatches: async () => [] }))
+vi.mock('@/sync/periodCopies', () => ({
+  savePeriodCopy: async () => {},
+  readPeriodCopy: async () => undefined,
+}))
 vi.mock('@/sync/drainQueue', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/drainQueue')>()),
   drainQueue: async () => new Map(),

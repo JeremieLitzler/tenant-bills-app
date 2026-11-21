@@ -30,7 +30,14 @@ vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor }))
 
 const enqueue = vi.fn<(patch: unknown) => Promise<void>>()
 const drain = vi.fn<() => Promise<Map<string, string>>>()
-vi.mock('@/composables/useSaveQueue', () => ({ useSaveQueue: () => ({ enqueue, drain }) }))
+const queuedFor = vi.fn<(id: string) => Promise<unknown[]>>()
+vi.mock('@/composables/useSaveQueue', () => ({
+  useSaveQueue: () => ({ enqueue, drain, queuedFor }),
+}))
+
+const readPeriodCopy = vi.fn<(id: string) => Promise<unknown>>()
+const savePeriodCopy = vi.fn<(copy: unknown) => Promise<void>>()
+vi.mock('@/sync/periodCopies', () => ({ readPeriodCopy, savePeriodCopy }))
 
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
@@ -50,6 +57,12 @@ beforeEach(() => {
   enqueue.mockResolvedValue()
   drain.mockReset()
   drain.mockResolvedValue(new Map())
+  queuedFor.mockReset()
+  queuedFor.mockResolvedValue([])
+  readPeriodCopy.mockReset()
+  readPeriodCopy.mockResolvedValue(undefined)
+  savePeriodCopy.mockReset()
+  savePeriodCopy.mockResolvedValue()
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
 })
 
@@ -182,6 +195,43 @@ describe('usePeriod', () => {
     expect(period.isReadOnly.value).toBe(true)
     expect(period.problems.value).toEqual(['schema-version'])
     expect(period.file.value).toBeDefined()
+  })
+
+  it('shows the last local copy with the queued edits when the remote is unreachable', async () => {
+    getPeriodFile.mockRejectedValue(new TypeError('Failed to fetch'))
+    readPeriodCopy.mockResolvedValue({ id: '2026-2027', json: validPeriodJson(), sha: 'copy-sha' })
+    queuedFor.mockResolvedValue([
+      { period: '2026-2027', month: '2026-09', field: 'internet.billedAmount', value: 42 },
+    ])
+    const { usePeriod } = await loadPeriods()
+
+    const period = await openPeriod(usePeriod)
+
+    expect(period.status.value).toBe('ready')
+    expect(period.sha.value).toBe('copy-sha')
+    expect(period.file.value?.months[0].internet.billedAmount).toBe(42)
+  })
+
+  it('is an error offline when there is no local copy yet', async () => {
+    getPeriodFile.mockRejectedValue(new TypeError('Failed to fetch'))
+    const { usePeriod } = await loadPeriods()
+
+    expect((await openPeriod(usePeriod)).status.value).toBe('error')
+  })
+
+  it('remembers the remote file as the local copy, and applies the queued edits to the loaded one', async () => {
+    getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 'sha-1' })
+    queuedFor.mockResolvedValue([
+      { period: '2026-2027', month: '2026-09', field: 'internet.billedAmount', value: 7 },
+    ])
+    const { usePeriod } = await loadPeriods()
+
+    const period = await openPeriod(usePeriod)
+
+    expect(savePeriodCopy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: '2026-2027', sha: 'sha-1' }),
+    )
+    expect(period.file.value?.months[0].internet.billedAmount).toBe(7)
   })
 
   it('does not fetch a loaded period again when the page is opened again', async () => {
