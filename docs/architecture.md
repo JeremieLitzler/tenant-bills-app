@@ -134,6 +134,7 @@ Settled in `docs/implementation-feedbacks/2026-11-18-issue-48/` (issue #48). The
 ### Local copies (#49)
 
 IndexedDB (`tenant-bills`, version 2, `src/sync/localDb.ts`) holds two stores: the patch queue and `period-copies`, the last remote file of each period with its SHA. `loadPeriodWithCopy(id)` (`src/sync/loadPeriod.ts`) reads the remote file and saves it as the copy; when the read fails for any reason except 401, 404 and a misconfigured proxy (offline, a 5xx), it returns the last copy instead, and `usePeriods` tells the landlord with an info toast ("Copie locale affichée."). Either way the queued patches are applied on top, so a reload shows unsaved edits; a file breaking a validation rule is read-only and gets no patches. A drain and "Rafraîchir" refresh the copy. The copy store is a cache: its failures are ignored. The periods list has no local copy (a separate grilling).
+
 - Until F5 (#32) builds the table, the period page exposes `window.setCell(month, field, value)` in development only, to try an edit from the console.
 
 ### Data proxy: `netlify/functions/github-api-proxy`
