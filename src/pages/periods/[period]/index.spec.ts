@@ -18,7 +18,11 @@ vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   listPeriodIds,
 }))
 
-vi.mock('@/composables/pendingPatches', () => ({ pendingCountFor, setPendingCounts: () => {} }))
+vi.mock('@/composables/pendingPatches', () => ({
+  pendingCountFor,
+  pendingCount: { value: 0 },
+  setPendingCounts: () => {},
+}))
 
 // The local stores are IndexedDB, which `flushPromises` does not wait for (src/sync/ has its own specs).
 vi.mock('@/sync/periodCopies', () => ({
@@ -85,8 +89,9 @@ describe('period page', () => {
     expect(window.setCell).toBeUndefined()
   })
 
-  it('does not fetch the file again when going to another page and back', async () => {
+  it('checks the remote SHA, and does not fetch the file again when it is unchanged, on coming back', async () => {
     getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    getPeriodSha.mockResolvedValue('s')
     const { router, wrapper } = await openPeriodPage()
     await flushPromises()
 
@@ -96,6 +101,7 @@ describe('period page', () => {
     await flushPromises()
 
     expect(wrapper.get('h1').text()).toBe('2026-2027')
+    expect(getPeriodSha).toHaveBeenCalledTimes(1)
     expect(getPeriodFile).toHaveBeenCalledTimes(1)
   })
 

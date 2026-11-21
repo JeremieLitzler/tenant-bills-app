@@ -1,12 +1,11 @@
 // Period state, a singleton composable (docs/architecture.md, "State"). The module of the loaded
 // periods: the list, one period's loading and refresh, and `setCell`, which composes the loaded copy
 // with the save queue (src/composables/useSaveQueue.ts). It imports the session state, never the
-// reverse. Concerns that will grow with #50 (sync status) and #51 (sign-in drain) belong in
-// useSaveQueue.ts, not here.
+// reverse. Concerns that will grow with #51 (sign-in drain) belong in useSaveQueue.ts, not here.
 import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
-import { pendingCountFor } from '@/composables/pendingPatches'
+import { pendingCount, pendingCountFor } from '@/composables/pendingPatches'
 import { useSaveQueue } from '@/composables/useSaveQueue'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
@@ -85,8 +84,9 @@ async function loadPeriodIds(): Promise<void> {
 // Reads one period file through the proxy and validates it. A 401 ends the session, as for the
 // list. A file breaking a validation rule is still `ready`, flagged read-only through `problems`;
 // JSON that is not shaped like a period file is an `error`.
-async function loadPeriod(id: string): Promise<void> {
+async function loadPeriod(id: string, checkRemote = false): Promise<void> {
   const currentStatus = periodEntries.value[id]?.status
+  if (currentStatus === 'ready' && checkRemote) await refreshPeriod(id, true)
   if (currentStatus === 'loading' || currentStatus === 'ready') {
     return
   }
@@ -111,8 +111,9 @@ async function loadPeriod(id: string): Promise<void> {
 }
 
 // Pulls the other device's changes: compares the remote SHA with the loaded copy and replaces the
-// copy only when they differ. Never runs while edits are pending, so none is discarded.
-async function refreshPeriod(id: string): Promise<void> {
+// copy only when they differ. Never runs while edits are pending, so none is discarded. `quiet` is
+// the check made when a page opens: only a pulled change is told, not "up to date" or a failure.
+async function refreshPeriod(id: string, quiet = false): Promise<void> {
   const entry = periodEntries.value[id]
   if (entry?.status !== 'ready' || entry.refresh === 'refreshing' || pendingCountFor(id) > 0) {
     return
@@ -122,7 +123,7 @@ async function refreshPeriod(id: string): Promise<void> {
   try {
     if ((await getPeriodSha(id)) === entry.sha) {
       entry.refresh = 'up-to-date'
-      notify({ level: 'info', message: fr.period.refresh.upToDate })
+      if (!quiet) notify({ level: 'info', message: fr.period.refresh.upToDate })
       return
     }
     const content = await getPeriodFile(id)
@@ -130,7 +131,7 @@ async function refreshPeriod(id: string): Promise<void> {
     if (file) await savePeriodCopy({ id, ...content })
     if (!file) {
       entry.refresh = 'failed'
-      notify({ level: 'error', message: fr.period.refresh.failed })
+      if (!quiet) notify({ level: 'error', message: fr.period.refresh.failed })
       return
     }
     periodEntries.value[id] = entryWith('ready', {
@@ -142,7 +143,7 @@ async function refreshPeriod(id: string): Promise<void> {
     notify({ level: 'info', message: fr.period.refresh.updated })
   } catch (error) {
     entry.refresh = 'failed'
-    notify({ level: 'error', message: fr.period.refresh.failed })
+    if (!quiet) notify({ level: 'error', message: fr.period.refresh.failed })
     expireOnUnauthorized(error)
   }
 }
@@ -200,12 +201,13 @@ async function drainQueued(): Promise<void> {
 }
 
 // One period, called by a page on setup with its route param. Loads the file when it is not held
-// yet and again when the identifier changes. `file` is read-only: every edit goes through the
+// yet and again when the identifier changes. A page passes `checkRemote` to also pull the other
+// device's changes when it opens a period already held (the SHA check of every load). `file` is read-only: every edit goes through the
 // patch queue (ADR 0010), never into the object.
-export function usePeriod(id: MaybeRefOrGetter<string>) {
+export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } = {}) {
   watch(
     () => toValue(id),
-    (value) => void loadPeriod(value),
+    (value) => void loadPeriod(value, checkRemote),
     { immediate: true },
   )
   const periodEntry = computed(() => periodEntries.value[toValue(id)])
@@ -254,6 +256,8 @@ export function usePeriods() {
     loadPeriodIds,
     createPeriod,
     drainQueued,
+    pendingCount: readonly(pendingCount),
+    syncState: useSaveQueue().syncState,
     pendingCountFor,
   }
 }

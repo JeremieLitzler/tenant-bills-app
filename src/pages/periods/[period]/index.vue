@@ -10,7 +10,7 @@ import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
 const route = useRoute('/periods/[period]/')
-const period = usePeriod(() => route.params.period)
+const period = usePeriod(() => route.params.period, { checkRemote: true })
 
 // Demo of #48 until F5 (#32) builds the table: `setCell('2026-09', 'internet.billedAmount', 21)`
 // in the browser console edits the open period. Development only; remove with the table's arrival.

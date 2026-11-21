@@ -95,7 +95,7 @@ usePeriods(): {
 }
 
 // One period, called by a page on setup with the [period] route param.
-usePeriod(id: MaybeRefOrGetter<string>): {
+usePeriod(id: MaybeRefOrGetter<string>, options?: { checkRemote?: boolean }): {
   status: Readonly<Ref<'loading' | 'ready' | 'not-found' | 'error' | 'misconfigured'>>
   file: Readonly<Ref<ReadonlyPeriodFile | undefined>>  // local copy, queued patches applied (F3); read-only in code
   sha: Readonly<Ref<string | undefined>>              // kept for later writes
@@ -114,7 +114,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 }
 ```
 
-- Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName` or `months`) is an `error`. A `ready` period is never fetched again; a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period]/index.vue`, a placeholder until F5 (#32).
+- Issue #45 built the loading half of `usePeriod(id)`: `status`, `file`, `sha` (kept for later writes), `problems` and `isReadOnly`. The rest of the interface above arrives with F3 (#30). A file breaking a rule of "Validation" in `docs/period-file.md` (`src/domain/validatePeriodFile.ts`) is `ready` with `isReadOnly` true; JSON not shaped like a period file (no `periodName` or `months`) is an `error`. A `ready` period is not fetched again, but a page passing `checkRemote` (the period and month pages) compares the remote SHA with the held one each time it opens the period, quietly, and pulls the file when they differ, unless edits are queued for it (#50); a `not-found` or `error` one is asked again on the next opening. The page is `src/pages/periods/[period]/index.vue`, a placeholder until F5 (#32).
 - `createPeriod` needs the network (decided in #54): it sends the creation `PUT` at once and nothing is queued, so offline it rejects, and an existing period is refused (GitHub's 422 becomes `PeriodExistsError`, the remote file untouched). Creation queued as a whole-file create is left to a grilling under F9 (#36).
 - Every period loaded so far is kept, keyed by its identifier, for the browser session. Periods are loaded lazily: "Estimer les relevés" and `createPeriod` load the previous period themselves.
 - The computed figures are computed once per period, in a `computed()` over `src/domain/`. The table, the form and the settlement view only read them.
@@ -128,7 +128,7 @@ usePeriod(id: MaybeRefOrGetter<string>): {
 
 Settled in `docs/implementation-feedbacks/2026-11-18-issue-48/` (issue #48). The queue, the drain, the pending-count mirror (`pendingPatches.ts`) and the last error live here, apart from the loaded periods, because they change for their own reasons (#50 sync status, #51 sign-in drain, #52 409).
 
-- `enqueue(patch)` stores the patch in IndexedDB and refreshes the per-period counts. `drain()` calls `drainQueue()` and resolves with the new SHA of every period written, even when another period failed. `lastError` holds the error of the last failed drain and is cleared by the next successful one; it is also written with `console.error`. A 401 ends the session.
+- `enqueue(patch)` stores the patch in IndexedDB and refreshes the per-period counts. `drain()` calls `drainQueue()` and resolves with the new SHA of every period written, even when another period failed. `lastError` holds the error of the last failed drain and is cleared by the next successful one; it is also written with `console.error`. `syncState` (`offline` when the browser is offline, else `saving` during a drain, else `error` while `lastError` is set, else `idle`) is read through `usePeriods().syncState` by the app shell badge. A 401 ends the session.
 - It never touches the loaded periods. `usePeriod(id).setCell` is the only door for a consumer that edits: it refuses an edit when the period cannot be edited, enqueues the patch, applies it to the loaded copy, drains, and writes the new SHAs into the entries. Consumers never orchestrate the queue themselves; the one exception is `App.vue`, which calls `usePeriods().drainQueued()` on app load and when the browser comes back `online`, only when signed in (the sign-in trigger is #51's).
 
 ### Local copies (#49)

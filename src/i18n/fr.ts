@@ -22,6 +22,13 @@ export const fr = {
   shell: {
     appName: 'Charges de location',
     signOut: 'Se déconnecter',
+    pending: '{count} modification(s) en attente',
+    syncState: {
+      idle: 'À jour',
+      saving: 'Enregistrement…',
+      offline: 'Hors ligne',
+      error: "Échec de l'enregistrement",
+    },
   },
   periods: {
     title: 'Périodes',

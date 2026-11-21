@@ -1,8 +1,13 @@
 // Edits not yet saved, per period: an in-memory mirror of the IndexedDB queue (src/sync/patchQueue.ts)
 // so the count is readable synchronously. "Rafraîchir" is gated on it (src/composables/usePeriods.ts).
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const counts = ref<Record<string, number>>({})
+
+// Every queued edit, all periods together: the badge of the app shell.
+export const pendingCount = computed(() =>
+  Object.values(counts.value).reduce((sum, count) => sum + count, 0),
+)
 
 export function pendingCountFor(id: string): number {
   return counts.value[id] ?? 0
