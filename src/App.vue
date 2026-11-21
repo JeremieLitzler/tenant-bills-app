@@ -6,7 +6,7 @@ import AppShell from '@/components/layout/AppShell.vue'
 import { usePeriods } from '@/composables/usePeriods'
 import { useSession } from '@/composables/useSession'
 
-const { drainQueued } = usePeriods()
+const { drainQueued, loadPendingCounts } = usePeriods()
 const { isSignedIn } = useSession()
 
 // App load and the browser coming back online drain the queue (a signed-out drain would only 401).
@@ -14,6 +14,7 @@ const drainIfSignedIn = () => {
   if (isSignedIn.value) void drainQueued()
 }
 onMounted(() => {
+  void loadPendingCounts()
   drainIfSignedIn()
   window.addEventListener('online', drainIfSignedIn)
 })
