@@ -7,7 +7,7 @@ import { loadPeriodWithCopy } from '@/sync/loadPeriod'
 import { enqueuePatch } from '@/sync/patchQueue'
 import { readPeriodCopy } from '@/sync/periodCopies'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 
 const proxy = (status: number, body: unknown = {}) =>
   vi.stubGlobal(
