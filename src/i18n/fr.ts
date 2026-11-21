@@ -51,6 +51,8 @@ export const fr = {
       notFound: 'Ce mois ne fait pas partie de la période.',
       decreasingIndex: "L'index est inférieur à l'index précédent.",
       invalid: 'Valeur invalide, elle ne sera pas enregistrée.',
+      sectionComplete: 'Section complète',
+      sectionWarning: 'Section avec un avertissement',
     },
     applyDialog: {
       inherited: 'Appliquer « {line} » = {value} à tous les mois suivants ?',

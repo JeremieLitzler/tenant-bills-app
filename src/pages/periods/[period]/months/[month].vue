@@ -21,7 +21,10 @@ const period = usePeriod(() => route.params.period)
   <div v-else-if="period.status.value === 'error' || period.status.value === 'misconfigured'">
     <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
   </div>
-  <MonthForm v-else :period-id="route.params.period" :month="route.params.month"
+  <MonthForm
+    v-else
+    :period-id="route.params.period"
+    :month="route.params.month"
     :field="typeof route.query.field === 'string' ? route.query.field : undefined"
   />
 </template>

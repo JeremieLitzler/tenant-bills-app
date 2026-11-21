@@ -154,7 +154,9 @@ describe('period page', () => {
 
     async function openTable(json: unknown = tableJson()) {
       getPeriodFile.mockResolvedValue({ json, sha: 's' })
-      const { wrapper } = await openPeriodPage()
+      const { wrapper } = await openPeriodPage(
+        '/periods/2026-2027?open=waterConsumption,waterTreatment,waterSoftener,electricity,internet,heatPumpMaintenance',
+      )
       await flushPromises()
       // The cells of a line, one per month.
       const cells = (line: string) => wrapper.findAll(`[data-testid="line-${line}"] td`)
@@ -164,7 +166,8 @@ describe('period page', () => {
     it('shows a header row per section and the French labels of the lines', async () => {
       const { wrapper } = await openTable()
 
-      expect(wrapper.get('[data-testid="section-common"]').text()).toBe('Commun')
+      // The common lines are always shown: they have no header row.
+      expect(wrapper.find('[data-testid="section-common"]').exists()).toBe(false)
       expect(wrapper.get('[data-testid="section-waterConsumption"]').text()).toBe(
         "Consommation d'eau",
       )
