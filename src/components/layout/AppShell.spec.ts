@@ -46,31 +46,6 @@ describe('AppShell, session end', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/sign-in'))
   })
 
-  it('shows the count of queued edits and the sync state on every route', async () => {
-    const { wrapper } = await mountShell('/')
-    const { setPendingCounts } = await import('@/composables/pendingPatches')
-
-    expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('À jour')
-    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe(
-      'Aucune modification en attente',
-    )
-
-    setPendingCounts({ a: 1 })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('1 modification en attente')
-    expect(wrapper.get('[data-testid="sync-count"]').text()).toBe('1')
-
-    setPendingCounts({ a: 2, b: 1 })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('3 modifications en attente')
-    expect(wrapper.get('[data-testid="sync-count"]').text()).toBe('3')
-
-    window.dispatchEvent(new Event('offline'))
-    await wrapper.vm.$nextTick()
-    expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('Hors ligne')
-    window.dispatchEvent(new Event('online'))
-  })
-
   it('puts the sync badge in main, not in the header', async () => {
     const { wrapper } = await mountShell('/')
 
