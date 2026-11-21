@@ -22,7 +22,10 @@ export const fr = {
   shell: {
     appName: 'Charges de location',
     signOut: 'Se déconnecter',
-    pending: '{count} modification(s) en attente',
+    pending: (count: number) =>
+      count === 0
+        ? 'Aucune modification en attente'
+        : `${count} modification${count > 1 ? 's' : ''} en attente`,
     syncState: {
       idle: 'À jour',
       saving: 'Enregistrement…',

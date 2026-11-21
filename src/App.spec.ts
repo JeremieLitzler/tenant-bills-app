@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('App', () => {
@@ -59,11 +60,16 @@ describe('App', () => {
 
     const wrapper = mount(App, { global: { plugins: [router] } })
     await vi.waitFor(() => expect(drainQueue).toHaveBeenCalledTimes(1))
+    window.dispatchEvent(new Event('offline'))
+    await nextTick()
     window.dispatchEvent(new Event('online'))
     await vi.waitFor(() => expect(drainQueue).toHaveBeenCalledTimes(2))
 
     wrapper.unmount()
+    window.dispatchEvent(new Event('offline'))
+    await nextTick()
     window.dispatchEvent(new Event('online'))
+    await nextTick()
     expect(drainQueue).toHaveBeenCalledTimes(2)
   })
 })

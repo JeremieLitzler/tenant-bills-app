@@ -230,7 +230,7 @@ describe('usePeriod', () => {
     expect(getPeriodFile).toHaveBeenCalledTimes(1)
   })
 
-  it('pulls the remote file quietly when a page opens a held period whose SHA changed', async () => {
+  it('pulls the remote file silently when a page opens a held period whose SHA changed', async () => {
     getPeriodFile.mockResolvedValue({ json: validPeriodJson(), sha: 's' })
     const { usePeriod } = await loadPeriods()
     await openPeriod(usePeriod)

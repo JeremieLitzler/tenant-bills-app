@@ -51,16 +51,29 @@ describe('AppShell, session end', () => {
     const { setPendingCounts } = await import('@/composables/pendingPatches')
 
     expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('À jour')
-    expect(wrapper.get('[data-testid="sync-pending"]').text()).toContain('0')
+    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe(
+      'Aucune modification en attente',
+    )
+
+    setPendingCounts({ a: 1 })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('1 modification en attente')
 
     setPendingCounts({ a: 2, b: 1 })
     await wrapper.vm.$nextTick()
-    expect(wrapper.get('[data-testid="sync-pending"]').text()).toContain('3')
+    expect(wrapper.get('[data-testid="sync-pending"]').text()).toBe('3 modifications en attente')
 
     window.dispatchEvent(new Event('offline'))
     await wrapper.vm.$nextTick()
     expect(wrapper.get('[data-testid="sync-state"]').text()).toBe('Hors ligne')
     window.dispatchEvent(new Event('online'))
+  })
+
+  it('puts the sync badge in main, not in the header', async () => {
+    const { wrapper } = await mountShell('/')
+
+    expect(wrapper.find('main [data-testid="sync-badge"]').exists()).toBe(true)
+    expect(wrapper.find('header [data-testid="sync-badge"]').exists()).toBe(false)
   })
 
   it('links the app name to the home page', async () => {
