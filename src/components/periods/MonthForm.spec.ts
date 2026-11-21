@@ -24,6 +24,8 @@ async function openForm(
   edit: (json: ReturnType<typeof validPeriodJson>) => void = () => {},
   month = '2026-09',
   focusField?: string,
+  open = 'waterConsumption,waterTreatment,waterSoftener,electricity,internet,heatPumpMaintenance',
+  periodId = '2026-2027',
 ) {
   const json = validPeriodJson()
   Object.assign(json.months[0].waterConsumption, { mainMeterPrevious: 530000, mainMeter: 533117 })
@@ -34,8 +36,9 @@ async function openForm(
     history: createMemoryHistory(),
     routes: [{ path: '/periods/:period/months/:month', component: { template: '<i />' } }],
   })
+  await router.push({ path: `/periods/${periodId}/months/${month}`, query: open ? { open } : {} })
   const wrapper = mount(MonthForm, {
-    props: { periodId: '2026-2027', month, field: focusField },
+    props: { periodId, month, field: focusField },
     global: { plugins: [router] },
     attachTo: document.body,
   })
@@ -126,7 +129,10 @@ describe('Saisie du mois', () => {
     await wrapper.get('[data-testid="month-picker"]').setValue('2026-10')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/periods/2026-2027/months/2026-10')
-    expect(wrapper.get('[data-testid="to-table"]').attributes('href')).toBe('/periods/2026-2027')
+    // The open sections travel back with the link.
+    expect(wrapper.get('[data-testid="to-table"]').attributes('href')).toMatch(
+      /^\/periods\/2026-2027\?open=waterConsumption,/,
+    )
   })
 
   it('says so when the month is not in the period', async () => {
@@ -180,5 +186,73 @@ describe('MonthForm field focus', () => {
   it('focuses the requested field on arrival', async () => {
     const { field } = await openForm(undefined, '2026-09', 'common.landlordOccupants')
     expect(document.activeElement).toBe(field('common.landlordOccupants').element)
+  })
+})
+
+describe('MonthForm collapsible sections', () => {
+  const summary = (w: Awaited<ReturnType<typeof openForm>>['wrapper'], id: string) =>
+    w.get(`[data-testid="panel-${id}"] summary`)
+  const isOpen = (w: Awaited<ReturnType<typeof openForm>>['wrapper'], id: string) =>
+    (w.get(`[data-testid="panel-${id}"]`).element as HTMLDetailsElement).open
+
+  it('has every panel closed with nothing in the URL, the common fields always shown', async () => {
+    const { wrapper } = await openForm(undefined, '2026-09', undefined, '')
+    expect(isOpen(wrapper, 'internet')).toBe(false)
+    expect(wrapper.get('[data-testid="panel-common"]').element.tagName).toBe('FIELDSET')
+    expect(wrapper.find('[data-testid="panel-common"] summary').exists()).toBe(false)
+  })
+
+  it('opens and closes a panel from its summary and writes ?open=', async () => {
+    const { wrapper, router } = await openForm(undefined, '2026-09', undefined, '')
+    await summary(wrapper, 'internet').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.query.open).toBe('internet')
+    expect(isOpen(wrapper, 'internet')).toBe(true)
+    await summary(wrapper, 'internet').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.query.open).toBeUndefined()
+    expect(isOpen(wrapper, 'internet')).toBe(false)
+  })
+
+  it('ignores an unknown section name', async () => {
+    const { wrapper } = await openForm(undefined, '2026-09', undefined, 'nope,internet')
+    expect(isOpen(wrapper, 'internet')).toBe(true)
+    expect(isOpen(wrapper, 'electricity')).toBe(false)
+  })
+
+  describe('icons', () => {
+    const status = (w: Awaited<ReturnType<typeof openForm>>['wrapper'], id: string) =>
+      w.find(`[data-testid="status-${id}"]`)
+
+    // The period state outlives a test: the fixture edits go through the form, on a fresh period.
+    it('shows a green check on a complete section, nothing on an incomplete one', async () => {
+      const { wrapper, fill } = await openForm(undefined, '2026-09', undefined, undefined, 'fresh')
+      expect(status(wrapper, 'internet').exists()).toBe(false)
+      await fill('internet.billedAmount', '30')
+      expect(status(wrapper, 'internet').attributes('aria-label')).toBe('Section complète')
+      expect(status(wrapper, 'heatPumpMaintenance').exists()).toBe(false)
+    })
+
+    it('shows the warning icon, replacing the check, on a section with a decreasing index', async () => {
+      const { wrapper, fill } = await openForm()
+      await fill('waterConsumption.mainMeter', '500')
+      expect(status(wrapper, 'waterConsumption').attributes('aria-label')).toBe(
+        'Section avec un avertissement',
+      )
+    })
+
+    it('shows no icon on a closed period', async () => {
+      const { wrapper } = await openForm(
+        (json) => {
+          Object.assign(json.months[0].internet, { billedAmount: 30 })
+          ;(json as Record<string, unknown>).closedOn = '2027-09-01'
+        },
+        '2026-09',
+        undefined,
+        undefined,
+        'closed',
+      )
+      expect(wrapper.find('[data-testid^="status-"]').exists()).toBe(false)
+    })
   })
 })

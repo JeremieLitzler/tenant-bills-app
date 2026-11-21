@@ -4,9 +4,14 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
+import { ChevronDown, CircleCheck, TriangleAlert } from '@lucide/vue'
+
 import { Button } from '@/components/ui/button'
+import { useOpenSections } from '@/composables/useOpenSections'
 import { applyOffer, type Offer } from '@/domain/applyOffer'
+import { monthCompleteness } from '@/domain/monthCompleteness'
 import { usePeriod } from '@/composables/usePeriods'
+import type { SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 import ApplyDialog from './ApplyDialog.vue'
@@ -34,6 +39,17 @@ const index = computed(
 const entry = computed(() => file.value?.months[index.value])
 const monthFigures = computed(() => figures.value?.months[index.value])
 const canEdit = computed(() => !isReadOnly.value && !file.value?.closedOn)
+const { isOpen, setOpen, openQuery } = useOpenSections()
+
+// The icon of a section (none on a closed or read-only period): a warning replaces the check.
+function statusOf(sectionId: string): 'warning' | 'complete' | undefined {
+  if (!canEdit.value || !entry.value) return undefined
+  const warned = Object.keys(monthFigures.value?.warnings ?? {}).some((id) =>
+    id.startsWith(`${sectionId}.`),
+  )
+  if (warned) return 'warning'
+  return monthCompleteness(entry.value).sections[sectionId as SectionName] ? 'complete' : undefined
+}
 
 // The lines the month shows: its inputs and figures, minus the lines of the inactive tariff mode.
 const sections = computed(() =>
@@ -100,7 +116,7 @@ function answer(yes: boolean) {
     <Button
       :as="RouterLink"
       accent
-      :to="`/periods/${periodId}`"
+      :to="{ path: `/periods/${periodId}`, query: openQuery }"
       class="sticky top-2 z-10 inline-flex items-center gap-2 self-start"
       data-testid="to-table"
     >
@@ -115,14 +131,51 @@ function answer(yes: boolean) {
         data-testid="month-picker"
         :value="month"
         @change="
-          router.push(`/periods/${periodId}/months/${($event.target as HTMLSelectElement).value}`)
+          router.push({
+            path: `/periods/${periodId}/months/${($event.target as HTMLSelectElement).value}`,
+            query: openQuery,
+          })
         "
       >
         <option v-for="m in file.months" :key="m.month" :value="m.month">{{ m.month }}</option>
       </select>
     </label>
-    <fieldset v-for="section in sections" :key="section.id" class="flex flex-col gap-2">
-      <legend class="font-semibold">{{ section.label }}</legend>
+    <component
+      :is="section.id === 'common' ? 'fieldset' : 'details'"
+      v-for="section in sections"
+      :key="section.id"
+      class="flex flex-col gap-2"
+      :open="section.id === 'common' ? undefined : isOpen(section.id)"
+      :data-testid="`panel-${section.id}`"
+    >
+      <legend v-if="section.id === 'common'" class="font-semibold">{{ section.label }}</legend>
+      <!-- The query is the single source of truth: the click is not left to the browser. -->
+      <summary
+        v-else
+        class="flex cursor-pointer items-center gap-2 font-semibold"
+        @click.prevent="setOpen(section.id, !isOpen(section.id))"
+      >
+        <ChevronDown
+          class="size-4 transition-transform"
+          :class="{ '-rotate-90': !isOpen(section.id) }"
+          aria-hidden="true"
+        />
+        {{ section.label }}
+        <CircleCheck
+          v-if="statusOf(section.id) === 'complete'"
+          class="text-theme-success size-4"
+          role="img"
+          :aria-label="fr.period.month.sectionComplete"
+          :data-testid="`status-${section.id}`"
+        />
+        <TriangleAlert
+          v-else-if="statusOf(section.id) === 'warning'"
+          class="text-theme-warning size-4"
+          role="img"
+          :aria-label="fr.period.month.sectionWarning"
+          :data-testid="`status-${section.id}`"
+        />
+      </summary>
       <template v-for="line in section.lines" :key="line.id">
         <div v-if="line.computed" class="flex justify-between" :data-testid="`figure-${line.id}`">
           <span>{{ line.label }}</span>
@@ -160,7 +213,7 @@ function answer(yes: boolean) {
           </p>
         </template>
       </template>
-    </fieldset>
+    </component>
     <ApplyDialog
       :offer="offer"
       :section="offer?.section ?? ''"
