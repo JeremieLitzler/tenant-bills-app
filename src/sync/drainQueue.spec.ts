@@ -7,7 +7,7 @@ import type { Patch } from '@/domain/applyPatch'
 import { DrainError, drainQueue } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 
 // A stateful GitHub Contents API fake, stubbed at `fetch` behind the proxy.
 let remote: { text: string; sha: number }

@@ -1,4 +1,4 @@
-import type { WaterSoftenerInputs } from '../periodFile'
+import type { WaterSoftenerInputs } from '@/domain/periodFile'
 import { allDefined, roundCents, type Figure, type OccupantRatios } from './figureMath'
 
 export interface WaterSoftenerFigures {

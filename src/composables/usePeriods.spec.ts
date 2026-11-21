@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { effectScope, type MaybeRefOrGetter, ref } from 'vue'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()

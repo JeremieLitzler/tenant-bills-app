@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import { applyOffer } from './applyOffer'
 import type { PeriodFile } from './periodFile'
 

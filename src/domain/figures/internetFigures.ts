@@ -1,4 +1,4 @@
-import type { InternetInputs } from '../periodFile'
+import type { InternetInputs } from '@/domain/periodFile'
 import { roundCents, type Figure, type OccupantRatios } from './figureMath'
 
 export interface InternetFigures {

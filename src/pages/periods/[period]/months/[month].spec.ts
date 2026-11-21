@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { validPeriodJson } from '../../../../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 
 // The local stores are IndexedDB, which `flushPromises` does not wait for (src/sync/ has its own specs).
 vi.mock('@/sync/periodCopies', () => ({

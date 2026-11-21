@@ -1,5 +1,5 @@
 // The helpers every section's figures share. Vue-free.
-import type { CommonInputs } from '../periodFile'
+import type { CommonInputs } from '@/domain/periodFile'
 
 // An amount whose inputs are missing is `undefined`, shown as "—", never a silent zero.
 export type Figure = number | undefined

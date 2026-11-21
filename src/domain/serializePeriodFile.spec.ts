@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import type { PeriodFile } from './periodFile'
 import { serializePeriodFile } from './serializePeriodFile'
 

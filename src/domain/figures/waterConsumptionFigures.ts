@@ -1,4 +1,4 @@
-import type { WaterConsumptionInputs } from '../periodFile'
+import type { WaterConsumptionInputs } from '@/domain/periodFile'
 import { waterVolumes } from './waterVolumes'
 import {
   addBill,

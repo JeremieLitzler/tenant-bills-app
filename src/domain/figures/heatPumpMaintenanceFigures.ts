@@ -1,4 +1,4 @@
-import type { HeatPumpMaintenanceInputs } from '../periodFile'
+import type { HeatPumpMaintenanceInputs } from '@/domain/periodFile'
 import type { Figure } from './figureMath'
 
 export interface HeatPumpMaintenanceFigures {

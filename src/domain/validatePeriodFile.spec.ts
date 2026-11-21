@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validPeriodJson } from '../../tests/helpers/periodFile'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import { validatePeriodFile } from './validatePeriodFile'
 
 const PERIOD_ID = '2026-2027'
