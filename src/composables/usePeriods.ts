@@ -1,12 +1,13 @@
 // Period state, a singleton composable (docs/architecture.md, "State"). The module of the loaded
 // periods: the list, one period's loading and refresh, and `setCell`, which composes the loaded copy
 // with the save queue (src/composables/useSaveQueue.ts). It imports the session state, never the
-// reverse. Concerns that will grow with #51 (sign-in drain) belong in useSaveQueue.ts, not here.
+// reverse. Queue concerns belong in useSaveQueue.ts, not here.
 import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { pendingCount, pendingCountFor } from '@/composables/pendingPatches'
 import { useSaveQueue } from '@/composables/useSaveQueue'
+import { useSession } from '@/composables/useSession'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
@@ -25,6 +26,9 @@ import {
 } from '@/sync/periodsApi'
 import { loadPeriodWithCopy } from '@/sync/loadPeriod'
 import { savePeriodCopy } from '@/sync/periodCopies'
+
+// "Se déconnecter" confirms with the real count of queued edits.
+useSession().setPendingCountSource(() => pendingCount.value)
 
 type ListStatus = 'idle' | 'loading' | 'ready' | 'error' | 'misconfigured'
 
@@ -192,7 +196,7 @@ async function setCell(id: string, month: string | null, field: string, value: u
 }
 
 // Sends the queue and gives each written period its new SHA. Run by `setCell`, on app load and when
-// the browser comes back online (App.vue); the sign-in trigger is #51's.
+// the browser comes back online (App.vue). Sign-in is a full-page return from GitHub, so it is the app load.
 async function drainQueued(): Promise<void> {
   for (const [periodId, sha] of await useSaveQueue().drain()) {
     const written = periodEntries.value[periodId]

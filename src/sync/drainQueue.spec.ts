@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Patch } from '@/domain/applyPatch'
 import { DrainError, drainQueue } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
+import { UnauthorizedError } from '@/sync/periodsApi'
 
 import { validPeriodJson } from '@tests/helpers/periodFile'
 
@@ -158,6 +159,19 @@ describe('drainQueue', () => {
       }),
     )
     await expect(drainQueue()).rejects.toThrow()
+    expect(await listPatches()).toHaveLength(2)
+  })
+
+  it('keeps every patch queued on a 401 and throws it, so the session ends', async () => {
+    await enqueuePatch(cell('internet.billedAmount', 30))
+    await enqueuePatch(otherPeriod('internet.billedAmount', 1))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ error: 'Not authenticated' }, { status: 401 })),
+    )
+    const error = await drainQueue().catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(DrainError)
+    expect((error as DrainError).cause).toBeInstanceOf(UnauthorizedError)
     expect(await listPatches()).toHaveLength(2)
   })
 
