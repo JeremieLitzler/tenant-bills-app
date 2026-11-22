@@ -4,7 +4,14 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import IconChevronDown from '@/components/icons/IconChevronDown.vue'
 
 import { useOpenSections } from '@/composables/useOpenSections'
@@ -12,7 +19,7 @@ import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
 import PeriodCell from './PeriodCell.vue'
-import { LINES, type PeriodLine, SECTIONS } from './periodLines'
+import { formatValue, LINES, type PeriodLine, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
 const router = useRouter()
@@ -41,6 +48,13 @@ const columns = computed(() =>
       figures,
     })),
 )
+
+// The total column's text: empty for a line without a total, a dash when a month is uncomputable.
+function totalText(line: PeriodLine): string {
+  if (!line.total || !figures.value) return ''
+  const total = line.total(figures.value.totals)
+  return total === undefined ? fr.period.table.empty : formatValue(line.kind, total)
+}
 
 // Selection mode (F5): the container is the single Tab stop; the selected cell is its active descendant.
 // The rows in display order: the common lines, then per section its header row and its lines. The
@@ -194,6 +208,9 @@ watch(activeId, async () => {
               >{{ fr.period.estimated.badge }}</span
             >
           </TableHead>
+          <TableHead class="bg-background sticky top-0 z-20 snap-start">{{
+            fr.period.table.total
+          }}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -205,7 +222,7 @@ watch(activeId, async () => {
             role="row"
             :data-testid="`section-${section.id}`"
           >
-            <TableHead :colspan="columns.length + 1" class="bg-muted">
+            <TableHead :colspan="columns.length + 2" class="bg-muted">
               <button
                 type="button"
                 tabindex="-1"
@@ -245,6 +262,12 @@ watch(activeId, async () => {
                 @click="select(line.id, colIndex)"
                 @dblclick="onDblclick(line.id, colIndex)"
               />
+              <TableCell
+                class="text-right font-medium tabular-nums"
+                role="gridcell"
+                data-testid="total"
+                >{{ totalText(line) }}</TableCell
+              >
             </TableRow>
           </template>
         </template>
