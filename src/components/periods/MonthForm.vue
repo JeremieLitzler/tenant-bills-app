@@ -148,7 +148,7 @@ function answerConfirmReading(yes: boolean) {
       data-testid="estimated-notice"
     >
       <p>{{ fr.period.month.estimatedNotice }}</p>
-      <Button data-testid="confirm-reading" @click="askConfirmReading">{{
+      <Button warning data-testid="confirm-reading" @click="askConfirmReading">{{
         fr.period.month.confirmReading
       }}</Button>
     </div>
