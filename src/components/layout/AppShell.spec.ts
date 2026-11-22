@@ -53,6 +53,15 @@ describe('AppShell, session end', () => {
     expect(wrapper.find('header [data-testid="sync-badge"]').exists()).toBe(false)
   })
 
+  it('hides the sync badge once the visitor is signed out', async () => {
+    const { wrapper, session } = await mountShell('/')
+
+    session.expire()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-testid="sync-badge"]').exists()).toBe(false)
+  })
+
   it('links the app name to the home page', async () => {
     const { wrapper } = await mountShell('/')
     expect(wrapper.get('[data-testid="app-name"]').attributes('href')).toBe('/')
