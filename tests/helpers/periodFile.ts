@@ -1,5 +1,3 @@
-import type { MonthEntry } from '@/domain/periodFile'
-
 // A valid period file as plain JSON (docs/period-file.md), twelve empty months from September of
 // the first year to August of the second. A fresh object on every call, so a test can break one
 // rule without touching the next test.
@@ -28,7 +26,7 @@ export function validPeriodJson(periodId = '2026-2027') {
 }
 
 // A month with every input of docs/period-file.md ("Keys per section") typed.
-export const completeMonth = (month: string): MonthEntry => ({
+export const completeMonth = (month: string) => ({
   month,
   common: {
     startDate: '2026-10-01',
@@ -61,8 +59,8 @@ export const completeMonth = (month: string): MonthEntry => ({
   },
   waterSoftener: {},
   electricity: {
-    tariffMode: 'base',
-    subscriptionUnit: 'month',
+    tariffMode: 'base' as const,
+    subscriptionUnit: 'month' as const,
     excisePerKwh: 1,
     subscriptionPerUnit: 1,
     ctaTax: 1,
