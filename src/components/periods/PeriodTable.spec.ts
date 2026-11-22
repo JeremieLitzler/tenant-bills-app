@@ -51,8 +51,13 @@ function addPeriod(id: string, monthCount = 12) {
 }
 
 // Every section open unless `open` says otherwise: most tests need the cells to be there.
-async function mountTable(periodId = '2026-2027', open = ALL_OPEN) {
+async function mountTable(
+  periodId = '2026-2027',
+  open = ALL_OPEN,
+  adjust?: (figures: ReturnType<typeof computePeriodFigures>) => void,
+) {
   addPeriod(periodId)
+  adjust?.(periods[periodId].figures as ReturnType<typeof computePeriodFigures>)
   await router.push({ path: `/periods/${periodId}`, query: open ? { open } : {} })
   return mount(PeriodTable, {
     props: { periodId },
@@ -80,6 +85,30 @@ describe('period table month headers', () => {
     expect(links).toHaveLength(12)
     // The open sections travel with the link, so coming back keeps them.
     expect(links[0].attributes('href')).toBe(`/periods/2026-2027/months/2026-09?open=${ALL_OPEN}`)
+  })
+})
+
+describe('period totals column', () => {
+  const totalCell = (w: W, id: string) => w.get(`[data-testid="line-${id}"] [data-testid="total"]`)
+
+  it('follows the months with the advances and each section tenant share totals', async () => {
+    const w = await mountTable()
+    const { totals } = periods['2026-2027'].figures as ReturnType<typeof computePeriodFigures>
+    expect(w.findAll('thead th').at(-1)!.text()).toBe('Total')
+    expect(totalCell(w, 'common.tenantBillAdvance').text()).toBe(
+      totals.advancesReceived.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
+    )
+    expect(totalCell(w, 'internet.tenantShare').text()).not.toBe('')
+    // A line without a total in the spreadsheet stays empty, and the column is read-only.
+    expect(totalCell(w, 'internet.billedAmount').text()).toBe('')
+    expect(w.find('[data-testid="total"] input').exists()).toBe(false)
+  })
+
+  it('shows an uncomputable tenant share as a dash, not a partial sum', async () => {
+    const w = await mountTable('2026-2027', ALL_OPEN, (f) => {
+      f.totals.waterConsumptionTenant = undefined
+    })
+    expect(totalCell(w, 'waterConsumption.tenantShare').text()).toBe('—')
   })
 })
 
@@ -296,7 +325,7 @@ describe('softener, internet and heat pump sections', () => {
   const cells = (w: W, id: string) =>
     w
       .get(`[data-testid="line-${id}"]`)
-      .findAll('td')
+      .findAll('td:not([data-testid="total"])')
       .map((td) => td.text())
 
   // Fills the period before mounting: the figures are computed from the edited file.
