@@ -44,7 +44,7 @@ export interface PeriodFigures {
   totals: PeriodTotals
 }
 
-function monthFigures(entry: MonthEntry): MonthFigures {
+function monthFigures(entry: MonthEntry, previousMonth?: MonthEntry): MonthFigures {
   const ratios = occupantRatios(entry.common)
   return {
     month: entry.month,
@@ -54,11 +54,11 @@ function monthFigures(entry: MonthEntry): MonthFigures {
     waterSoftener: waterSoftenerFigures(entry.waterSoftener, ratios),
     internet: internetFigures(entry.internet, ratios),
     heatPumpMaintenance: heatPumpMaintenanceFigures(entry.heatPumpMaintenance),
-    warnings: monthWarnings(entry),
+    warnings: monthWarnings(entry, previousMonth),
   }
 }
 
 export function computePeriodFigures(file: ReadonlyPeriodFile): PeriodFigures {
-  const months = file.months.map(monthFigures)
+  const months = file.months.map((entry, i) => monthFigures(entry, file.months[i - 1]))
   return { months, totals: periodTotals(file.months, months) }
 }

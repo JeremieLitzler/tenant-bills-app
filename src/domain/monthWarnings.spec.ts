@@ -54,6 +54,17 @@ describe('monthWarnings', () => {
     expect(monthWarnings(common('2026-09-12', '2026-10-11'))).toEqual({})
   })
 
+  it('warns when the start date differs from the previous month end date, and not when equal', () => {
+    const common = (startDate: string, endDate: string) =>
+      month({ common: { startDate, endDate, tenantBillAdvance: 0 } })
+    const previous = common('2026-09-12', '2026-10-11')
+    expect(monthWarnings(common('2026-10-12', '2026-11-15'), previous)).toEqual({
+      'common.startDate': 'startNotPreviousEnd',
+    })
+    expect(monthWarnings(common('2026-10-11', '2026-11-15'), previous)).toEqual({})
+    expect(monthWarnings(common('2026-10-12', '2026-11-15'))).toEqual({})
+  })
+
   it.each([
     ['waterConsumption', 'mainMeter'],
     ['waterConsumption', 'studioUnsoftenedMeter'],
