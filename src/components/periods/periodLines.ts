@@ -232,11 +232,3 @@ export function inputMode(kind: LineKind): 'numeric' | 'decimal' | undefined {
   if (kind === 'int') return 'numeric'
   return kind === 'text' || kind === 'date' ? undefined : 'decimal'
 }
-
-// An index below the previous index of its meter. A plausibility warning (#63 will replace this
-// with the domain's): the value is flagged, never refused.
-export function isDecreasingIndex(line: PeriodLine, entry: MonthEntry, figures: MonthFigures) {
-  const previous = LINES.find((other) => other.id === `${line.id}Previous`)
-  const [current, before] = [line.read(entry, figures), previous?.read(entry, figures)]
-  return typeof current === 'number' && typeof before === 'number' && current < before
-}

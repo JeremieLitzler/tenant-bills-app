@@ -33,6 +33,14 @@ describe('applyOffer', () => {
     })
   })
 
+  it('offers the next month start date for an end date', () => {
+    expect(applyOffer(file(), '2026-11', 'common.endDate', '2026-12-13')).toEqual({
+      kind: 'startDate',
+      patches: [{ month: '2026-12', field: 'common.startDate', value: '2026-12-13' }],
+    })
+    expect(applyOffer(file(), '2027-08', 'common.endDate', '2027-09-12')).toBeUndefined()
+  })
+
   it('offers nothing for anything else, or for the last month', () => {
     expect(applyOffer(file(), '2026-11', 'common.tenantBillAdvance', 70)).toBeUndefined()
     expect(applyOffer(file(), '2026-11', 'electricity.mainHcPrevious', 1)).toBeUndefined()

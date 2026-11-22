@@ -22,7 +22,6 @@ import {
   fieldText,
   formatValue,
   inputMode,
-  isDecreasingIndex,
   isEditableLine,
   isInactiveTariffLine,
   LINES,
@@ -241,12 +240,12 @@ function answerConfirmReading(yes: boolean) {
             {{ fr.period.month.invalid }}
           </p>
           <p
-            v-else-if="isDecreasingIndex(line, entry, monthFigures)"
+            v-else-if="monthFigures.warnings[line.id]"
             role="status"
             class="text-sm text-theme-warning"
             :data-testid="`warning-${line.id}`"
           >
-            {{ fr.period.month.decreasingIndex }}
+            {{ fr.period.table.warnings[monthFigures.warnings[line.id]!] }}
           </p>
         </template>
       </template>

@@ -124,6 +124,15 @@ describe('Saisie du mois', () => {
     expect(wrapper.find('[data-testid="warning-waterConsumption.mainMeter"]').exists()).toBe(true)
   })
 
+  it('warns about an end date before the start date and still queues it', async () => {
+    const { wrapper, fill } = await openForm()
+    expect(wrapper.find('[data-testid="warning-common.endDate"]').exists()).toBe(false)
+    await fill('common.startDate', '2026-09-12')
+    await fill('common.endDate', '2026-09-01')
+    expect(enqueuePatch).toHaveBeenCalledTimes(2)
+    expect(wrapper.get('[data-testid="warning-common.endDate"]').text()).toContain('précède')
+  })
+
   it('marks a text that is no value and queues nothing', async () => {
     const { field, fill } = await openForm()
     await fill('common.landlordOccupants', 'abc')
