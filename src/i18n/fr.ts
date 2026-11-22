@@ -72,7 +72,6 @@ export const fr = {
       picker: 'Mois',
       toTable: 'Voir le tableau de la période',
       notFound: 'Ce mois ne fait pas partie de la période.',
-      decreasingIndex: "L'index est inférieur à l'index précédent.",
       invalid: 'Valeur invalide, elle ne sera pas enregistrée.',
       sectionComplete: 'Section complète',
       sectionWarning: 'Section avec un avertissement',
@@ -93,6 +92,7 @@ export const fr = {
     applyDialog: {
       inherited: 'Appliquer « {line} » = {value} à tous les mois suivants ?',
       index: "Définir l'index précédent du mois suivant à {value} ?",
+      startDate: 'Définir la date de début du mois suivant à {value} ?',
       yes: 'Oui',
       no: 'Non',
     },

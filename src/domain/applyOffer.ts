@@ -9,8 +9,9 @@ export interface OfferPatch {
 }
 
 // "inherited": the new value for every later month. "index": the next month's previous index.
+// "startDate": the next month's start date, which is this month's end date.
 export interface Offer {
-  kind: 'inherited' | 'index'
+  kind: 'inherited' | 'index' | 'startDate'
   patches: OfferPatch[]
 }
 
@@ -23,6 +24,12 @@ export function applyOffer(
 ): Offer | undefined {
   const later = file.months.filter((entry) => entry.month > month)
   if (!later.length) return undefined
+  if (field === 'common.endDate') {
+    return {
+      kind: 'startDate',
+      patches: [{ month: later[0].month, field: 'common.startDate', value }],
+    }
+  }
   const [section, key] = field.split('.') as [SectionName, string]
   const catalogue = FIELD_CATALOGUE[section] as Record<string, string>
   if (catalogue[key] === 'inherited') {
