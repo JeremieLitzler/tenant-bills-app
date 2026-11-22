@@ -26,6 +26,15 @@ _Avoid_: Year, exercice
 A period whose settlement the landlord has declared final, once every reading and every bill of the period is in. Until it is closed, a period is open and its settlement is provisional. Nothing in a closed period changes.
 _Avoid_: Finished, archived, complete period
 
+**Draft period** (_Période brouillon_):
+A period created from a previous one that is not yet closed; it has fewer than twelve months. Status `draft`, computed, never stored.
+
+**Ongoing period** (status `ongoing`, not the Running period):
+A period with at least one month and no previous period still open. Computed, never stored.
+
+**Ending period** (_Période finissante_):
+A period whose twelfth month is initialized and whose next period is drafted. Status `ending`, computed, never stored.
+
 **Running period** (_Période en cours_):
 The open period containing today.
 _Avoid_: Current year
