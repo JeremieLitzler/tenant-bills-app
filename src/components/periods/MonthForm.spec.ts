@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { validPeriodJson } from '@tests/helpers/periodFile'
+import { useToasts } from '@/composables/useToasts'
+import { fr } from '@/i18n/fr'
 import MonthForm from './MonthForm.vue'
 import { isInactiveTariffLine, LINES } from './periodLines'
 
@@ -375,6 +377,10 @@ describe('MonthForm collapsible sections', () => {
       const fields = enqueuePatch.mock.calls.map(([p]) => [p.field, p.value])
       expect(fields).toContainEqual(['electricity.mainHc', null])
       expect(fields).not.toContainEqual(['electricity.mainHp', null])
+      expect(useToasts().toasts.value.map((t) => [t.level, t.message])).toContainEqual([
+        'info',
+        fr.period.estimated.staleCleared,
+      ])
     })
 
     it('offers neither notice nor confirmation in a closed period', async () => {

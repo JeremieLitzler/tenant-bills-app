@@ -84,6 +84,7 @@ export const fr = {
       badge: 'Estimé',
       title: 'Confirmer le relevé réel',
       stillEstimated: 'Ces index sont encore égaux à leur estimation :',
+      staleCleared: "Les index estimés du tarif qui n'est plus utilisé ont été supprimés.",
       unavailable: 'Liste indisponible.',
       noneEstimated: "Aucun index n'est égal à son estimation.",
       cancel: 'Annuler',
