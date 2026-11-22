@@ -76,6 +76,17 @@ export const fr = {
       invalid: 'Valeur invalide, elle ne sera pas enregistrée.',
       sectionComplete: 'Section complète',
       sectionWarning: 'Section avec un avertissement',
+      estimatedNotice:
+        'Ce mois contient des index estimés, pas des relevés. Saisissez les index réels puis confirmez le relevé.',
+      confirmReading: 'Confirmer le relevé réel',
+    },
+    estimated: {
+      badge: 'Estimé',
+      title: 'Confirmer le relevé réel',
+      stillEstimated: 'Ces index sont encore égaux à leur estimation :',
+      noneEstimated: "Aucun index n'est égal à son estimation.",
+      cancel: 'Annuler',
+      confirm: 'Confirmer',
     },
     applyDialog: {
       inherited: 'Appliquer « {line} » = {value} à tous les mois suivants ?',
