@@ -2,6 +2,7 @@
 // One read-only month cell of the period table.
 import { computed } from 'vue'
 
+import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 import { TableCell } from '@/components/ui/table'
 import type { MonthEntry } from '@/domain/periodFile'
 import type { MonthFigures } from '@/domain/periodFigures'
@@ -38,9 +39,8 @@ const warning = computed(() =>
   view.value.provenance === 'not-applicable' ? undefined : props.figures?.warnings[props.line.id],
 )
 
-// ⚠️ comes from CSS so the cell text stays the stored value.
-const warningClass =
-  "bg-destructive/10 text-destructive ring-destructive ring-2 ring-inset before:mr-1 before:content-['⚠️']"
+// The warning icon is an inline SVG, not text, so the cell text stays the stored value.
+const warningClass = 'bg-destructive/10 text-destructive ring-destructive ring-2 ring-inset'
 </script>
 
 <template>
@@ -57,6 +57,11 @@ const warningClass =
     :data-provenance="view.provenance"
     :data-warning="warning"
   >
+    <IconTriangleAlert
+      v-if="warning"
+      class="mr-1 inline size-3.5 align-text-bottom"
+      aria-hidden="true"
+    />
     {{ view.text }}
     <!-- Under the selected cell; above the sticky label column (z-10), below the sticky header (z-20). -->
     <div
