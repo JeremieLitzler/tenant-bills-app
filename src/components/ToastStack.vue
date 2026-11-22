@@ -2,7 +2,10 @@
 // The global toasts, on reka-ui's Toast primitives. An info toast closes by itself after 5 seconds
 // (the timer pauses on hover and focus); warning and error stay until closed. No swipe, no
 // animation, and a toast never takes the focus.
-import { CircleX, Info, TriangleAlert, X } from '@lucide/vue'
+import IconCircleX from '@/components/icons/IconCircleX.vue'
+import IconInfo from '@/components/icons/IconInfo.vue'
+import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
+import IconX from '@/components/icons/IconX.vue'
 import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastViewport } from 'reka-ui'
 
 import { type ToastLevel, useToasts } from '@/composables/useToasts'
@@ -13,21 +16,21 @@ const { toasts, dismiss } = useToasts()
 const INFO_DURATION_MS = 5000
 
 // Full class strings, so Tailwind sees them.
-const LOOK: Record<ToastLevel, { box: string; iconColor: string; icon: typeof Info }> = {
+const LOOK: Record<ToastLevel, { box: string; iconColor: string; icon: typeof IconInfo }> = {
   info: {
     box: 'border-theme-info bg-[color-mix(in_oklab,var(--theme-info)_10%,var(--background))]',
     iconColor: 'text-theme-info',
-    icon: Info,
+    icon: IconInfo,
   },
   warning: {
     box: 'border-theme-warning bg-[color-mix(in_oklab,var(--theme-warning)_10%,var(--background))]',
     iconColor: 'text-theme-warning',
-    icon: TriangleAlert,
+    icon: IconTriangleAlert,
   },
   error: {
     box: 'border-theme-error bg-[color-mix(in_oklab,var(--theme-error)_10%,var(--background))]',
     iconColor: 'text-theme-error',
-    icon: CircleX,
+    icon: IconCircleX,
   },
 }
 </script>
@@ -65,7 +68,7 @@ const LOOK: Record<ToastLevel, { box: string; iconColor: string; icon: typeof In
         >
       </ToastDescription>
       <ToastClose :aria-label="fr.toast.close" class="shrink-0">
-        <X class="size-4" aria-hidden="true" />
+        <IconX class="size-4" aria-hidden="true" />
       </ToastClose>
     </ToastRoot>
     <ToastViewport

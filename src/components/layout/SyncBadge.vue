@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { CircleCheck, CircleX, LoaderCircle, WifiOff } from '@lucide/vue'
+import IconCircleCheck from '@/components/icons/IconCircleCheck.vue'
+import IconCircleX from '@/components/icons/IconCircleX.vue'
+import IconLoaderCircle from '@/components/icons/IconLoaderCircle.vue'
+import IconWifiOff from '@/components/icons/IconWifiOff.vue'
 import { computed } from 'vue'
 
 import { usePeriods } from '@/composables/usePeriods'
@@ -14,7 +17,12 @@ const tint: Record<SyncState, string> = {
   offline: 'bg-muted-foreground',
   error: 'bg-theme-error',
 }
-const icon = { idle: CircleCheck, saving: LoaderCircle, offline: WifiOff, error: CircleX }
+const icon = {
+  idle: IconCircleCheck,
+  saving: IconLoaderCircle,
+  offline: IconWifiOff,
+  error: IconCircleX,
+}
 
 const detail = computed(
   () =>

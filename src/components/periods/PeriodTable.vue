@@ -5,7 +5,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ChevronDown } from '@lucide/vue'
+import IconChevronDown from '@/components/icons/IconChevronDown.vue'
 
 import { useOpenSections } from '@/composables/useOpenSections'
 import { usePeriod } from '@/composables/usePeriods'
@@ -208,7 +208,7 @@ watch(activeId, async () => {
                 :aria-expanded="isOpen(section.id)"
                 @click="(select(`section:${section.id}`, col), toggle(section.id))"
               >
-                <ChevronDown
+                <IconChevronDown
                   class="size-4 transition-transform"
                   :class="{ '-rotate-90': !isOpen(section.id) }"
                   aria-hidden="true"
