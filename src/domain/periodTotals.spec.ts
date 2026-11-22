@@ -58,6 +58,13 @@ describe('periodTotals next advance', () => {
     expect(totals.nextAdvance).toBe(1)
   })
 
+  it('rounds the balance to cents so float noise does not name a debtor', () => {
+    // advances 70, shares 5 x 14 = 70: 70 - 70.00000000000001 would be negative noise
+    const totals = periodTotals(entries, [month(0.1 + 0.2 + 13.7 - 0.3 + 0.3, 0)])
+    expect(totals.balance).toBe(0)
+    expect(totals.settlementAmount).toBe(0)
+  })
+
   it('shows an uncomputable share in the totals instead of counting it as zero', () => {
     const totals = periodTotals(entries, [month(20, 0), month(20, undefined)])
     expect(totals.heatPumpMaintenanceTenant).toBeUndefined()
