@@ -1,39 +1,48 @@
 <script setup lang="ts">
+import { CircleCheck, CircleX, LoaderCircle, WifiOff } from '@lucide/vue'
+import { computed } from 'vue'
+
 import { usePeriods } from '@/composables/usePeriods'
-import { fr } from '@/i18n/fr'
 import type { SyncState } from '@/composables/useSaveQueue'
+import { fr } from '@/i18n/fr'
 
 const { pendingCount, syncState } = usePeriods()
 
-const dot: Record<SyncState, string> = {
+const tint: Record<SyncState, string> = {
   idle: 'bg-theme-success',
-  saving: 'bg-theme-info animate-pulse',
+  saving: 'bg-theme-info',
   offline: 'bg-muted-foreground',
   error: 'bg-theme-error',
 }
+const icon = { idle: CircleCheck, saving: LoaderCircle, offline: WifiOff, error: CircleX }
+
+const detail = computed(
+  () =>
+    `${pendingCount.value > 0 ? `${fr.shell.pending(pendingCount.value)}. ` : ''}${fr.shell.syncDetail[syncState.value]}`,
+)
 </script>
 
 <template>
-  <!-- Sticky so the landlord sees what is not saved while scrolling; discreet at 0, tinted above. -->
-  <div class="pointer-events-none sticky top-2 z-10 mb-4 flex justify-end" data-testid="sync-badge">
-    <span
-      class="bg-background pointer-events-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
-      :class="
-        pendingCount === 0
-          ? 'text-muted-foreground'
-          : 'border-theme-warning bg-[color-mix(in_oklab,var(--theme-warning)_25%,var(--background))] font-semibold shadow-sm'
-      "
-    >
-      <span class="size-2 rounded-full" :class="dot[syncState]" aria-hidden="true" />
-      <span data-testid="sync-state">{{ fr.shell.syncState[syncState] }}</span>
-      <span
-        v-if="pendingCount > 0"
-        class="bg-theme-warning text-background grid min-w-6 place-items-center rounded-full px-1.5 text-xs"
+  <!-- Sticky full-width banner: the landlord sees what is not saved while scrolling. -->
+  <div
+    class="text-background sticky top-0 z-10 -mx-4 -mt-6 mb-4 px-4 py-2"
+    :class="tint[syncState]"
+    role="status"
+    data-testid="sync-badge"
+  >
+    <div class="mx-auto flex max-w-3xl items-center gap-3">
+      <component
+        :is="icon[syncState]"
+        class="size-6 shrink-0"
+        :class="{ 'animate-spin': syncState === 'saving' }"
         aria-hidden="true"
-        data-testid="sync-count"
-        >{{ pendingCount }}</span
-      >
-      <span class="sr-only" data-testid="sync-pending">{{ fr.shell.pending(pendingCount) }}</span>
-    </span>
+      />
+      <div class="flex-1">
+        <p class="text-base leading-tight font-bold" data-testid="sync-state">
+          {{ fr.shell.syncState[syncState] }}
+        </p>
+        <p class="text-xs leading-tight opacity-90" data-testid="sync-detail">{{ detail }}</p>
+      </div>
+    </div>
   </div>
 </template>

@@ -27,10 +27,17 @@ export const fr = {
         ? 'Aucune modification en attente'
         : `${count} modification${count > 1 ? 's' : ''} en attente`,
     syncState: {
-      idle: 'À jour',
+      idle: 'Tout est enregistré',
       saving: 'Enregistrement…',
       offline: 'Hors ligne',
       error: "Échec de l'enregistrement",
+    },
+    syncDetail: {
+      idle: 'Vos modifications sont sur GitHub.',
+      saving: 'Ne fermez pas la page.',
+      offline:
+        'Vos modifications sont enregistrées dans votre navigateur et partiront au retour du réseau.',
+      error: 'Vos modifications sont enregistrées dans votre navigateur. Nouvel essai automatique.',
     },
   },
   periods: {
