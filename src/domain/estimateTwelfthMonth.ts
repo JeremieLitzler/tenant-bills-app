@@ -82,3 +82,18 @@ export function estimatedIndexes(month: MonthEntry): Record<string, number> {
     for (const tariff of ELECTRICITY_TARIFFS) add('electricity', meter + tariff)
   return found
 }
+
+// The estimated electricity indexes the month's tariff mode no longer reads (the landlord switched
+// `tariffMode` after the estimate was written), still holding their estimate: they are stale and
+// are removed. A typed value, or a water index, is never listed.
+export function staleEstimates(month: MonthEntry, estimate: Record<string, number>): string[] {
+  const e = month.electricity as Bag
+  const active: readonly string[] = TARIFFS_BY_MODE[e.tariffMode === 'hchp' ? 'hchp' : 'base']
+  return Object.keys(estimate).filter((field) => {
+    const [section, key] = field.split('.')
+    const tariff = ELECTRICITY_TARIFFS.find((t) => key.endsWith(t))
+    return (
+      section === 'electricity' && tariff && !active.includes(tariff) && e[key] === estimate[field]
+    )
+  }) as string[]
+}

@@ -358,6 +358,25 @@ describe('MonthForm collapsible sections', () => {
       expect(wrapper.find('[data-testid="estimated-notice"]').exists()).toBe(false)
     })
 
+    it('removes the estimated Hc and Hp indexes when the month is switched to base', async () => {
+      estimates.set(TWELFTH, { 'electricity.mainHc': 3, 'electricity.mainHp': 8 })
+      const { fill } = await openForm(
+        (json) => {
+          estimatedMonth(json)
+          // Hp was overtyped (9), Hc still holds its estimate.
+          Object.assign(json.months[11].electricity, { tariffMode: 'hchp', mainHc: 3, mainHp: 9 })
+        },
+        TWELFTH,
+        undefined,
+        undefined,
+        `${2040 + nth}-${2041 + nth++}`,
+      )
+      await fill('electricity.tariffMode', 'Base')
+      const fields = enqueuePatch.mock.calls.map(([p]) => [p.field, p.value])
+      expect(fields).toContainEqual(['electricity.mainHc', null])
+      expect(fields).not.toContainEqual(['electricity.mainHp', null])
+    })
+
     it('offers neither notice nor confirmation in a closed period', async () => {
       const { wrapper } = await openForm(
         (json) => {

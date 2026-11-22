@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { monthEntry as month } from './monthEntry.testHelper'
-import { estimatedIndexes, writeEstimate } from './estimateTwelfthMonth'
+import { estimatedIndexes, staleEstimates, writeEstimate } from './estimateTwelfthMonth'
 
 const julyHchp = month({
   electricity: { tariffMode: 'hchp', mainHcPrevious: 0, mainHc: 30, mainHpPrevious: 0, mainHp: 70 },
@@ -84,5 +84,31 @@ describe('estimatedIndexes', () => {
       'electricity.mainHc': 2.5,
       'electricity.mainHp': 4,
     })
+  })
+})
+
+describe('staleEstimates', () => {
+  const estimate = {
+    'electricity.mainHc': 3,
+    'electricity.mainHp': 7,
+    'waterConsumption.mainMeter': 9,
+  }
+
+  it('lists the estimated Hc and Hp indexes once the month is back to base', () => {
+    const next = month({
+      waterConsumption: { mainMeter: 9 },
+      electricity: { tariffMode: 'base', mainHc: 3, mainHp: 8 },
+    })
+    expect(staleEstimates(next, estimate)).toEqual(['electricity.mainHc'])
+  })
+
+  it('lists the estimated Base index once the month is switched to hchp', () => {
+    const next = month({ electricity: { tariffMode: 'hchp', mainBase: 5 } })
+    expect(staleEstimates(next, { 'electricity.mainBase': 5 })).toEqual(['electricity.mainBase'])
+  })
+
+  it('lists nothing while the mode still reads the estimated tariffs', () => {
+    const next = month({ electricity: { tariffMode: 'hchp', mainHc: 3, mainHp: 7 } })
+    expect(staleEstimates(next, estimate)).toEqual([])
   })
 })
