@@ -2,55 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import { monthCompleteness } from './monthCompleteness'
 import type { MonthEntry } from './periodFile'
+import { completeMonth } from '@tests/helpers/periodFile'
 
-const complete = (): MonthEntry => ({
-  month: '2026-10',
-  common: {
-    startDate: '2026-10-01',
-    endDate: '2026-10-31',
-    landlordOccupants: 1,
-    tenantOccupants: 2,
-    tenantBillAdvance: 0,
-  },
-  waterConsumption: {
-    mainMeter: 1,
-    studioUnsoftenedMeter: 1,
-    studioSoftenedMeter: 1,
-    mainMeterPrevious: 0,
-    studioUnsoftenedMeterPrevious: 0,
-    studioSoftenedMeterPrevious: 0,
-    pricePerM3: 1,
-    resourceWithdrawalFee: 1,
-    drinkingWaterFee: 1,
-    networkPerformanceFee: 1,
-    subscription: 1,
-    vat: 1.055,
-  },
-  waterTreatment: {
-    monthlySubscriptionDistributor: 1,
-    monthlySubscriptionCommunity: 1,
-    collectionConsumptionDistributor: 1,
-    collectionConsumptionCommunity: 1,
-    sanitationPerformance: 1,
-    vat: 1.1,
-  },
-  waterSoftener: {},
-  electricity: {
-    tariffMode: 'base',
-    subscriptionUnit: 'month',
-    excisePerKwh: 1,
-    subscriptionPerUnit: 1,
-    ctaTax: 1,
-    vat: 1.2,
-    mainBase: 1,
-    studioBase: 1,
-    mainBasePrevious: 0,
-    studioBasePrevious: 0,
-    kwhPriceBase: 1,
-  },
-  internet: { billedAmount: 30 },
-  heatPumpMaintenance: { billedAmount: 0 },
-})
+const complete = (): MonthEntry => completeMonth('2026-10')
 
 describe('monthCompleteness', () => {
   it('reports a full month complete, with 0 counting as present', () => {

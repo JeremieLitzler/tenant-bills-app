@@ -12,9 +12,12 @@ import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
-import { applyPatch } from '@/domain/applyPatch'
+import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
+import { initializeMonth } from '@/domain/initializeMonth'
+import { MAX_MONTHS } from '@/domain/monthConstants'
+import { monthCompleteness } from '@/domain/monthCompleteness'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
-import type { PeriodFile } from '@/domain/periodFile'
+import type { MonthEntry, PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
 import {
   getPeriodFile,
@@ -195,6 +198,36 @@ async function setCell(id: string, month: string | null, field: string, value: u
   await drainQueued()
 }
 
+// The previous period's twelfth month, for the estimate: undefined when that period does not exist
+// (the estimate then falls back to this period's eleventh month). Any other failure throws.
+// shortcut: the previous period is named by the year pair of `id` (2026-2027 > 2025-2026).
+async function readPreviousTwelfth(id: string): Promise<MonthEntry | undefined> {
+  const previous = id.replace(/^(\d{4})-(\d{4})$/, (_, a, b) => `${+a - 1}-${+b - 1}`)
+  try {
+    return validatePeriodFile((await getPeriodFile(previous)).json).file?.months[MAX_MONTHS - 1]
+  } catch (error) {
+    if (error instanceof NotFoundError) return undefined
+    expireOnUnauthorized(error)
+    throw error
+  }
+}
+
+// "Initialiser le mois suivant" (docs/scenarios.md, Cases 3 and 6): queues the new month as one
+// patch. Only the twelfth month needs the previous period's file.
+async function initializeNextMonth(id: string): Promise<void> {
+  const file = periodEntries.value[id]?.file
+  if (!file) return
+  let previousTwelfth: MonthEntry | undefined
+  try {
+    if (file.months.length === MAX_MONTHS - 1) previousTwelfth = await readPreviousTwelfth(id)
+  } catch {
+    useToasts().notify({ level: 'error', message: fr.period.initializeMonth.failed })
+    return
+  }
+  const next = initializeMonth(file, previousTwelfth)
+  if (next) await setCell(id, next.month, MONTH_FIELD, next)
+}
+
 // Sends the queue and gives each written period its new SHA. Run by `setCell`, on app load and when
 // the browser comes back online (App.vue). Sign-in is a full-page return from GitHub, so it is the app load.
 async function drainQueued(): Promise<void> {
@@ -244,6 +277,16 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
         pendingCountFor(toValue(id)) === 0,
     ),
     refresh: () => refreshPeriod(toValue(id)),
+    // `available`: the last month is complete and a next one can start; `incomplete`: it must be
+    // completed first; `none`: no month yet, twelve months, closed or read-only.
+    nextMonth: computed<'available' | 'incomplete' | 'none'>(() => {
+      const entry = periodEntries.value[toValue(id)]
+      const last = entry?.file?.months.at(-1)
+      if (!last || entry.file?.closedOn || entry.problems.length) return 'none'
+      if ((entry.file?.months.length ?? 0) >= MAX_MONTHS) return 'none'
+      return monthCompleteness(last).complete ? 'available' : 'incomplete'
+    }),
+    initializeNextMonth: () => initializeNextMonth(toValue(id)),
     // The "Réessayer" button of a failed load: the same load again.
     retry: () => loadPeriod(toValue(id)),
     // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained and

@@ -62,6 +62,11 @@ export const fr = {
       updated: "La période a été mise à jour avec les modifications de l'autre appareil.",
       failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
     },
+    initializeMonth: {
+      button: 'Initialiser le mois suivant',
+      incomplete: 'Complétez le dernier mois pour initialiser le suivant.',
+      failed: "Impossible de lire la période précédente pour l'estimation. Merci de réessayer.",
+    },
     month: {
       title: 'Saisie du mois',
       picker: 'Mois',
