@@ -35,7 +35,7 @@ watch(session.isSignedIn, (signedIn) => {
       </p>
     </header>
     <main class="flex-1 px-4 py-6">
-      <SyncBadge />
+      <SyncBadge v-if="session.isSignedIn.value" />
       <slot />
     </main>
     <ToastStack />
