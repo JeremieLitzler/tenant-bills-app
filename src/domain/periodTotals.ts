@@ -2,7 +2,7 @@
 // "Settlement"). Computed from the month figures, Vue-free.
 import type { MonthEntry } from './periodFile'
 import type { MonthFigures } from './periodFigures'
-import { allDefined, sum, type Figure } from './figures/figureMath'
+import { allDefined, roundCents, sum, type Figure } from './figures/figureMath'
 
 export type SettlementDirection = 'landlordToTenant' | 'tenantToLandlord'
 
@@ -49,7 +49,9 @@ export function periodTotals(entries: readonly MonthEntry[], months: MonthFigure
     heatPumpMaintenanceTenant,
   ])
   const advancesReceived = sum(entries.map((e) => e.common.tenantBillAdvance))
-  const balance = totalTenantShares === undefined ? undefined : advancesReceived - totalTenantShares
+  // Rounded to cents, so float noise (1e-14) never names a debtor for a 0.00 settlement.
+  const balance =
+    totalTenantShares === undefined ? undefined : roundCents(advancesReceived - totalTenantShares)
   return {
     advancesReceived,
     waterConsumptionTenant,
