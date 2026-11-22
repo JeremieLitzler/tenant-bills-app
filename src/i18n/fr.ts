@@ -86,7 +86,7 @@ export const fr = {
       stillEstimated: 'Ces index sont encore égaux à leur estimation :',
       staleCleared: "Les index estimés du tarif qui n'est plus utilisé ont été supprimés.",
       unavailable: 'Liste indisponible.',
-      noneEstimated: "Aucun index n'est égal à son estimation.",
+      noneEstimated: 'Toutes les estimations ont été remplacées par votre saisie.',
       cancel: 'Annuler',
       confirm: 'Confirmer',
     },
