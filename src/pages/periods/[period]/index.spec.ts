@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { formatValue, isInactiveTariffLine, LINES } from '@/components/periods/periodLines'
 import { computePeriodFigures } from '@/domain/periodFigures'
 
-import { validPeriodJson } from '@tests/helpers/periodFile'
+import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
 
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
@@ -129,6 +129,49 @@ describe('period page', () => {
 
     expect(wrapper.get('[data-testid="period-read-only"]').text()).toContain('lecture seule')
     expect(wrapper.find('[data-testid="period-table"]').exists()).toBe(false)
+  })
+
+  describe('initializing the next month', () => {
+    function json(months: number, lastIsComplete = true) {
+      const file = periodJson()
+      const list = file.months.slice(0, months).map((m) => completeMonth(m.month))
+      list[months - 1].common.endDate = '2027-07-15'
+      if (!lastIsComplete) list[months - 1].internet = {}
+      return Object.assign(file, { months: list })
+    }
+
+    it('offers the button once the last month is complete, and adds the month on a click', async () => {
+      getPeriodFile.mockResolvedValue({ json: json(3), sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      expect(wrapper.findAll('[data-testid="period-month"]')).toHaveLength(3)
+
+      await wrapper.get('[data-testid="initialize-month"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.findAll('[data-testid="period-month"]')).toHaveLength(4)
+      expect(wrapper.find('[data-testid="initialize-month"]').exists()).toBe(false)
+    })
+
+    it('asks to complete the last month, in a warning notice, when it is not', async () => {
+      getPeriodFile.mockResolvedValue({ json: json(3, false), sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+
+      expect(wrapper.find('[data-testid="initialize-month"]').exists()).toBe(false)
+      const notice = wrapper.get('[data-testid="initialize-month-incomplete"]')
+      expect(notice.text()).toContain('Complétez le dernier mois')
+      expect(notice.classes()).toContain('border-theme-warning')
+    })
+
+    it('offers nothing after the twelfth month', async () => {
+      getPeriodFile.mockResolvedValue({ json: json(12), sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+
+      expect(wrapper.find('[data-testid="initialize-month"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="initialize-month-incomplete"]').exists()).toBe(false)
+    })
   })
 
   describe('period table', () => {

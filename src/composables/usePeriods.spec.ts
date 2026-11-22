@@ -573,4 +573,38 @@ describe('usePeriod, initializeNextMonth', () => {
 
     expect(enqueue).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ['2026-2027', '2025-2026'],
+    ['2026-2026', '2025-2025'],
+  ])('reads %s previous period as %s', async (id, previous) => {
+    const json = elevenMonths()
+    getPeriodFile.mockImplementation(async (requested) => {
+      if (requested === id) return { json, sha: 'sha-1' }
+      throw new NotFoundError()
+    })
+    const { usePeriod } = await loadPeriods()
+    const period = await openPeriod(usePeriod, id)
+
+    await period.initializeNextMonth()
+
+    expect(getPeriodFile).toHaveBeenCalledWith(previous)
+  })
+
+  it('does not read the period itself as its previous one for an unusual id', async () => {
+    getPeriodFile.mockResolvedValue({ json: elevenMonths(), sha: 'sha-1' })
+    const { usePeriod } = await loadPeriods()
+    const period = await openPeriod(usePeriod, '2026-2028')
+
+    await period.initializeNextMonth()
+
+    expect(getPeriodFile).toHaveBeenCalledTimes(1)
+    expect(enqueue).toHaveBeenCalled()
+  })
+
+  it('offers nothing on a closed or a read-only period', async () => {
+    const closed = { ...elevenMonths(), closedOn: '2027-10-11' }
+    expect((await open(closed)).nextMonth.value).toBe('none')
+    expect((await open({ ...elevenMonths(), schemaVersion: 1 })).nextMonth.value).toBe('none')
+  })
 })

@@ -198,11 +198,22 @@ async function setCell(id: string, month: string | null, field: string, value: u
   await drainQueued()
 }
 
+// The previous period's id: the same form one year earlier, for an id running from one year to the
+// next (2026-2027) or within one year (2026-2026). Any other id has none, so the lookup never
+// reads the period itself. shortcut: the id format is the only link between periods; upgrade
+// when the file carries its predecessor.
+function previousPeriodId(id: string): string | undefined {
+  const match = /^(\d{4})-(\d{4})$/.exec(id)
+  if (!match) return undefined
+  const [from, to] = [Number(match[1]), Number(match[2])]
+  return to === from || to === from + 1 ? `${from - 1}-${to - 1}` : undefined
+}
+
 // The previous period's twelfth month, for the estimate: undefined when that period does not exist
 // (the estimate then falls back to this period's eleventh month). Any other failure throws.
-// shortcut: the previous period is named by the year pair of `id` (2026-2027 > 2025-2026).
 async function readPreviousTwelfth(id: string): Promise<MonthEntry | undefined> {
-  const previous = id.replace(/^(\d{4})-(\d{4})$/, (_, a, b) => `${+a - 1}-${+b - 1}`)
+  const previous = previousPeriodId(id)
+  if (!previous) return undefined
   try {
     return validatePeriodFile((await getPeriodFile(previous)).json).file?.months[MAX_MONTHS - 1]
   } catch (error) {
