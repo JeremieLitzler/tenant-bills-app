@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { monthEntry as month } from './monthEntry.testHelper'
-import { writeEstimate } from './estimateTwelfthMonth'
+import { estimatedIndexes, writeEstimate } from './estimateTwelfthMonth'
 
 const julyHchp = month({
   electricity: { tariffMode: 'hchp', mainHcPrevious: 0, mainHc: 30, mainHpPrevious: 0, mainHp: 70 },
@@ -70,5 +70,19 @@ describe('writeEstimate', () => {
     const next = month()
     writeEstimate(next, month())
     expect(next.common.estimated).toBe(true)
+  })
+})
+
+describe('estimatedIndexes', () => {
+  it('lists the current indexes present, by line id, and nothing else', () => {
+    const next = month({
+      waterConsumption: { mainMeterPrevious: 5, mainMeter: 9 },
+      electricity: { tariffMode: 'hchp', mainHcPrevious: 1, mainHc: 2.5, mainHp: 4 },
+    })
+    expect(estimatedIndexes(next)).toEqual({
+      'waterConsumption.mainMeter': 9,
+      'electricity.mainHc': 2.5,
+      'electricity.mainHp': 4,
+    })
   })
 })

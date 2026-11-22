@@ -34,7 +34,7 @@ import {
 // `field`: the id of the line to focus on arrival (the table's Enter and double click).
 const props = defineProps<{ periodId: string; month: string; field?: string }>()
 const router = useRouter()
-const { file, figures, isReadOnly, setCell, indexesStillEstimated } = usePeriod(
+const { file, figures, isReadOnly, setCell, indexesStillEstimated, confirmReading } = usePeriod(
   () => props.periodId,
 )
 
@@ -109,13 +109,15 @@ function answer(yes: boolean) {
 }
 
 // "Confirmer le relevé réel": lists the indexes still equal to their estimate, then removes the flag.
+const confirming = ref(false)
 const stillEstimated = ref<string[]>()
 async function askConfirmReading() {
   stillEstimated.value = await indexesStillEstimated(props.month)
+  confirming.value = true
 }
 function answerConfirmReading(yes: boolean) {
-  if (yes) void setCell(props.month, 'common.estimated', null)
-  stillEstimated.value = undefined
+  if (yes) void confirmReading(props.month)
+  confirming.value = false
 }
 </script>
 
@@ -242,7 +244,7 @@ function answerConfirmReading(yes: boolean) {
         </template>
       </template>
     </component>
-    <EstimatedDialog :fields="stillEstimated" @answer="answerConfirmReading" />
+    <EstimatedDialog :open="confirming" :fields="stillEstimated" @answer="answerConfirmReading" />
     <ApplyDialog
       :offer="offer"
       :section="offer?.section ?? ''"

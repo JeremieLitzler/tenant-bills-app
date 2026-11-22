@@ -1,6 +1,6 @@
 // The estimated twelfth month (docs/period-file.md, "The estimated twelfth month"; docs/scenarios.md,
 // Case 6; issue #61). Called by `initializeMonth` when the twelfth month is initialized. Vue-free.
-import { TARIFFS_BY_MODE } from './electricityTariffs'
+import { ELECTRICITY_TARIFFS, TARIFFS_BY_MODE } from './electricityTariffs'
 import { ELECTRICITY_METERS, HC_SHARE, WATER_METERS } from './monthConstants'
 import type { MonthEntry } from './periodFile'
 
@@ -33,23 +33,18 @@ function electricityDelta(month: MonthEntry, meter: string): number | undefined 
 
 // Case 6: each current index becomes the new month's previous index plus the meter's delta, taken
 // from the previous period's twelfth month, else from this period's eleventh. A meter with no
-// delta, or no previous index to add it to, stays empty. Returns the ids of the fields written
-// ("waterConsumption.mainMeter"), which the confirmation compares with the typed values.
+// delta, or no previous index to add it to, stays empty.
 export function writeEstimate(
   next: MonthEntry,
   eleventh: MonthEntry,
   previousTwelfth?: MonthEntry,
-): string[] {
-  const written: string[] = []
+) {
   const water = next.waterConsumption as Bag
   for (const meter of WATER_METERS) {
     const delta =
       (previousTwelfth && waterDelta(previousTwelfth, meter)) ?? waterDelta(eleventh, meter)
     const base = water[`${meter}Previous`]
-    if (delta !== undefined && typeof base === 'number') {
-      water[meter] = Math.round(base + delta)
-      written.push(`waterConsumption.${meter}`)
-    }
+    if (delta !== undefined && typeof base === 'number') water[meter] = Math.round(base + delta)
   }
 
   const electricity = next.electricity as Bag
@@ -67,12 +62,23 @@ export function writeEstimate(
       : [['Base', 1]]
     for (const [register, share] of shares) {
       const base = electricity[`${meter}${register}Previous`]
-      if (typeof base === 'number') {
-        electricity[meter + register] = round(base + delta * share, 2)
-        written.push(`electricity.${meter}${register}`)
-      }
+      if (typeof base === 'number') electricity[meter + register] = round(base + delta * share, 2)
     }
   }
   next.common.estimated = true
-  return written
+}
+
+// The current indexes of a month just estimated, by line id ("waterConsumption.mainMeter"): the
+// copy kept until the real reading is confirmed. Current indexes are not copied forward, so every
+// one present is an estimate.
+export function estimatedIndexes(month: MonthEntry): Record<string, number> {
+  const found: Record<string, number> = {}
+  const add = (section: 'waterConsumption' | 'electricity', key: string) => {
+    const value = (month[section] as Bag)[key]
+    if (typeof value === 'number') found[`${section}.${key}`] = value
+  }
+  for (const meter of WATER_METERS) add('waterConsumption', meter)
+  for (const meter of ELECTRICITY_METERS)
+    for (const tariff of ELECTRICITY_TARIFFS) add('electricity', meter + tariff)
+  return found
 }

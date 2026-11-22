@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The confirmation of the real reading of the estimated twelfth month (docs/period-file.md): lists
-// the indexes still equal to their estimate. The parent closes it by clearing `fields`.
+// the indexes still equal to their estimate, or says the list is unavailable (`fields` undefined).
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -15,14 +15,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { fr } from '@/i18n/fr'
 
-defineProps<{ fields?: string[] }>()
+defineProps<{ open: boolean; fields?: string[] }>()
 const emit = defineEmits<{ answer: [yes: boolean] }>()
 
 const labelOf = (id: string) => fr.period.table.lines[id as keyof typeof fr.period.table.lines]
 </script>
 
 <template>
-  <AlertDialogRoot :open="!!fields">
+  <AlertDialogRoot :open="open">
     <AlertDialogPortal>
       <AlertDialogOverlay class="fixed inset-0 z-50 bg-black/50" />
       <AlertDialogContent
@@ -32,7 +32,8 @@ const labelOf = (id: string) => fr.period.table.lines[id as keyof typeof fr.peri
       >
         <AlertDialogTitle class="font-semibold">{{ fr.period.estimated.title }}</AlertDialogTitle>
         <AlertDialogDescription as="div">
-          <template v-if="fields?.length">
+          <p v-if="!fields">{{ fr.period.estimated.unavailable }}</p>
+          <template v-else-if="fields.length">
             <p>{{ fr.period.estimated.stillEstimated }}</p>
             <ul class="list-disc pl-6">
               <li v-for="id in fields" :key="id">{{ labelOf(id) }}</li>

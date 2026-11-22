@@ -1,12 +1,13 @@
 // The IndexedDB database behind the patch queue and the period copies. Vue-free. Version 2 added
-// the `period-copies` store; an upgrade from 1 keeps the queue untouched.
+// the `period-copies` store, version 3 the `estimates` store; an upgrade keeps the other stores untouched.
 const DB_NAME = 'tenant-bills'
 export const QUEUE_STORE = 'patch-queue'
 export const COPY_STORE = 'period-copies'
+export const ESTIMATE_STORE = 'estimates'
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 2)
+    const request = indexedDB.open(DB_NAME, 3)
     request.onupgradeneeded = () => {
       const db = request.result
       if (!db.objectStoreNames.contains(QUEUE_STORE)) {
@@ -14,6 +15,9 @@ function open(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(COPY_STORE)) {
         db.createObjectStore(COPY_STORE, { keyPath: 'id' })
+      }
+      if (!db.objectStoreNames.contains(ESTIMATE_STORE)) {
+        db.createObjectStore(ESTIMATE_STORE, { keyPath: 'key' })
       }
     }
     request.onsuccess = () => resolve(request.result)
