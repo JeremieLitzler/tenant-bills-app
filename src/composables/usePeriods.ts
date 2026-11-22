@@ -13,7 +13,7 @@ import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
-import { estimatedIndexes } from '@/domain/estimateTwelfthMonth'
+import { estimatedIndexes, staleEstimates } from '@/domain/estimateTwelfthMonth'
 import { initializeMonth } from '@/domain/initializeMonth'
 import { MAX_MONTHS } from '@/domain/monthConstants'
 import { monthCompleteness } from '@/domain/monthCompleteness'
@@ -257,6 +257,15 @@ async function indexesStillEstimated(id: string, month: string): Promise<string[
   })
 }
 
+// After a `tariffMode` change on an estimated month: removes the estimated indexes of the tariffs
+// it no longer reads, in either direction (hchp to base, base to hchp).
+async function clearStaleEstimates(id: string, month: string): Promise<void> {
+  const entry = periodEntries.value[id]?.file?.months.find((m) => m.month === month)
+  const estimate = entry?.common.estimated ? await readEstimate(id, month) : undefined
+  if (!entry || !estimate) return
+  for (const field of staleEstimates(entry, estimate)) await setCell(id, month, field, null)
+}
+
 // "Confirmer le relevé réel": removes the flag and forgets the estimate.
 async function confirmReading(id: string, month: string): Promise<void> {
   await setCell(id, month, 'common.estimated', null)
@@ -323,6 +332,7 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
     }),
     initializeNextMonth: () => initializeNextMonth(toValue(id)),
     indexesStillEstimated: (month: string) => indexesStillEstimated(toValue(id), month),
+    clearStaleEstimates: (month: string) => clearStaleEstimates(toValue(id), month),
     confirmReading: (month: string) => confirmReading(toValue(id), month),
     // The "Réessayer" button of a failed load: the same load again.
     retry: () => loadPeriod(toValue(id)),

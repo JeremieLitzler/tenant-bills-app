@@ -34,9 +34,15 @@ import {
 // `field`: the id of the line to focus on arrival (the table's Enter and double click).
 const props = defineProps<{ periodId: string; month: string; field?: string }>()
 const router = useRouter()
-const { file, figures, isReadOnly, setCell, indexesStillEstimated, confirmReading } = usePeriod(
-  () => props.periodId,
-)
+const {
+  file,
+  figures,
+  isReadOnly,
+  setCell,
+  indexesStillEstimated,
+  confirmReading,
+  clearStaleEstimates,
+} = usePeriod(() => props.periodId)
 
 const index = computed(
   () => file.value?.months.findIndex((entry) => entry.month === props.month) ?? -1,
@@ -87,7 +93,8 @@ function onBlur(line: PeriodLine, event: FocusEvent) {
     invalid.value.add(line.id)
     return
   }
-  void setCell(props.month, line.id, value)
+  const saved = setCell(props.month, line.id, value)
+  if (line.id === 'electricity.tariffMode') void saved.then(() => clearStaleEstimates(props.month))
   // Case 8: a value of a month with later months may be applied to them (a removal is not offered).
   const found = value === null ? undefined : applyOffer(file.value!, props.month, line.id, value)
   if (found && value !== null) {
