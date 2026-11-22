@@ -291,3 +291,56 @@ describe('period table collapsible sections', () => {
     expect(router.currentRoute.value.query.open).toBe('internet')
   })
 })
+
+describe('softener, internet and heat pump sections', () => {
+  const cells = (w: W, id: string) =>
+    w
+      .get(`[data-testid="line-${id}"]`)
+      .findAll('td')
+      .map((td) => td.text())
+
+  // Fills the period before mounting: the figures are computed from the edited file.
+  async function mountWithPurchases() {
+    addPeriod('2026-2027')
+    const json = periods['2026-2027'].file as { months: Record<string, Record<string, unknown>>[] }
+    json.months.forEach((m) =>
+      Object.assign(m.common, { landlordOccupants: 1, tenantOccupants: 1 }),
+    )
+    Object.assign(json.months[1].waterSoftener, { description: 'Sel', quantity: 2, unitPrice: 10 })
+    Object.assign(json.months[2].heatPumpMaintenance, { billedAmount: 12.5 })
+    json.months[0].internet.billedAmount = 20
+    periods['2026-2027'].figures = computePeriodFigures(json as never)
+    await router.push({ path: '/periods/2026-2027', query: { open: ALL_OPEN } })
+    return mount(PeriodTable, {
+      props: { periodId: '2026-2027' },
+      global: { plugins: [router] },
+      attachTo: document.body,
+    })
+  }
+
+  it('shows the three sections with their French labels', async () => {
+    const w = await mountWithPurchases()
+    for (const id of ['waterSoftener', 'internet', 'heatPumpMaintenance']) {
+      expect(w.get(`[data-testid="section-${id}"]`).text()).toContain(
+        SECTIONS.find((s) => s.id === id)!.label,
+      )
+    }
+    expect(w.get('[data-testid="line-waterSoftener.unitPrice"]').text()).toContain('Prix unitaire')
+    expect(w.get('[data-testid="line-internet.tenantShare"]').text()).toContain('Part locataire')
+    expect(w.get('[data-testid="line-heatPumpMaintenance.billedAmount"]').text()).toContain(
+      'Montant du mois (locataire)',
+    )
+  })
+
+  it('shows a purchase or an amount only in its own month, with the computed shares', async () => {
+    const w = await mountWithPurchases()
+    const filled = (id: string) => cells(w, id).map((t) => t !== '')
+    expect(filled('waterSoftener.unitPrice')).toEqual([...Array(12)].map((_, i) => i === 1))
+    expect(filled('heatPumpMaintenance.billedAmount')).toEqual(
+      [...Array(12)].map((_, i) => i === 2),
+    )
+    expect(cells(w, 'waterSoftener.tenantShare')[1]).toContain('10,00')
+    expect(cells(w, 'heatPumpMaintenance.billedAmount')[2]).toContain('12,50')
+    expect(cells(w, 'internet.landlordShare')[0]).toContain('10,00')
+  })
+})
