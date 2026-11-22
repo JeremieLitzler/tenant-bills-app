@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { effectScope, type MaybeRefOrGetter, ref } from 'vue'
 
-import { validPeriodJson } from '@tests/helpers/periodFile'
+import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
 
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
@@ -515,5 +515,62 @@ describe('usePeriods, createPeriod', () => {
       PeriodExistsError,
     )
     expect(periods.periodIds.value).toEqual(['2026-2027'])
+  })
+})
+
+describe('usePeriod, initializeNextMonth', () => {
+  function elevenMonths() {
+    const json = validPeriodJson()
+    const months = json.months.slice(0, 11).map((m) => completeMonth(m.month))
+    months[10].common.endDate = '2027-08-15'
+    Object.assign(json, { months })
+    return json
+  }
+  async function open(json: unknown) {
+    getPeriodFile.mockImplementation(async (id) => {
+      if (id === '2026-2027') return { json, sha: 'sha-1' }
+      throw new NotFoundError()
+    })
+    const { usePeriod } = await loadPeriods()
+    return openPeriod(usePeriod)
+  }
+
+  it('offers the next month once the last one is complete, and none when it is not', async () => {
+    expect((await open(elevenMonths())).nextMonth.value).toBe('available')
+    const incomplete = elevenMonths()
+    incomplete.months[10].internet = {}
+    expect((await open(incomplete)).nextMonth.value).toBe('incomplete')
+  })
+
+  it('offers nothing after the twelfth month', async () => {
+    const twelve = validPeriodJson()
+    twelve.months = twelve.months.map((m) => completeMonth(m.month))
+    expect((await open(twelve)).nextMonth.value).toBe('none')
+  })
+
+  it('queues the new month as one patch, estimated when it is the twelfth', async () => {
+    const period = await open(elevenMonths())
+
+    await period.initializeNextMonth()
+
+    const [patch] = enqueue.mock.calls.at(-1) as [{ month: string; field: string; value: unknown }]
+    expect(patch.field).toBe('month')
+    expect(patch.month).toBe('2027-08')
+    expect((patch.value as { common: { estimated?: boolean } }).common.estimated).toBe(true)
+    expect(period.file.value?.months).toHaveLength(12)
+  })
+
+  it('tells the failure and queues nothing when the previous period cannot be read', async () => {
+    getPeriodFile.mockImplementation(async (id) => {
+      if (id === '2026-2027') return { json: elevenMonths(), sha: 'sha-1' }
+      throw new Error('network')
+    })
+    const { usePeriod } = await loadPeriods()
+    const period = await openPeriod(usePeriod)
+    enqueue.mockClear()
+
+    await period.initializeNextMonth()
+
+    expect(enqueue).not.toHaveBeenCalled()
   })
 })
