@@ -10,4 +10,4 @@ The app has no icon package. Each icon is a single-file component in `src/compon
 ## Consequences
 
 - Adding an icon is a new file, not a dependency update.
-- `components.json` still says `"iconLibrary": "lucide"`, which is only a shadcn-vue hint for components it generates. Those generated components import `@lucide/vue`, so replace that import with a local icon after generating one.
+- `components.json` has no `iconLibrary` key. The shadcn-vue tool may still default to Lucide for components it generates, and those import `@lucide/vue`, so replace that import with a local icon after generating one.
