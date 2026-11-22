@@ -41,6 +41,13 @@ const readPeriodCopy = vi.fn<(id: string) => Promise<unknown>>()
 const savePeriodCopy = vi.fn<(copy: unknown) => Promise<void>>()
 vi.mock('@/sync/periodCopies', () => ({ readPeriodCopy, savePeriodCopy }))
 
+const saveEstimate = vi.fn<(...args: unknown[]) => Promise<void>>()
+vi.mock('@/sync/estimateCopies', () => ({
+  saveEstimate,
+  readEstimate: async () => undefined,
+  removeEstimate: async () => {},
+}))
+
 async function loadPeriods(signedInAs = 'JeremieLitzler') {
   vi.resetModules()
   document.cookie = `gh_login=${signedInAs}; Path=/`
@@ -557,6 +564,8 @@ describe('usePeriod, initializeNextMonth', () => {
     expect(patch.field).toBe('month')
     expect(patch.month).toBe('2027-08')
     expect((patch.value as { common: { estimated?: boolean } }).common.estimated).toBe(true)
+    expect(saveEstimate).toHaveBeenCalledOnce()
+    expect(saveEstimate.mock.calls[0].slice(0, 2)).toEqual(['2026-2027', '2027-08'])
     expect(period.file.value?.months).toHaveLength(12)
   })
 

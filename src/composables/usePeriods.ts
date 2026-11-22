@@ -2,7 +2,7 @@
 // periods: the list, one period's loading and refresh, and `setCell`, which composes the loaded copy
 // with the save queue (src/composables/useSaveQueue.ts). It imports the session state, never the
 // reverse. Queue concerns belong in useSaveQueue.ts, not here.
-import { computed, type MaybeRefOrGetter, readonly, ref, toRaw, toValue, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, readonly, ref, toValue, watch } from 'vue'
 
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { pendingCount, pendingCountFor } from '@/composables/pendingPatches'
@@ -13,12 +13,12 @@ import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
-import { writeEstimate } from '@/domain/estimateTwelfthMonth'
+import { estimatedIndexes } from '@/domain/estimateTwelfthMonth'
 import { initializeMonth } from '@/domain/initializeMonth'
 import { MAX_MONTHS } from '@/domain/monthConstants'
 import { monthCompleteness } from '@/domain/monthCompleteness'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
-import type { MonthEntry, PeriodFile, SectionName } from '@/domain/periodFile'
+import type { MonthEntry, PeriodFile } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
 import {
   getPeriodFile,
@@ -29,6 +29,7 @@ import {
   putPeriodFile,
 } from '@/sync/periodsApi'
 import { loadPeriodWithCopy } from '@/sync/loadPeriod'
+import { readEstimate, removeEstimate, saveEstimate } from '@/sync/estimateCopies'
 import { savePeriodCopy } from '@/sync/periodCopies'
 
 // "Se déconnecter" confirms with the real count of queued edits.
@@ -237,30 +238,29 @@ async function initializeNextMonth(id: string): Promise<void> {
     return
   }
   const next = initializeMonth(file, previousTwelfth)
-  if (next) await setCell(id, next.month, MONTH_FIELD, next)
+  if (!next) return
+  // Kept until the real reading is confirmed, so the confirmation can list what is still estimated.
+  if (next.common.estimated) await saveEstimate(id, next.month, estimatedIndexes(next))
+  await setCell(id, next.month, MONTH_FIELD, next)
 }
 
-// The current indexes of the estimated twelfth month still equal to their estimate, as line ids
-// (docs/period-file.md, "The estimated twelfth month"). The estimate is recomputed, not stored.
-// A failed read of the previous period toasts and gives undefined: the confirmation is not offered.
+// The current indexes of an estimated month still equal to their estimate, as line ids
+// (docs/period-file.md, "The estimated twelfth month"); undefined when this device holds no copy
+// of the estimate (another device initialized the month, or the browser data was cleared).
 async function indexesStillEstimated(id: string, month: string): Promise<string[] | undefined> {
-  const file = periodEntries.value[id]?.file
-  const entry = file?.months.find((m) => m.month === month)
-  if (!file || !entry || file.months.length !== MAX_MONTHS) return undefined
-  let previousTwelfth: MonthEntry | undefined
-  try {
-    previousTwelfth = await readPreviousTwelfth(id)
-  } catch {
-    useToasts().notify({ level: 'error', message: fr.period.initializeMonth.failed })
-    return undefined
-  }
-  const estimate = structuredClone(toRaw(entry))
-  const written = writeEstimate(estimate, file.months[MAX_MONTHS - 2], previousTwelfth)
-  const read = (m: MonthEntry, field: string) => {
+  const entry = periodEntries.value[id]?.file?.months.find((m) => m.month === month)
+  const estimate = entry && (await readEstimate(id, month))
+  if (!estimate) return undefined
+  return Object.keys(estimate).filter((field) => {
     const [section, key] = field.split('.')
-    return (m[section as SectionName] as Record<string, unknown>)[key]
-  }
-  return written.filter((field) => read(estimate, field) === read(entry, field))
+    return (entry[section as 'electricity'] as Record<string, unknown>)[key] === estimate[field]
+  })
+}
+
+// "Confirmer le relevé réel": removes the flag and forgets the estimate.
+async function confirmReading(id: string, month: string): Promise<void> {
+  await setCell(id, month, 'common.estimated', null)
+  await removeEstimate(id, month)
 }
 
 // Sends the queue and gives each written period its new SHA. Run by `setCell`, on app load and when
@@ -323,6 +323,7 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
     }),
     initializeNextMonth: () => initializeNextMonth(toValue(id)),
     indexesStillEstimated: (month: string) => indexesStillEstimated(toValue(id), month),
+    confirmReading: (month: string) => confirmReading(toValue(id), month),
     // The "Réessayer" button of a failed load: the same load again.
     retry: () => loadPeriod(toValue(id)),
     // Enqueues a patch (ADR 0010); `month` is null for a top-level value. Resolves once drained and

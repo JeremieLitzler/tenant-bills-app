@@ -359,4 +359,21 @@ describe('softener, internet and heat pump sections', () => {
     expect(heads[11].find('[data-testid="estimated-badge"]').exists()).toBe(true)
     expect(w.findAll('[data-testid="estimated-badge"]')).toHaveLength(1)
   })
+
+  it('keeps the estimated mark in a closed period', async () => {
+    addPeriod('2026-2028')
+    const file = periods['2026-2028'].file as {
+      closedOn?: string
+      months: { common: Record<string, unknown> }[]
+    }
+    file.closedOn = '2027-09-01'
+    file.months[11].common.estimated = true
+    await router.push({ path: '/periods/2026-2028', query: { open: ALL_OPEN } })
+    const w = mount(PeriodTable, {
+      props: { periodId: '2026-2028' },
+      global: { plugins: [router] },
+      attachTo: document.body,
+    })
+    expect(w.findAll('[data-testid="estimated-badge"]')).toHaveLength(1)
+  })
 })

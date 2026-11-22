@@ -3,12 +3,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { validPeriodJson } from '@tests/helpers/periodFile'
-import { NotFoundError } from '@/sync/periodsApi'
 import MonthForm from './MonthForm.vue'
 import { isInactiveTariffLine, LINES } from './periodLines'
 
 const getPeriodFile = vi.hoisted(() => vi.fn())
 const enqueuePatch = vi.hoisted(() => vi.fn())
+// The copy of the estimate, by month; empty means this device holds none.
+const estimates = vi.hoisted(() => new Map<string, Record<string, number>>())
+vi.mock('@/sync/estimateCopies', () => ({
+  saveEstimate: async () => {},
+  readEstimate: async (_period: string, month: string) => estimates.get(month),
+  removeEstimate: async (_period: string, month: string) => void estimates.delete(month),
+}))
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/periodsApi')>()),
@@ -65,6 +71,7 @@ beforeEach(() => {
   vi.resetModules()
   getPeriodFile.mockReset()
   enqueuePatch.mockReset()
+  estimates.clear()
 })
 
 describe('Saisie du mois', () => {
@@ -292,17 +299,19 @@ describe('MonthForm collapsible sections', () => {
     }
     // A period id of its own per test: the period state outlives a test.
     let nth = 0
-    const open = async () => {
-      const form = await openForm(
+    const open = async (copy?: Record<string, number>) => {
+      if (copy) estimates.set(TWELFTH, copy)
+      return openForm(
         estimatedMonth,
         TWELFTH,
         undefined,
         undefined,
         `${2040 + nth}-${2041 + nth++}`,
       )
-      getPeriodFile.mockRejectedValue(new NotFoundError()) // no previous period file
-      return form
     }
+    // The main index still equals its estimate, the studio one was overtyped.
+    const COPY = { 'waterConsumption.mainMeter': 110, 'waterConsumption.studioUnsoftenedMeter': 25 }
+    const dialog = () => document.body.querySelector('[data-testid="estimated-dialog"]')!
 
     it('shows the notice for the estimated month only', async () => {
       const { wrapper } = await open()
@@ -312,22 +321,29 @@ describe('MonthForm collapsible sections', () => {
     })
 
     it('lists the indexes still equal to their estimate and queues nothing on cancel', async () => {
-      const { wrapper } = await open()
+      const { wrapper } = await open(COPY)
       await wrapper.get('[data-testid="confirm-reading"]').trigger('click')
       await flushPromises()
-      const dialog = document.body.querySelector('[data-testid="estimated-dialog"]')!
-      expect(dialog.textContent).toContain('Compteur général, index actuel')
-      expect(dialog.textContent).not.toContain('Studio non adoucie, index actuel')
-      const cancel = [...dialog.querySelectorAll('button')].find(
+      expect(dialog().textContent).toContain('Compteur général, index actuel')
+      expect(dialog().textContent).not.toContain('Studio non adoucie, index actuel')
+      const cancel = [...dialog().querySelectorAll('button')].find(
         (b) => b.textContent === 'Annuler',
       )!
       cancel.click()
       await flushPromises()
       expect(enqueuePatch).not.toHaveBeenCalled()
+      expect(estimates.has(TWELFTH)).toBe(true)
     })
 
-    it('queues one patch removing common.estimated on confirm', async () => {
+    it('still opens, saying the list is unavailable, without a copy of the estimate', async () => {
       const { wrapper } = await open()
+      await wrapper.get('[data-testid="confirm-reading"]').trigger('click')
+      await flushPromises()
+      expect(dialog().textContent).toContain('Liste indisponible')
+    })
+
+    it('queues one patch removing common.estimated on confirm, and forgets the estimate', async () => {
+      const { wrapper } = await open(COPY)
       await wrapper.get('[data-testid="confirm-reading"]').trigger('click')
       await flushPromises()
       document.body.querySelector<HTMLElement>('[data-testid="estimated-confirm"]')!.click()
@@ -338,6 +354,8 @@ describe('MonthForm collapsible sections', () => {
         field: 'common.estimated',
         value: null,
       })
+      expect(estimates.has(TWELFTH)).toBe(false)
+      expect(wrapper.find('[data-testid="estimated-notice"]').exists()).toBe(false)
     })
 
     it('offers neither notice nor confirmation in a closed period', async () => {

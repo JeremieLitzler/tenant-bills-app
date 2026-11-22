@@ -81,7 +81,7 @@ A section is complete when every key listed under it is present, `0` counting as
 - `endDate` (not-inherited): the date "Au", the day the meters are read. It closes the month's window for every section.
 - `landlordOccupants`, `tenantOccupants` (inherited): occupant counts.
 - `tenantBillAdvance` (not-inherited, starts at `0`): the amount the tenant actually transferred that month.
-- `estimated` (not-inherited): `true` on the estimated twelfth month, set by "Estimer les relevés" and removed when the real reading is confirmed. Closing the period is refused while it is set.
+- `estimated` (not-inherited): `true` on the estimated twelfth month, set when the twelfth month is initialized and removed when the real reading is confirmed. Closing the period is refused while it is set.
 
 ### `waterConsumption`
 
