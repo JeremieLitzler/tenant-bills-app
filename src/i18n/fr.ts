@@ -103,6 +103,7 @@ export const fr = {
       warnings: {
         indexBelowPrevious: "L'index est inférieur à l'index précédent",
         endBeforeStart: 'La date de fin précède la date de début',
+        startNotPreviousEnd: 'La date de début diffère de la date de fin du mois précédent',
       },
       sections: {
         common: 'Commun',

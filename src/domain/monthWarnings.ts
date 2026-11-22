@@ -2,7 +2,7 @@
 // "Period table"). Keyed by the id of the line to highlight (`section.key`). Vue-free.
 import type { MonthEntry } from './periodFile'
 
-export type WarningKind = 'indexBelowPrevious' | 'endBeforeStart'
+export type WarningKind = 'indexBelowPrevious' | 'endBeforeStart' | 'startNotPreviousEnd'
 export type MonthWarnings = Record<string, WarningKind>
 
 const METERS = {
@@ -10,7 +10,7 @@ const METERS = {
   electricity: ['mainBase', 'mainHc', 'mainHp', 'studioBase', 'studioHc', 'studioHp'],
 } as const
 
-export function monthWarnings(entry: MonthEntry): MonthWarnings {
+export function monthWarnings(entry: MonthEntry, previousMonth?: MonthEntry): MonthWarnings {
   const warnings: MonthWarnings = {}
   for (const [section, keys] of Object.entries(METERS)) {
     const inputs = (entry[section as keyof typeof METERS] ?? {}) as Record<
@@ -28,5 +28,10 @@ export function monthWarnings(entry: MonthEntry): MonthWarnings {
   const { startDate, endDate } = entry.common ?? {}
   // "YYYY-MM-DD" strings compare in date order.
   if (startDate && endDate && endDate < startDate) warnings['common.endDate'] = 'endBeforeStart'
+  // A month starts the day the previous one ends (docs/period-file.md).
+  const previousEnd = previousMonth?.common?.endDate
+  if (startDate && previousEnd && startDate !== previousEnd) {
+    warnings['common.startDate'] = 'startNotPreviousEnd'
+  }
   return warnings
 }
