@@ -263,7 +263,9 @@ async function clearStaleEstimates(id: string, month: string): Promise<void> {
   const entry = periodEntries.value[id]?.file?.months.find((m) => m.month === month)
   const estimate = entry?.common.estimated ? await readEstimate(id, month) : undefined
   if (!entry || !estimate) return
-  for (const field of staleEstimates(entry, estimate)) await setCell(id, month, field, null)
+  const stale = staleEstimates(entry, estimate)
+  for (const field of stale) await setCell(id, month, field, null)
+  if (stale.length) useToasts().notify({ level: 'info', message: fr.period.estimated.staleCleared })
 }
 
 // "Confirmer le relevé réel": removes the flag and forgets the estimate.
