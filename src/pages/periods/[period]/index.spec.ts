@@ -136,7 +136,7 @@ describe('period page', () => {
       const file = periodJson()
       const list = file.months.slice(0, months).map((m) => completeMonth(m.month))
       list[months - 1].common.endDate = '2027-07-15'
-      if (!lastIsComplete) list[months - 1].internet = {}
+      if (!lastIsComplete) Object.assign(list[months - 1], { internet: {} })
       return Object.assign(file, { months: list })
     }
 
