@@ -1,21 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { monthEntry as month } from './monthEntry.testHelper'
 import { writeEstimate } from './estimateTwelfthMonth'
-import type { MonthEntry } from './periodFile'
-
-function month(over: Partial<MonthEntry> = {}): MonthEntry {
-  return {
-    month: '2027-08',
-    common: { tenantBillAdvance: 0 },
-    waterConsumption: {},
-    waterTreatment: {},
-    waterSoftener: {},
-    electricity: {},
-    internet: {},
-    heatPumpMaintenance: {},
-    ...over,
-  }
-}
 
 const julyHchp = month({
   electricity: { tariffMode: 'hchp', mainHcPrevious: 0, mainHc: 30, mainHpPrevious: 0, mainHp: 70 },
@@ -69,8 +55,8 @@ describe('writeEstimate', () => {
       electricity: { tariffMode: 'base', mainBasePrevious: 20, studioBasePrevious: 4 },
     })
     writeEstimate(next, july, prevAugustBase)
-    expect(next.electricity.mainBase).toBe(30) // previous August delta 10
-    expect(next.electricity.studioBase).toBe(8) // July delta 4
+    expect(next.electricity.mainBase).toBe(30)
+    expect(next.electricity.studioBase).toBe(8)
   })
 
   it('keeps water estimates whole litres', () => {

@@ -1,21 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { monthEntry } from './monthEntry.testHelper'
 import { initializeMonth } from './initializeMonth'
 import type { MonthEntry, PeriodFile } from './periodFile'
 
-function month(name: string, over: Partial<MonthEntry> = {}): MonthEntry {
-  return {
-    month: name,
-    common: { tenantBillAdvance: 70 },
-    waterConsumption: {},
-    waterTreatment: {},
-    waterSoftener: {},
-    electricity: {},
-    internet: {},
-    heatPumpMaintenance: {},
-    ...over,
-  }
-}
+const month = (name: string, over: Partial<MonthEntry> = {}) => monthEntry({ month: name, ...over })
 
 function file(months: MonthEntry[], heatPumpInvoiceEstimate?: number): PeriodFile {
   return {
