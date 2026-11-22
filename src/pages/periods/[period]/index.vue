@@ -67,18 +67,22 @@ if (import.meta.env.DEV) {
     </div>
     <Button
       v-if="period.nextMonth.value === 'available'"
+      accent
       class="self-start"
       data-testid="initialize-month"
       @click="period.initializeNextMonth()"
     >
       {{ fr.period.initializeMonth.button }}
     </Button>
-    <p
+    <div
       v-else-if="period.nextMonth.value === 'incomplete'"
+      role="status"
       data-testid="initialize-month-incomplete"
+      class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
     >
-      {{ fr.period.initializeMonth.incomplete }}
-    </p>
+      <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <p>{{ fr.period.initializeMonth.incomplete }}</p>
+    </div>
     <PeriodTable :period-id="route.params.period" />
   </div>
 </template>
