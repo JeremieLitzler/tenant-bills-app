@@ -135,7 +135,7 @@ When a key is typed, the form validates (an error, not a file problem): a `quant
 
 ## The estimated twelfth month
 
-- When the twelfth month is initialized, the app writes an estimated current index for each meter as ordinary patches and sets `common.estimated` (scenario Case 6): the eleventh month's current index plus the meter's delta in the previous period's twelfth month, or in this period's eleventh month when that delta is missing.
+- When the twelfth month is initialized, the app writes an estimated current index for each meter into the new month entry and sets `common.estimated` (scenario Case 6): the eleventh month's current index plus the meter's delta in the previous period's twelfth month, or in this period's eleventh month when that delta is missing.
 - The delta is a total per meter: HC + HP when the source month was in `hchp`. When the twelfth month is in `hchp`, the total is split 30 % HC, 70 % HP; in `base`, it goes to the Base register.
 - Confirming the real reading removes the flag; the confirmation lists the indexes still equal to their estimate.
 
