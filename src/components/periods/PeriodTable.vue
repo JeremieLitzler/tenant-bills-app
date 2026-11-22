@@ -187,6 +187,12 @@ watch(activeId, async () => {
               :aria-label="`${fr.period.month.title} ${column.label}`"
               >{{ column.label }}</RouterLink
             >
+            <span
+              v-if="column.entry.common?.estimated"
+              class="text-theme-warning ml-1 rounded border border-current px-1 text-xs"
+              data-testid="estimated-badge"
+              >{{ fr.period.estimated.badge }}</span
+            >
           </TableHead>
         </TableRow>
       </TableHeader>

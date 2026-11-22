@@ -343,4 +343,20 @@ describe('softener, internet and heat pump sections', () => {
     expect(cells(w, 'heatPumpMaintenance.billedAmount')[2]).toContain('12,50')
     expect(cells(w, 'internet.landlordShare')[0]).toContain('10,00')
   })
+
+  it('marks the month holding common.estimated as estimated, and no other', async () => {
+    addPeriod('2026-2027')
+    ;(
+      periods['2026-2027'].file as { months: { common: Record<string, unknown> }[] }
+    ).months[11].common.estimated = true
+    await router.push({ path: '/periods/2026-2027', query: { open: ALL_OPEN } })
+    const w = mount(PeriodTable, {
+      props: { periodId: '2026-2027' },
+      global: { plugins: [router] },
+      attachTo: document.body,
+    })
+    const heads = w.findAll('[data-testid="period-month"]')
+    expect(heads[11].find('[data-testid="estimated-badge"]').exists()).toBe(true)
+    expect(w.findAll('[data-testid="estimated-badge"]')).toHaveLength(1)
+  })
 })

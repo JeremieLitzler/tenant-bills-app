@@ -17,6 +17,7 @@ import type { SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 import ApplyDialog from './ApplyDialog.vue'
+import EstimatedDialog from './EstimatedDialog.vue'
 import {
   fieldText,
   formatValue,
@@ -33,7 +34,9 @@ import {
 // `field`: the id of the line to focus on arrival (the table's Enter and double click).
 const props = defineProps<{ periodId: string; month: string; field?: string }>()
 const router = useRouter()
-const { file, figures, isReadOnly, setCell } = usePeriod(() => props.periodId)
+const { file, figures, isReadOnly, setCell, indexesStillEstimated } = usePeriod(
+  () => props.periodId,
+)
 
 const index = computed(
   () => file.value?.months.findIndex((entry) => entry.month === props.month) ?? -1,
@@ -104,6 +107,16 @@ function answer(yes: boolean) {
     for (const p of offer.value.patches) void setCell(p.month, p.field, p.value)
   offer.value = undefined
 }
+
+// "Confirmer le relevé réel": lists the indexes still equal to their estimate, then removes the flag.
+const stillEstimated = ref<string[]>()
+async function askConfirmReading() {
+  stillEstimated.value = await indexesStillEstimated(props.month)
+}
+function answerConfirmReading(yes: boolean) {
+  if (yes) void setCell(props.month, 'common.estimated', null)
+  stillEstimated.value = undefined
+}
 </script>
 
 <template>
@@ -126,6 +139,17 @@ function answer(yes: boolean) {
       {{ fr.period.month.toTable }}
     </Button>
     <h2 class="text-xl font-semibold">{{ fr.period.month.title }}</h2>
+    <div
+      v-if="canEdit && entry.common.estimated"
+      role="status"
+      class="text-theme-warning flex flex-col items-start gap-2 text-sm"
+      data-testid="estimated-notice"
+    >
+      <p>{{ fr.period.month.estimatedNotice }}</p>
+      <Button data-testid="confirm-reading" @click="askConfirmReading">{{
+        fr.period.month.confirmReading
+      }}</Button>
+    </div>
     <label class="flex flex-col gap-1">
       {{ fr.period.month.picker }}
       <select
@@ -218,6 +242,7 @@ function answer(yes: boolean) {
         </template>
       </template>
     </component>
+    <EstimatedDialog :fields="stillEstimated" @answer="answerConfirmReading" />
     <ApplyDialog
       :offer="offer"
       :section="offer?.section ?? ''"

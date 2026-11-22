@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { validPeriodJson } from '@tests/helpers/periodFile'
+import { NotFoundError } from '@/sync/periodsApi'
 import MonthForm from './MonthForm.vue'
 import { isInactiveTariffLine, LINES } from './periodLines'
 
@@ -267,6 +268,91 @@ describe('MonthForm collapsible sections', () => {
         'closed',
       )
       expect(wrapper.find('[data-testid^="status-"]').exists()).toBe(false)
+    })
+  })
+
+  describe('the estimated twelfth month', () => {
+    const TWELFTH = '2027-08'
+    const estimatedMonth = (json: ReturnType<typeof validPeriodJson>) => {
+      // Eleventh delta 10 and 5; the twelfth estimate is 110 and 25, the typed main index equals it.
+      Object.assign(json.months[10].waterConsumption, {
+        mainMeterPrevious: 90,
+        mainMeter: 100,
+        studioUnsoftenedMeterPrevious: 20,
+        studioUnsoftenedMeter: 25,
+      })
+      Object.assign(json.months[11].waterConsumption, {
+        mainMeterPrevious: 100,
+        mainMeter: 110,
+        studioUnsoftenedMeterPrevious: 25,
+        studioUnsoftenedMeter: 26,
+      })
+      Object.assign(json.months[11].electricity, { tariffMode: 'base' })
+      ;(json.months[11].common as Record<string, unknown>).estimated = true
+    }
+    // A period id of its own per test: the period state outlives a test.
+    let nth = 0
+    const open = async () => {
+      const form = await openForm(
+        estimatedMonth,
+        TWELFTH,
+        undefined,
+        undefined,
+        `${2040 + nth}-${2041 + nth++}`,
+      )
+      getPeriodFile.mockRejectedValue(new NotFoundError()) // no previous period file
+      return form
+    }
+
+    it('shows the notice for the estimated month only', async () => {
+      const { wrapper } = await open()
+      expect(wrapper.find('[data-testid="estimated-notice"]').exists()).toBe(true)
+      await wrapper.setProps({ month: '2026-09' })
+      expect(wrapper.find('[data-testid="estimated-notice"]').exists()).toBe(false)
+    })
+
+    it('lists the indexes still equal to their estimate and queues nothing on cancel', async () => {
+      const { wrapper } = await open()
+      await wrapper.get('[data-testid="confirm-reading"]').trigger('click')
+      await flushPromises()
+      const dialog = document.body.querySelector('[data-testid="estimated-dialog"]')!
+      expect(dialog.textContent).toContain('Compteur général, index actuel')
+      expect(dialog.textContent).not.toContain('Studio non adoucie, index actuel')
+      const cancel = [...dialog.querySelectorAll('button')].find(
+        (b) => b.textContent === 'Annuler',
+      )!
+      cancel.click()
+      await flushPromises()
+      expect(enqueuePatch).not.toHaveBeenCalled()
+    })
+
+    it('queues one patch removing common.estimated on confirm', async () => {
+      const { wrapper } = await open()
+      await wrapper.get('[data-testid="confirm-reading"]').trigger('click')
+      await flushPromises()
+      document.body.querySelector<HTMLElement>('[data-testid="estimated-confirm"]')!.click()
+      await flushPromises()
+      expect(enqueuePatch).toHaveBeenCalledExactlyOnceWith({
+        period: expect.stringMatching(/^20\d\d-20\d\d$/),
+        month: TWELFTH,
+        field: 'common.estimated',
+        value: null,
+      })
+    })
+
+    it('offers neither notice nor confirmation in a closed period', async () => {
+      const { wrapper } = await openForm(
+        (json) => {
+          estimatedMonth(json)
+          ;(json as Record<string, unknown>).closedOn = '2027-09-01'
+        },
+        TWELFTH,
+        undefined,
+        undefined,
+        'closed',
+      )
+      expect(wrapper.find('[data-testid="estimated-notice"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="confirm-reading"]').exists()).toBe(false)
     })
   })
 })
