@@ -4,7 +4,9 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { ChevronDown, CircleCheck, TriangleAlert } from '@lucide/vue'
+import IconChevronDown from '@/components/icons/IconChevronDown.vue'
+import IconCircleCheck from '@/components/icons/IconCircleCheck.vue'
+import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
 import { Button } from '@/components/ui/button'
 import { useOpenSections } from '@/composables/useOpenSections'
@@ -157,20 +159,20 @@ function answer(yes: boolean) {
         @keydown.right.prevent="setOpen(section.id, true)"
         @keydown.left.prevent="setOpen(section.id, false)"
       >
-        <ChevronDown
+        <IconChevronDown
           class="size-4 transition-transform"
           :class="{ '-rotate-90': !isOpen(section.id) }"
           aria-hidden="true"
         />
         {{ section.label }}
-        <CircleCheck
+        <IconCircleCheck
           v-if="statusOf(section.id) === 'complete'"
           class="text-theme-success size-4"
           role="img"
           :aria-label="fr.period.month.sectionComplete"
           :data-testid="`status-${section.id}`"
         />
-        <TriangleAlert
+        <IconTriangleAlert
           v-else-if="statusOf(section.id) === 'warning'"
           class="text-theme-warning size-4"
           role="img"

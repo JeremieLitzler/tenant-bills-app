@@ -2,7 +2,7 @@
 import { onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { TriangleAlert } from '@lucide/vue'
+import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
 import PeriodTable from '@/components/periods/PeriodTable.vue'
 import { Button } from '@/components/ui/button'
@@ -55,7 +55,7 @@ if (import.meta.env.DEV) {
       data-testid="period-read-only"
       class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
     >
-      <TriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <div>
         <p>{{ fr.period.readOnlyNotice }}</p>
         <ul class="list-disc pl-6">
