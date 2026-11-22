@@ -53,4 +53,19 @@ describe('monthWarnings', () => {
     expect(monthWarnings(common('2026-10-11', '2026-10-11'))).toEqual({})
     expect(monthWarnings(common('2026-09-12', '2026-10-11'))).toEqual({})
   })
+
+  it.each([
+    ['waterConsumption', 'mainMeter'],
+    ['waterConsumption', 'studioUnsoftenedMeter'],
+    ['waterConsumption', 'studioSoftenedMeter'],
+    ['electricity', 'mainBase'],
+    ['electricity', 'mainHc'],
+    ['electricity', 'mainHp'],
+    ['electricity', 'studioBase'],
+    ['electricity', 'studioHc'],
+    ['electricity', 'studioHp'],
+  ])('warns on a decreasing %s.%s', (section, key) => {
+    const entry = month({ [section]: { [key]: 1, [`${key}Previous`]: 2 } })
+    expect(monthWarnings(entry)).toEqual({ [`${section}.${key}`]: 'indexBelowPrevious' })
+  })
 })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { monthEntry } from './monthEntry.testHelper'
-import { initializeMonth } from './initializeMonth'
+import { initializeMonth, suggestedEndDate } from './initializeMonth'
 import type { MonthEntry, PeriodFile } from './periodFile'
 
 const month = (name: string, over: Partial<MonthEntry> = {}) => monthEntry({ month: name, ...over })
@@ -126,5 +126,20 @@ describe('initializeMonth', () => {
       expect(next.common.estimated).toBe(true)
       expect(next.waterConsumption.mainMeter).toBeUndefined()
     })
+  })
+})
+
+describe('suggestedEndDate', () => {
+  it.each([
+    ['2025-12-01', '2026-01-15'], // Thursday
+    ['2026-04-01', '2026-05-15'], // Friday
+    ['2026-07-01', '2026-08-15'], // Saturday
+    ['2026-01-01', '2026-02-15'], // Sunday
+    ['2026-05-01', '2026-06-14'], // Monday > Sunday before
+    ['2026-08-01', '2026-09-13'], // Tuesday > Sunday before
+    ['2026-03-01', '2026-04-12'], // Wednesday > Sunday before
+    ['2026-12-11', '2027-01-15'], // across the year boundary
+  ])('suggests for a start of %s the end date %s', (start, expected) => {
+    expect(suggestedEndDate(start)).toBe(expected)
   })
 })
