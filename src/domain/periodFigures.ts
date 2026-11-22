@@ -16,6 +16,7 @@ import {
   heatPumpMaintenanceFigures,
   type HeatPumpMaintenanceFigures,
 } from './figures/heatPumpMaintenanceFigures'
+import { periodTotals, type PeriodTotals } from './periodTotals'
 
 export type {
   ElectricityFigures,
@@ -40,6 +41,7 @@ export interface MonthFigures {
 
 export interface PeriodFigures {
   months: MonthFigures[]
+  totals: PeriodTotals
 }
 
 function monthFigures(entry: MonthEntry): MonthFigures {
@@ -57,5 +59,6 @@ function monthFigures(entry: MonthEntry): MonthFigures {
 }
 
 export function computePeriodFigures(file: ReadonlyPeriodFile): PeriodFigures {
-  return { months: file.months.map(monthFigures) }
+  const months = file.months.map(monthFigures)
+  return { months, totals: periodTotals(file.months, months) }
 }
