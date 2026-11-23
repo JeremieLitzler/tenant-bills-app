@@ -129,7 +129,7 @@ describe('period totals column', () => {
     const w = await mountTable()
     const headers = w.findAll('thead th')
     expect(headers[0].text()).toBe('Ligne')
-    expect(headers[1].text()).toBe('Total')
+    expect(headers[1].text()).toBe('Total annuel')
   })
 
   it('shows the section total once on its header row, for the phone', async () => {
