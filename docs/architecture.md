@@ -61,13 +61,11 @@ One `package.json` at the repo root for the app and the Netlify functions; no wo
 `vue-router` 5 with file-based routing from `src/pages/`. Paths are in English, like the rest of the code.
 
 - `/sign-in`: sign-in page, public.
-- `/`: redirects to the current period (the one containing today's date): its table on a large screen, the current month's "Saisie du mois" on a small one. Goes to `/periods` when no period exists.
+- `/`: home page, listing the periods.
 - `/periods`: period management (list, "Nouvelle période").
 - `/periods/[period]`: period table, `[period]` as `2026-2027`.
 - `/periods/[period]/months/[month]`: "Saisie du mois", `[month]` as `2026-10`, the period file's own month identifier.
 - `/periods/[period]/settlement`: settlement view.
-
-The table and the form are both reachable on any screen size; only the `/` redirect picks by screen size.
 
 One global `router.beforeEach` guard requires a session on every route unless the page declares `meta: { public: true }`. Without a session, it redirects to `/sign-in?redirect=<path>`. A signed-in visitor who opens `/sign-in` is sent to `redirect` (or `/`), unless the page has an error to show. After the OAuth round trip, the callback function redirects straight to the asked page, so the sign-in page is only a button and the error messages.
 
