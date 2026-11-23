@@ -221,7 +221,7 @@ watch(activeId, async () => {
               <button
                 type="button"
                 tabindex="-1"
-                class="inline-flex items-center gap-1 font-medium"
+                class="inline-flex items-center gap-1 text-left font-medium"
                 :class="{ 'ring-ring/50 ring-2': row === `section:${section.id}` }"
                 :aria-expanded="isOpen(section.id)"
                 @click="(select(`section:${section.id}`, col), toggle(section.id))"
