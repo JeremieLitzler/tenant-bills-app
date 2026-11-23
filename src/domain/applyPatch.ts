@@ -14,7 +14,8 @@ export interface Patch {
 }
 
 // The queue key of a patch: a retyped cell has the same key, so it replaces its queued patch.
-export const patchKey = (patch: Patch) => `${patch.period}|${patch.month ?? ''}|${patch.field}`
+export const patchKey = (patch: Pick<Patch, 'period' | 'month' | 'field'>) =>
+  `${patch.period}|${patch.month ?? ''}|${patch.field}`
 
 type Bag = Record<string, unknown>
 
