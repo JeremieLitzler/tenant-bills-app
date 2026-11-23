@@ -1,13 +1,14 @@
 // Sends the queued patches: one GET, one PUT (one commit) per period file, never two drains at
-// once (ADR 0010). Vue-free. The 409 rebase and the retry policy are a later ticket (#52): a period
-// that fails keeps its patches queued, the other periods still drain, and a `DrainError` is thrown.
+// once (ADR 0010). Vue-free. On a 409 the period is pulled, the same patches re-applied and the PUT
+// retried once (ADR 0004). A period that fails keeps its patches queued, the other periods still
+// drain, and a `DrainError` is thrown.
 import { applyPatch, type Patch } from '@/domain/applyPatch'
 import { commitMessage } from '@/domain/commitMessage'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { validatePeriodFile } from '@/domain/validatePeriodFile'
 import { listPatches, removePatches } from '@/sync/patchQueue'
 import { savePeriodCopy } from '@/sync/periodCopies'
-import { getPeriodFile, putPeriodFile, UnauthorizedError } from '@/sync/periodsApi'
+import { ConflictError, getPeriodFile, putPeriodFile, UnauthorizedError } from '@/sync/periodsApi'
 
 // The first failure of a drain, with the new SHA of every period written before it, so the loaded
 // copies of those periods do not keep a stale SHA.
@@ -21,7 +22,10 @@ export class DrainError extends Error {
   }
 }
 
-async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
+// Periods that received queued edits after being closed, for the UI to flag.
+export const editedClosedPeriods = new Set<string>()
+
+async function attempt(id: string, patches: Patch[]) {
   const { json, sha } = await getPeriodFile(id)
   const { file, problems } = validatePeriodFile(json)
   if (!file || problems.length) {
@@ -29,9 +33,21 @@ async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
   }
   for (const patch of patches) applyPatch(file, patch)
   const newSha = await putPeriodFile(id, serializePeriodFile(file), sha, commitMessage(id, patches))
+  return { file, newSha }
+}
+
+async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
+  let result
+  try {
+    result = await attempt(id, patches)
+  } catch (error) {
+    if (!(error instanceof ConflictError)) throw error
+    result = await attempt(id, patches) // a second 409 propagates, the patches stay queued
+  }
+  if (result.file.closedOn) editedClosedPeriods.add(id)
   await removePatches(patches)
-  await savePeriodCopy({ id, json: file, sha: newSha })
-  return newSha
+  await savePeriodCopy({ id, json: result.file, sha: result.newSha })
+  return result.newSha
 }
 
 let running: Promise<Map<string, string>> | undefined

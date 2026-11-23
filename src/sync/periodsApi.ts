@@ -38,6 +38,14 @@ export class PeriodExistsError extends Error {
   }
 }
 
+// A PUT answered 409: the file changed since the SHA that was sent.
+export class ConflictError extends Error {
+  constructor() {
+    super('The period changed meanwhile')
+    this.name = 'ConflictError'
+  }
+}
+
 async function throwHttpError(response: Response, action: string): Promise<never> {
   if (response.status === 500) {
     const answer: unknown = await response.json().catch(() => undefined)
@@ -140,7 +148,7 @@ function encodeBase64Utf8(text: string): string {
 }
 
 // Writes one period file as one commit and returns the new SHA. `sha` is the SHA being replaced;
-// a 409 means the file changed meanwhile (the rebase is a later ticket). Without `sha` the file is
+// a 409 (ConflictError) means the file changed meanwhile (the drain rebases, ADR 0004). Without `sha` the file is
 // created, and GitHub's 422 for a file already there becomes a PeriodExistsError.
 export async function putPeriodFile(
   id: string,
@@ -160,6 +168,9 @@ export async function putPeriodFile(
   })
   if (response.status === 401) {
     throw new UnauthorizedError()
+  }
+  if (response.status === 409) {
+    throw new ConflictError()
   }
   if (response.status === 422 && sha === undefined) {
     throw new PeriodExistsError()

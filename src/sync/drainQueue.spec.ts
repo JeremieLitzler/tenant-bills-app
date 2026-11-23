@@ -4,7 +4,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Patch } from '@/domain/applyPatch'
-import { DrainError, drainQueue } from '@/sync/drainQueue'
+import { DrainError, drainQueue, editedClosedPeriods } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 import { UnauthorizedError } from '@/sync/periodsApi'
 
@@ -226,5 +226,67 @@ describe('drainQueue', () => {
     ])
     expect(remoteFile().months[0].electricity).toEqual({ mainBase: 5 })
     expect(await listPatches()).toEqual([])
+  })
+
+  // The other device writes the file between our GET and our PUT, `times` times.
+  function otherDeviceWritesFirst(times: number, edit: (json: ReturnType<typeof remoteFile>) => void) {
+    const github = globalThis.fetch
+    let left = times
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (init?.method && left-- > 0) {
+          const json = remoteFile()
+          edit(json)
+          remote = { text: serialized(json), sha: remote.sha + 1 }
+        }
+        return github(url, init)
+      }),
+    )
+  }
+
+  it('on a 409, pulls, re-applies the patches and retries once with the same message', async () => {
+    otherDeviceWritesFirst(1, (json) => {
+      json.months[0].electricity = { mainBase: 1 }
+      json.months[0].internet.billedAmount = 99
+    })
+    await enqueuePatch(cell('internet.billedAmount', 22))
+    await enqueuePatch(cell('electricity.mainExtra', 5))
+    await drainQueue()
+    const month = remoteFile().months[0]
+    expect(month.electricity).toEqual({ mainBase: 1, mainExtra: 5 })
+    expect(month.internet.billedAmount).toBe(22) // the queued value wins
+    expect(commits).toEqual(['data(2026-2027): 2 edits in 2026-09'])
+    expect(await listPatches()).toEqual([])
+  })
+
+  it('counts the patches sent even when the other device wrote the same value', async () => {
+    otherDeviceWritesFirst(1, (json) => {
+      json.months[0].internet.billedAmount = 22
+    })
+    await enqueuePatch(cell('internet.billedAmount', 22))
+    await drainQueue()
+    expect(commits).toEqual(['data(2026-2027): 1 edit in 2026-09'])
+  })
+
+  it('keeps the patches and throws on a second 409', async () => {
+    otherDeviceWritesFirst(2, (json) => {
+      json.months[0].internet.billedAmount = 99
+    })
+    await enqueuePatch(cell('internet.billedAmount', 22))
+    const error = await drainQueue().catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(DrainError)
+    expect(commits).toEqual([])
+    expect(await listPatches()).toHaveLength(1)
+  })
+
+  it('applies a patch to a closed period and flags it', async () => {
+    const json = remoteFile()
+    json.closedOn = '2027-10-11'
+    remote.text = serialized(json)
+    await enqueuePatch(cell('internet.billedAmount', 22))
+    await drainQueue()
+    expect(remoteFile().months[0].internet.billedAmount).toBe(22)
+    expect(editedClosedPeriods.has('2026-2027')).toBe(true)
   })
 })
