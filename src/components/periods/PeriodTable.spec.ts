@@ -132,10 +132,10 @@ describe('period totals column', () => {
     expect(headers[1].text()).toBe('Total')
   })
 
-  it('repeats the section total in each month of its header row, for the phone', async () => {
+  it('shows the section total once on its header row, for the phone', async () => {
     const w = await mountTable()
     const cells = w.findAll('[data-testid="section-electricity"] [data-testid="year-total"]')
-    expect(cells).toHaveLength(12)
+    expect(cells).toHaveLength(1)
     expect(cells[0].text()).toBe(`Total annuel : ${sectionTotal(w, 'electricity').text()}`)
   })
 

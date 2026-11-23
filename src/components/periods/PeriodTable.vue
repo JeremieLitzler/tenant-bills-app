@@ -239,12 +239,12 @@ watch(activeId, async () => {
             <TableHead class="bg-muted text-right tabular-nums" data-testid="total">{{
               sectionTotal(section)
             }}</TableHead>
-            <!-- On a phone, each month panel also carries the year total. -->
-            <TableCell v-for="column in columns" :key="column.month" class="bg-muted">
-              <span class="md:hidden" data-testid="year-total"
+            <!-- On a phone, the year total sticks next to the label column while the months swipe. -->
+            <TableHead :colspan="columns.length" class="bg-muted">
+              <span class="sticky left-52 md:hidden" data-testid="year-total"
                 >{{ fr.period.table.yearTotal }} : {{ sectionTotal(section) }}</span
               >
-            </TableCell>
+            </TableHead>
           </TableRow>
           <template v-if="section.id === 'common' || isOpen(section.id)">
             <TableRow
