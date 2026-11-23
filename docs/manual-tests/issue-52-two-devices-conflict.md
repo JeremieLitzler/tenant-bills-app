@@ -6,5 +6,7 @@
 4. On device A, change cell X to a different value. Wait for the sync status to show idle.
 5. Put device B back online. The queue drains.
 6. Check the data repo: the file holds A's other edits, B's value for X (the queued value wins) and B's value for Y. Exactly one commit came from B, with the message `data(<period>): 2 edits in <month>`.
-7. Repeat steps 2 to 4, then change the file in the data repo by hand twice in a row during step 5 (or block the retry) to force a second 409: the pending count stays at 2 and the sync status shows the error.
+7. Force a second 409 on device B: go offline, type one edit (the pending count shows 1), then paste this in the console, which makes every write answer 409:
+   `const f = window.fetch; window.fetch = (u, i) => i?.method === 'PUT' ? Promise.resolve(new Response('{}', { status: 409 })) : f(u, i)`
+   Go back online. The pending count stays at 1, the sync status shows the error, and the data repo has no new commit. Reload the page: the drain runs without the override and the edit is saved.
 8. Close a period on device A. On device B (offline, queued edit typed before the close), go online: the edit is applied and the period is flagged as edited after the close (`editedClosedPeriods`; the UI flag is not shown yet).
