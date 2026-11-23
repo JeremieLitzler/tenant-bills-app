@@ -218,7 +218,8 @@ describe('period page', () => {
       )
       await flushPromises()
       // The cells of a line, one per month.
-      const cells = (line: string) => wrapper.findAll(`[data-testid="line-${line}"] td`)
+      const cells = (line: string) =>
+        wrapper.findAll(`[data-testid="line-${line}"] td:not([data-testid="total"])`)
       return { wrapper, cells }
     }
 
