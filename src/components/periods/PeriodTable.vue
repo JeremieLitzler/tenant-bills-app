@@ -50,6 +50,8 @@ const columns = computed(() =>
 )
 
 const totals = computed(() => figures.value?.totals)
+const sectionTotal = (section: (typeof SECTIONS)[number]) =>
+  totals.value ? formatTotal(section.total, 'money', totals.value) : ''
 
 // Selection mode (F5): the container is the single Tab stop; the selected cell is its active descendant.
 // The rows in display order: the common lines, then per section its header row and its lines. The
@@ -184,7 +186,7 @@ watch(activeId, async () => {
             class="bg-background sticky top-0 left-0 z-30 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
             >{{ fr.period.table.label }}</TableHead
           >
-          <TableHead class="bg-background sticky top-0 z-20 snap-start">{{
+          <TableHead class="bg-background sticky top-0 z-20 max-md:hidden">{{
             fr.period.table.total
           }}</TableHead>
           <TableHead
@@ -234,10 +236,15 @@ watch(activeId, async () => {
                 {{ section.label }}
               </button>
             </TableHead>
-            <TableHead class="bg-muted text-right tabular-nums" data-testid="total">{{
-              totals ? formatTotal(section.total, 'money', totals) : ''
+            <TableHead class="bg-muted text-right tabular-nums max-md:hidden" data-testid="total">{{
+              sectionTotal(section)
             }}</TableHead>
-            <TableHead :colspan="columns.length" class="bg-muted" />
+            <!-- On a phone the Total column is hidden: each month panel carries the year total. -->
+            <TableCell v-for="column in columns" :key="column.month" class="bg-muted">
+              <span class="md:hidden" data-testid="year-total"
+                >{{ fr.period.table.yearTotal }} : {{ sectionTotal(section) }}</span
+              >
+            </TableCell>
           </TableRow>
           <template v-if="section.id === 'common' || isOpen(section.id)">
             <TableRow
@@ -252,7 +259,7 @@ watch(activeId, async () => {
                 >{{ line.label }}</TableHead
               >
               <TableCell
-                class="text-right font-medium tabular-nums"
+                class="text-right font-medium tabular-nums max-md:hidden"
                 role="gridcell"
                 data-testid="total"
                 >{{ totals ? formatTotal(line.total, line.kind, totals) : '' }}</TableCell

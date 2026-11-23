@@ -100,6 +100,7 @@ export const fr = {
       label: 'Ligne',
       empty: '—',
       total: 'Total',
+      yearTotal: 'Total annuel',
       keyboardHint: '💡 Naviguez dans le tableau avec les touches fléchées.',
       warnings: {
         indexBelowPrevious: "L'index est inférieur à l'index précédent",
