@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import IconChevronDown from '@/components/icons/IconChevronDown.vue'
 
+import { editedAfterClose } from '@/composables/editedAfterClose'
 import { useOpenSections } from '@/composables/useOpenSections'
 import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
@@ -273,6 +274,7 @@ watch(activeId, async () => {
                 :line="line"
                 :entry="column.entry"
                 :figures="column.figures"
+                :edited-after-close="editedAfterClose.has(`${periodId}|${column.month}|${line.id}`)"
                 @click="select(line.id, colIndex)"
                 @dblclick="onDblclick(line.id, colIndex)"
               />

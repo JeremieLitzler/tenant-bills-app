@@ -2,7 +2,7 @@
 // once (ADR 0010). Vue-free. On a 409 the period is pulled, the same patches re-applied and the PUT
 // retried once (ADR 0004). A period that fails keeps its patches queued, the other periods still
 // drain, and a `DrainError` is thrown.
-import { applyPatch, type Patch } from '@/domain/applyPatch'
+import { applyPatch, type Patch, patchKey } from '@/domain/applyPatch'
 import { commitMessage } from '@/domain/commitMessage'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { validatePeriodFile } from '@/domain/validatePeriodFile'
@@ -22,8 +22,12 @@ export class DrainError extends Error {
   }
 }
 
-// Periods that received queued edits after being closed, for the UI to flag.
-export const editedClosedPeriods = new Set<string>()
+// Told the patch keys (`patchKey`) of the cells written after their period was closed, for the UI
+// to flag (src/sync/ stays Vue-free, the composable keeps the state).
+let onEditedAfterClose: (keys: string[]) => void = () => {}
+export const setEditedAfterCloseListener = (listener: typeof onEditedAfterClose) => {
+  onEditedAfterClose = listener
+}
 
 async function attempt(id: string, patches: Patch[]) {
   const { json, sha } = await getPeriodFile(id)
@@ -44,7 +48,7 @@ async function drainPeriod(id: string, patches: Patch[]): Promise<string> {
     if (!(error instanceof ConflictError)) throw error
     result = await attempt(id, patches) // a second 409 propagates, the patches stay queued
   }
-  if (result.file.closedOn) editedClosedPeriods.add(id)
+  if (result.file.closedOn) onEditedAfterClose(patches.map(patchKey))
   await removePatches(patches)
   await savePeriodCopy({ id, json: result.file, sha: result.newSha })
   return result.newSha

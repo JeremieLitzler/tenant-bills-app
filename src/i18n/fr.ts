@@ -102,6 +102,7 @@ export const fr = {
       empty: '—',
       total: 'Total annuel',
       keyboardHint: '💡 Naviguez dans le tableau avec les touches fléchées.',
+      editedAfterClose: 'Modifié après la clôture de la période',
       warnings: {
         indexBelowPrevious: "L'index est inférieur à l'index précédent",
         endBeforeStart: 'La date de fin précède la date de début',

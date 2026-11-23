@@ -15,6 +15,8 @@ const props = defineProps<{
   selected?: boolean
   entry: MonthEntry
   figures?: MonthFigures
+  // A patch queued before the close was applied after it.
+  editedAfterClose?: boolean
 }>()
 
 // "typed": stored in the file, copied values included. "computed": a read-only figure.
@@ -51,11 +53,14 @@ const warningClass = 'bg-destructive/10 text-destructive ring-destructive ring-2
       'font-medium': view.provenance === 'computed',
       'text-muted-foreground bg-muted/50 italic': view.provenance === 'not-applicable',
       [warningClass]: warning,
+      'underline decoration-dotted decoration-2': editedAfterClose,
     }"
     role="gridcell"
     :aria-selected="selected"
     :data-provenance="view.provenance"
     :data-warning="warning"
+    :data-edited-after-close="editedAfterClose || undefined"
+    :title="editedAfterClose ? fr.period.table.editedAfterClose : undefined"
   >
     <IconTriangleAlert
       v-if="warning"

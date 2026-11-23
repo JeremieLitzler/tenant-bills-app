@@ -3,14 +3,17 @@
 // only; it never touches the loaded periods, the drain hands back the new SHAs instead.
 import { computed, readonly, ref } from 'vue'
 
+import { editedAfterClose } from '@/composables/editedAfterClose'
 import { expireOnUnauthorized } from '@/composables/expireOnUnauthorized'
 import { setPendingCounts } from '@/composables/pendingPatches'
 import { useOnline } from '@/composables/useOnline'
 import { useToasts } from '@/composables/useToasts'
 import type { Patch } from '@/domain/applyPatch'
 import { fr } from '@/i18n/fr'
-import { DrainError, drainQueue } from '@/sync/drainQueue'
+import { DrainError, drainQueue, setEditedAfterCloseListener } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
+
+setEditedAfterCloseListener((keys) => keys.forEach((key) => editedAfterClose.add(key)))
 
 // What the last drain failed with, cleared by the next successful one. A failed drain also tells
 // the landlord through an error toast.

@@ -13,4 +13,4 @@
    3. Put B back online. The drain gets a 409, fetches again, retries and gets a second 409.
    4. Expected: the pending count stays at 1, the sync status shows the error, an error toast appears and the data repo has no new commit.
    5. Reload the page to remove the override. The drain then runs and the edit is saved normally.
-8. Close a period on device A. On device B (offline, queued edit typed before the close), go online: the edit is applied and the period is flagged as edited after the close (`editedClosedPeriods`; the UI flag is not shown yet).
+8. Close a period on device A. On device B (offline, queued edit typed before the close), go online: the edit is applied and the edited cell is flagged in the period table (`data-edited-after-close`).
