@@ -115,6 +115,18 @@ describe('period page', () => {
     expect(getPeriodFile).toHaveBeenCalledTimes(1)
   })
 
+  it('shows the closed notice with the closing date in a closed period only', async () => {
+    getPeriodFile.mockResolvedValue({ json: periodJson({ closedOn: '2027-09-01' }), sha: 's' })
+    const closed = await openPeriodPage()
+    await flushPromises()
+    expect(closed.wrapper.get('[data-testid="period-closed"]').text()).toContain('01/09/2027')
+
+    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    const open = await openPeriodPage()
+    await flushPromises()
+    expect(open.wrapper.find('[data-testid="period-closed"]').exists()).toBe(false)
+  })
+
   it('shows the months and a read-only notice for a file breaking a validation rule', async () => {
     getPeriodFile.mockResolvedValue({ json: periodJson({ schemaVersion: 1 }), sha: 's' })
 
