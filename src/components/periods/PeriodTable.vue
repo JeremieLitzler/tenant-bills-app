@@ -17,6 +17,7 @@ import IconChevronDown from '@/components/icons/IconChevronDown.vue'
 import { editedAfterClose } from '@/composables/editedAfterClose'
 import { useOpenSections } from '@/composables/useOpenSections'
 import { usePeriod } from '@/composables/usePeriods'
+import { patchKey } from '@/domain/applyPatch'
 import { fr } from '@/i18n/fr'
 
 import PeriodCell from './PeriodCell.vue'
@@ -274,7 +275,11 @@ watch(activeId, async () => {
                 :line="line"
                 :entry="column.entry"
                 :figures="column.figures"
-                :edited-after-close="editedAfterClose.has(`${periodId}|${column.month}|${line.id}`)"
+                :edited-after-close="
+                  editedAfterClose.has(
+                    patchKey({ period: periodId, month: column.month, field: line.id }),
+                  )
+                "
                 @click="select(line.id, colIndex)"
                 @dblclick="onDblclick(line.id, colIndex)"
               />
