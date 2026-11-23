@@ -17,6 +17,7 @@ import type { SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 import ApplyDialog from './ApplyDialog.vue'
+import ClosedNotice from './ClosedNotice.vue'
 import EstimatedDialog from './EstimatedDialog.vue'
 import {
   fieldText,
@@ -147,6 +148,7 @@ function answerConfirmReading(yes: boolean) {
       {{ fr.period.month.toTable }}
     </Button>
     <h2 class="text-xl font-semibold">{{ fr.period.month.title }}</h2>
+    <ClosedNotice v-if="file.closedOn" :closed-on="file.closedOn" />
     <div
       v-if="canEdit && entry.common.estimated"
       role="status"

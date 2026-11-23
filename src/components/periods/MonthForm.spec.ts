@@ -392,6 +392,21 @@ describe('MonthForm collapsible sections', () => {
       ])
     })
 
+    it('shows the closed notice with the date in a closed period only', async () => {
+      const closed = await openForm(
+        (json) => {
+          ;(json as Record<string, unknown>).closedOn = '2027-09-01'
+        },
+        '2026-09',
+        undefined,
+        undefined,
+        'closed',
+      )
+      expect(closed.wrapper.get('[data-testid="period-closed"]').text()).toContain('01/09/2027')
+      const open = await openForm()
+      expect(open.wrapper.find('[data-testid="period-closed"]').exists()).toBe(false)
+    })
+
     it('enables no input in a closed period', async () => {
       const { wrapper } = await openForm(
         (json) => {

@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
+import ClosedNotice from '@/components/periods/ClosedNotice.vue'
 import PeriodTable from '@/components/periods/PeriodTable.vue'
 import { Button } from '@/components/ui/button'
 import { usePeriod } from '@/composables/usePeriods'
@@ -68,6 +69,7 @@ if (import.meta.env.DEV) {
         </ul>
       </div>
     </div>
+    <ClosedNotice v-if="period.file.value?.closedOn" :closed-on="period.file.value.closedOn" />
     <Button
       v-if="period.nextMonth.value === 'available'"
       accent

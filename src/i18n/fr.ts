@@ -55,6 +55,7 @@ export const fr = {
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
+    closedNotice: (date: string) => `Période clôturée le ${date}, en lecture seule.`,
     localCopy: 'Copie locale affichée.',
     refresh: {
       button: 'Rafraîchir',
