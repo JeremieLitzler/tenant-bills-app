@@ -77,6 +77,16 @@ const valueOf = (line: PeriodLine) => line.read(entry.value!, monthFigures.value
 
 const invalid = ref(new Set<string>())
 
+// The enum lines are switches, not text: their choices, shown as the French labels `parseField` reads.
+const CHOICES: Record<string, string[]> = {
+  'electricity.tariffMode': [fr.period.table.values.base, fr.period.table.values.hchp],
+  'electricity.subscriptionUnit': [fr.period.table.values.day, fr.period.table.values.month],
+}
+
+// The advance suggestion: one click sets the period's expected advance on a month that has none.
+const suggestsAdvance = (line: PeriodLine) =>
+  canEdit.value && line.id === 'common.tenantBillAdvance' && valueOf(line) === 0
+
 // Focuses the requested field when the form appears (the period may still be loading).
 const form = ref<HTMLFormElement>()
 watch(form, (el) => {
@@ -84,7 +94,7 @@ watch(form, (el) => {
 })
 
 // Unchanged saves nothing, emptying removes the value, a text that is no value is marked.
-function onBlur(line: PeriodLine, event: FocusEvent) {
+function onBlur(line: PeriodLine, event: Event) {
   const field = event.target as HTMLInputElement
   invalid.value.delete(line.id)
   if (field.value === fieldText(line, valueOf(line))) return
@@ -226,7 +236,20 @@ function answerConfirmReading(yes: boolean) {
         <template v-else>
           <label class="flex flex-col gap-1">
             {{ line.label }}
+            <select
+              v-if="CHOICES[line.id]"
+              class="disabled:bg-muted disabled:text-muted-foreground rounded border px-2 py-1 disabled:cursor-not-allowed"
+              :data-testid="`field-${line.id}`"
+              :value="fieldText(line, valueOf(line))"
+              :disabled="!canEdit"
+              @change="onBlur(line, $event)"
+            >
+              <option v-for="choice in CHOICES[line.id]" :key="choice" :value="choice">
+                {{ choice }}
+              </option>
+            </select>
             <input
+              v-else
               class="disabled:bg-muted disabled:text-muted-foreground rounded border px-2 py-1 disabled:cursor-not-allowed"
               :class="{ 'ring-destructive ring-2': invalid.has(line.id) }"
               :data-testid="`field-${line.id}`"
@@ -238,6 +261,20 @@ function answerConfirmReading(yes: boolean) {
               @blur="onBlur(line, $event)"
             />
           </label>
+          <Button
+            v-if="suggestsAdvance(line)"
+            type="button"
+            class="self-start"
+            :data-testid="`suggest-${line.id}`"
+            @click="setCell(month, line.id, file.monthlyTenantBillAdvance)"
+          >
+            {{
+              fr.period.month.suggestAdvance.replace(
+                '{amount}',
+                formatValue('money', file.monthlyTenantBillAdvance),
+              )
+            }}
+          </Button>
           <p v-if="invalid.has(line.id)" role="alert" class="text-destructive text-sm">
             {{ fr.period.month.invalid }}
           </p>
