@@ -241,7 +241,9 @@ watch(activeId, async () => {
             }}</TableHead>
             <!-- On a phone, the year total sticks next to the label column while the months swipe. -->
             <TableHead :colspan="columns.length" class="bg-muted">
-              <span class="sticky left-52 md:hidden" data-testid="year-total"
+              <span
+                class="sticky left-52 block w-[calc(100cqw-13rem)] text-right md:hidden"
+                data-testid="year-total"
                 >{{ fr.period.table.yearTotal }} : {{ sectionTotal(section) }}</span
               >
             </TableHead>
