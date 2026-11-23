@@ -163,7 +163,7 @@ function answerConfirmReading(yes: boolean) {
     <label class="flex flex-col gap-1">
       {{ fr.period.month.picker }}
       <select
-        class="rounded border px-2 py-1"
+        class="disabled:bg-muted disabled:text-muted-foreground rounded border px-2 py-1 disabled:cursor-not-allowed"
         data-testid="month-picker"
         :value="month"
         @change="
