@@ -420,6 +420,7 @@ describe('MonthForm collapsible sections', () => {
       const inputs = wrapper.findAll('input')
       expect(inputs.length).toBeGreaterThan(0)
       expect(inputs.every((input) => input.attributes('disabled') !== undefined)).toBe(true)
+      expect(inputs.every((input) => input.classes('disabled:bg-muted'))).toBe(true)
     })
 
     it('offers neither notice nor confirmation in a closed period', async () => {
