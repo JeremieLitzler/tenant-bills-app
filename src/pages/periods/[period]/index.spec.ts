@@ -228,10 +228,10 @@ describe('period page', () => {
 
       // The common lines are always shown: they have no header row.
       expect(wrapper.find('[data-testid="section-common"]').exists()).toBe(false)
-      expect(wrapper.get('[data-testid="section-waterConsumption"]').text()).toBe(
+      expect(wrapper.get('[data-testid="section-waterConsumption"] button').text()).toBe(
         "Consommation d'eau",
       )
-      expect(wrapper.get('[data-testid="section-waterTreatment"]').text()).toBe(
+      expect(wrapper.get('[data-testid="section-waterTreatment"] button').text()).toBe(
         "Traitement de l'eau",
       )
       expect(wrapper.get('[data-testid="line-common.startDate"] th').text()).toBe('Du')
@@ -304,7 +304,7 @@ describe('period page', () => {
       Object.assign(json.months[1].electricity, { tariffMode: 'hchp', mainBase: 888 })
       const { wrapper, cells } = await openTable(json)
 
-      expect(wrapper.get('[data-testid="section-electricity"]').text()).toBe('Électricité')
+      expect(wrapper.get('[data-testid="section-electricity"] button').text()).toBe('Électricité')
       expect(cells('electricity.mainBase')[0].text()).toBe('150')
       expect(cells('electricity.deltaMainBase')[0].text()).toBe('50')
       for (const id of ['mainHc', 'deltaMainHp', 'kwhPriceHc']) {

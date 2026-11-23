@@ -51,9 +51,6 @@ const columns = computed(() =>
 
 const totals = computed(() => figures.value?.totals)
 
-// A section header row spans the label column, the Total column and the months.
-const headerSpan = computed(() => columns.value.length + 2)
-
 // Selection mode (F5): the container is the single Tab stop; the selected cell is its active descendant.
 // The rows in display order: the common lines, then per section its header row and its lines. The
 // lines of a closed section are not shown, so the arrows skip them.
@@ -220,11 +217,11 @@ watch(activeId, async () => {
             role="row"
             :data-testid="`section-${section.id}`"
           >
-            <TableHead :colspan="headerSpan" class="bg-muted">
+            <TableHead class="bg-muted sticky left-0 z-10 max-md:whitespace-normal">
               <button
                 type="button"
                 tabindex="-1"
-                class="sticky left-2 inline-flex items-center gap-1 font-medium"
+                class="inline-flex items-center gap-1 font-medium"
                 :class="{ 'ring-ring/50 ring-2': row === `section:${section.id}` }"
                 :aria-expanded="isOpen(section.id)"
                 @click="(select(`section:${section.id}`, col), toggle(section.id))"
@@ -237,6 +234,10 @@ watch(activeId, async () => {
                 {{ section.label }}
               </button>
             </TableHead>
+            <TableHead class="bg-muted text-right tabular-nums" data-testid="total">{{
+              totals ? formatTotal(section.total, 'money', totals) : ''
+            }}</TableHead>
+            <TableHead :colspan="columns.length" class="bg-muted" />
           </TableRow>
           <template v-if="section.id === 'common' || isOpen(section.id)">
             <TableRow
@@ -254,7 +255,7 @@ watch(activeId, async () => {
                 class="text-right font-medium tabular-nums"
                 role="gridcell"
                 data-testid="total"
-                >{{ totals ? formatTotal(line, totals) : '' }}</TableCell
+                >{{ totals ? formatTotal(line.total, line.kind, totals) : '' }}</TableCell
               >
               <PeriodCell
                 v-for="(column, colIndex) in columns"

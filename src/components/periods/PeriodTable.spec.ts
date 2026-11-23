@@ -94,6 +94,9 @@ describe('period table month headers', () => {
 
 describe('period totals column', () => {
   const totalCell = (w: W, id: string) => w.get(`[data-testid="line-${id}"] [data-testid="total"]`)
+  // A section's total is on its header row, so a closed section still shows it.
+  const sectionTotal = (w: W, id: string) =>
+    w.get(`[data-testid="section-${id}"] [data-testid="total"]`)
 
   it('follows the months with the advances and each section tenant share totals', async () => {
     const w = await mountTable()
@@ -101,24 +104,25 @@ describe('period totals column', () => {
     expect(totalCell(w, 'common.tenantBillAdvance').text()).toBe(
       totals.advancesReceived.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
     )
-    expect(totalCell(w, 'internet.tenantShare').text()).not.toBe('')
+    expect(sectionTotal(w, 'internet').text()).not.toBe('')
+    expect(totalCell(w, 'internet.tenantShare').text()).toBe('')
     // A line without a total in the spreadsheet stays empty, and the column is read-only.
     expect(totalCell(w, 'internet.billedAmount').text()).toBe('')
     expect(w.find('[data-testid="total"] input').exists()).toBe(false)
   })
 
   it.each([
-    ['waterConsumption.tenantShare', 'waterConsumptionTenant'],
-    ['waterTreatment.tenantShare', 'waterTreatmentTenant'],
-    ['waterSoftener.tenantShare', 'waterSoftenerTenant'],
-    ['electricity.tenantShare', 'electricityTenant'],
-    ['internet.tenantShare', 'internetTenant'],
-    ['heatPumpMaintenance.billedAmount', 'heatPumpMaintenanceTenant'],
-  ] as const)('shows %s as a dash when a month is uncomputable', async (lineId, total) => {
+    ['waterConsumption', 'waterConsumptionTenant'],
+    ['waterTreatment', 'waterTreatmentTenant'],
+    ['waterSoftener', 'waterSoftenerTenant'],
+    ['electricity', 'electricityTenant'],
+    ['internet', 'internetTenant'],
+    ['heatPumpMaintenance', 'heatPumpMaintenanceTenant'],
+  ] as const)('shows the %s total as a dash when a month is uncomputable', async (id, total) => {
     const w = await mountTable('2026-2027', ALL_OPEN, (f) => {
       f.totals[total] = undefined
     })
-    expect(totalCell(w, lineId).text()).toBe('—')
+    expect(sectionTotal(w, id).text()).toBe('—')
   })
 
   it('puts the Total column right after the label column', async () => {
@@ -126,6 +130,11 @@ describe('period totals column', () => {
     const headers = w.findAll('thead th')
     expect(headers[0].text()).toBe('Ligne')
     expect(headers[1].text()).toBe('Total')
+  })
+
+  it('shows a section total on its header row when the section is closed', async () => {
+    const w = await mountTable('2026-2027', '')
+    expect(sectionTotal(w, 'electricity').text()).not.toBe('')
   })
 })
 

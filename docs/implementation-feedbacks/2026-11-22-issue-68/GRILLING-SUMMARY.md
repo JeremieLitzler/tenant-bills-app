@@ -10,6 +10,10 @@ The Total cells stay out of the keyboard selection: the arrows move over the mon
 
 Code changes to make: a `withTotal(line, fn)` helper in `periodLines.ts` for the six mappings; the total's text moves to `periodLines.ts` as `formatTotal(line, totals)` with a unit test; the section header span gets a named Vue `computed`; the dash test becomes table-driven over the six totals; one `Figures` type alias in the spec. Docs to update: `docs/architecture.md` (the table shape sentence at line 230, the arrows rule at lines 247-248) to describe the Total column after the label column and out of the selection.
 
+## Later change (after the summary was approved)
+
+Each section's tenant share total moved from its `tenantShare` line to the section header row, in the Total column, so a closed section (on a phone) still shows it. The `tenantShare` lines keep their monthly values, and the advance line keeps the advances total. This supersedes Q3 (heat pump total on `billedAmount`): the heat pump total is on its header row too. On a phone the Total column is a full panel like a month.
+
 ## Decision index
 
 - Q1 (v01, v03): update `docs/architecture.md` to describe the read-only Total column; the sticky part was dropped in v02.
