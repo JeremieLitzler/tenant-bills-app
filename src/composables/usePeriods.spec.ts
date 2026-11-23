@@ -460,6 +460,18 @@ describe('usePeriod, setCell', () => {
     expect(period.sha.value).toBe('sha-2')
   })
 
+  it('shows the merged file the drain wrote, with the other device edits', async () => {
+    const period = await openWritable()
+    const merged = validPeriodJson()
+    merged.months[0].electricity = { mainBase: 1 }
+    readPeriodCopy.mockResolvedValue({ id: '2026-2027', json: merged, sha: 'sha-2' })
+    drain.mockResolvedValue(new Map([['2026-2027', 'sha-2']]))
+
+    await period.setCell('2026-09', 'internet.billedAmount', 21)
+
+    expect(period.file.value?.months[0].electricity).toEqual({ mainBase: 1 })
+  })
+
   it('takes a top-level value with a null month', async () => {
     const period = await openWritable()
 

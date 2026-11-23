@@ -30,7 +30,7 @@ import {
 } from '@/sync/periodsApi'
 import { loadPeriodWithCopy } from '@/sync/loadPeriod'
 import { readEstimate, removeEstimate, saveEstimate } from '@/sync/estimateCopies'
-import { savePeriodCopy } from '@/sync/periodCopies'
+import { readPeriodCopy, savePeriodCopy } from '@/sync/periodCopies'
 
 // "Se déconnecter" confirms with the real count of queued edits.
 useSession().setPendingCountSource(() => pendingCount.value)
@@ -279,7 +279,13 @@ async function confirmReading(id: string, month: string): Promise<void> {
 async function drainQueued(): Promise<void> {
   for (const [periodId, sha] of await useSaveQueue().drain()) {
     const written = periodEntries.value[periodId]
-    if (written) written.sha = sha
+    if (!written) continue
+    written.sha = sha
+    // The written file holds the other device's edits too (a rebase on a 409): show it, unless an
+    // edit typed during the drain is still queued, which the loaded copy alone holds.
+    if (pendingCountFor(periodId) > 0) continue
+    const merged = validatePeriodFile((await readPeriodCopy(periodId))?.json).file
+    if (merged) written.file = merged
   }
 }
 
