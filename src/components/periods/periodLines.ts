@@ -86,6 +86,12 @@ function computed(
   }
 }
 
+// The line with its period total (the spreadsheet's totals column).
+const withTotal = (line: PeriodLine, total: (totals: PeriodTotals) => Figure): PeriodLine => ({
+  ...line,
+  total,
+})
+
 // Per meter, per tariff: previous index, current index, then the delta.
 const electricityMeterLines = (['main', 'studio'] as const).flatMap((meter) =>
   ELECTRICITY_TARIFFS.flatMap((tariff) => [
@@ -105,7 +111,7 @@ export const LINES: PeriodLine[] = [
   input('common', 'endDate', 'date'),
   input('common', 'landlordOccupants', 'int'),
   input('common', 'tenantOccupants', 'int'),
-  { ...input('common', 'tenantBillAdvance', 'money'), total: (t) => t.advancesReceived },
+  withTotal(input('common', 'tenantBillAdvance', 'money'), (t) => t.advancesReceived),
   input('waterConsumption', 'mainMeterPrevious', 'litres'),
   input('waterConsumption', 'mainMeter', 'litres'),
   computed('waterConsumption', 'deltaMain', 'm3'),
@@ -122,10 +128,7 @@ export const LINES: PeriodLine[] = [
   input('waterConsumption', 'subscription', 'money'),
   input('waterConsumption', 'vat', 'number'),
   computed('waterConsumption', 'landlordShare', 'money'),
-  {
-    ...computed('waterConsumption', 'tenantShare', 'money'),
-    total: (t) => t.waterConsumptionTenant,
-  },
+  withTotal(computed('waterConsumption', 'tenantShare', 'money'), (t) => t.waterConsumptionTenant),
   computed('waterConsumption', 'bill', 'money'),
   input('waterTreatment', 'monthlySubscriptionDistributor', 'money'),
   input('waterTreatment', 'monthlySubscriptionCommunity', 'money'),
@@ -134,13 +137,13 @@ export const LINES: PeriodLine[] = [
   input('waterTreatment', 'sanitationPerformance', 'number'),
   input('waterTreatment', 'vat', 'number'),
   computed('waterTreatment', 'landlordShare', 'money'),
-  { ...computed('waterTreatment', 'tenantShare', 'money'), total: (t) => t.waterTreatmentTenant },
+  withTotal(computed('waterTreatment', 'tenantShare', 'money'), (t) => t.waterTreatmentTenant),
   computed('waterTreatment', 'bill', 'money'),
   input('waterSoftener', 'description', 'text'),
   input('waterSoftener', 'quantity', 'number'),
   input('waterSoftener', 'unitPrice', 'money'),
   computed('waterSoftener', 'landlordShare', 'money'),
-  { ...computed('waterSoftener', 'tenantShare', 'money'), total: (t) => t.waterSoftenerTenant },
+  withTotal(computed('waterSoftener', 'tenantShare', 'money'), (t) => t.waterSoftenerTenant),
   input('electricity', 'tariffMode', 'text'),
   input('electricity', 'subscriptionUnit', 'text'),
   ...electricityMeterLines,
@@ -153,16 +156,24 @@ export const LINES: PeriodLine[] = [
   input('electricity', 'ctaTax', 'money'),
   input('electricity', 'vat', 'number'),
   computed('electricity', 'landlordShare', 'money'),
-  { ...computed('electricity', 'tenantShare', 'money'), total: (t) => t.electricityTenant },
+  withTotal(computed('electricity', 'tenantShare', 'money'), (t) => t.electricityTenant),
   computed('electricity', 'bill', 'money'),
   input('internet', 'billedAmount', 'money'),
   computed('internet', 'landlordShare', 'money'),
-  { ...computed('internet', 'tenantShare', 'money'), total: (t) => t.internetTenant },
-  {
-    ...input('heatPumpMaintenance', 'billedAmount', 'money'),
-    total: (t) => t.heatPumpMaintenanceTenant,
-  },
+  withTotal(computed('internet', 'tenantShare', 'money'), (t) => t.internetTenant),
+  withTotal(
+    input('heatPumpMaintenance', 'billedAmount', 'money'),
+    (t) => t.heatPumpMaintenanceTenant,
+  ),
 ]
+
+// The text of a line's period total: empty for a line without a total, "—" when a month is
+// uncomputable.
+export function formatTotal(line: PeriodLine, totals: PeriodTotals): string {
+  if (!line.total) return ''
+  const total = line.total(totals)
+  return total === undefined ? fr.period.table.empty : formatValue(line.kind, total)
+}
 
 // Whether the line is a tariff line the month's tariff mode does not read. Without a mode no
 // tariff is ruled out.

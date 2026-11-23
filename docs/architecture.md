@@ -227,7 +227,7 @@ Settled in `docs/grillings/2026-11-03-period-table-library/` (issue #9), after a
 
 The period table (F5) uses shadcn-vue's plain `Table` components (`src/components/ui/table/`), with rows built by our own code. No TanStack Table.
 
-- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month present in the file (up to twelve), plus a label column. That is transposed from TanStack's row model, which expects one data object per row.
+- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month present in the file (up to twelve), plus a label column and, right after it, a read-only Total column (not sticky; empty on the lines without a total, "—" when a month is uncomputable). That is transposed from TanStack's row model, which expects one data object per row.
 - The shape is fixed (about 60 lines, up to 12 months). Sorting, filtering, pagination and row selection, TanStack's main features, go unused.
 - In the prototype, TanStack was harder for sections (two grouping features, a column that exists only to group by, then filtered out of every row) and simpler for nothing. A plain `<table>` with Tailwind only was no simpler than the shadcn-vue components either, so those stay for one table style across the app.
 
@@ -244,7 +244,7 @@ The period table (F5) uses shadcn-vue's plain `Table` components (`src/component
 The table has a selection mode only: no cell can be edited. Neither shadcn-vue nor TanStack provides it: it is our own code.
 
 - The table is a single Tab stop (ARIA grid pattern, `aria-activedescendant` on the table's container). Tab leaves it.
-- The arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every cell, computed or not, and the section header rows too; the rows of closed sections are skipped. On a header row, right opens its section and left closes it.
+- The arrows move one cell up, down, left (previous month) or right (next month), stopping at the edges. They visit every month cell, computed or not (the Total column is skipped), and the section header rows too; the rows of closed sections are skipped. On a header row, right opens its section and left closes it.
 - Each section is closed on arrival; the common lines are always shown. A header row holds a button with `aria-expanded` (not a Tab stop). Enter or Space on the selected header row, or a click on its button, opens or closes the section. Closing the section of the selected cell moves the selection to its header row. The open sections live in the URL query `?open=electricity,internet` (unknown names ignored), shared with the form.
 - Enter on the selected cell opens the "Saisie du mois" form of that cell's month, with the cell's field focused and its section open (route `/periods/<period>/months/<month>?field=<line id>`). On a computed cell, which has no field, the form simply opens.
 - Mouse: a click selects a cell, and a double click selects it and opens the form the same way.

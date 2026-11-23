@@ -8,6 +8,8 @@ import { validPeriodJson } from '@tests/helpers/periodFile'
 import PeriodTable from './PeriodTable.vue'
 import { LINES, SECTIONS } from './periodLines'
 
+type Figures = ReturnType<typeof computePeriodFigures>
+
 const ALL_OPEN = SECTIONS.map((section) => section.id)
   .filter((id) => id !== 'common')
   .join(',')
@@ -54,10 +56,10 @@ function addPeriod(id: string, monthCount = 12) {
 async function mountTable(
   periodId = '2026-2027',
   open = ALL_OPEN,
-  adjust?: (figures: ReturnType<typeof computePeriodFigures>) => void,
+  adjust?: (figures: Figures) => void,
 ) {
   addPeriod(periodId)
-  adjust?.(periods[periodId].figures as ReturnType<typeof computePeriodFigures>)
+  adjust?.(periods[periodId].figures as Figures)
   await router.push({ path: `/periods/${periodId}`, query: open ? { open } : {} })
   return mount(PeriodTable, {
     props: { periodId },
@@ -76,7 +78,9 @@ const selectedCell = (w: W) => w.get('[aria-selected="true"]')
 const lineOf = (w: W) => (selectedCell(w).element.closest('tr') as HTMLElement).dataset.testid
 // The cell of the line at `lineIndex` in `LINES`, in month column `colIndex`.
 const cellAt = (w: W, lineIndex: number, colIndex: number) =>
-  w.get(`[data-testid="line-${LINES[lineIndex].id}"]`).findAll('td')[colIndex]
+  w.get(`[data-testid="line-${LINES[lineIndex].id}"]`).findAll('td:not([data-testid="total"])')[
+    colIndex
+  ]
 
 describe('period table month headers', () => {
   it('link each month to its Saisie du mois form', async () => {
@@ -93,8 +97,7 @@ describe('period totals column', () => {
 
   it('follows the months with the advances and each section tenant share totals', async () => {
     const w = await mountTable()
-    const { totals } = periods['2026-2027'].figures as ReturnType<typeof computePeriodFigures>
-    expect(w.findAll('thead th').at(-1)!.text()).toBe('Total')
+    const { totals } = periods['2026-2027'].figures as Figures
     expect(totalCell(w, 'common.tenantBillAdvance').text()).toBe(
       totals.advancesReceived.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
     )
@@ -104,11 +107,25 @@ describe('period totals column', () => {
     expect(w.find('[data-testid="total"] input').exists()).toBe(false)
   })
 
-  it('shows an uncomputable tenant share as a dash, not a partial sum', async () => {
+  it.each([
+    ['waterConsumption.tenantShare', 'waterConsumptionTenant'],
+    ['waterTreatment.tenantShare', 'waterTreatmentTenant'],
+    ['waterSoftener.tenantShare', 'waterSoftenerTenant'],
+    ['electricity.tenantShare', 'electricityTenant'],
+    ['internet.tenantShare', 'internetTenant'],
+    ['heatPumpMaintenance.billedAmount', 'heatPumpMaintenanceTenant'],
+  ] as const)('shows %s as a dash when a month is uncomputable', async (lineId, total) => {
     const w = await mountTable('2026-2027', ALL_OPEN, (f) => {
-      f.totals.waterConsumptionTenant = undefined
+      f.totals[total] = undefined
     })
-    expect(totalCell(w, 'waterConsumption.tenantShare').text()).toBe('—')
+    expect(totalCell(w, lineId).text()).toBe('—')
+  })
+
+  it('puts the Total column right after the label column', async () => {
+    const w = await mountTable()
+    const headers = w.findAll('thead th')
+    expect(headers[0].text()).toBe('Ligne')
+    expect(headers[1].text()).toBe('Total')
   })
 })
 

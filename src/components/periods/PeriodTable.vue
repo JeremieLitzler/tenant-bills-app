@@ -19,7 +19,7 @@ import { usePeriod } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
 
 import PeriodCell from './PeriodCell.vue'
-import { formatValue, LINES, type PeriodLine, SECTIONS } from './periodLines'
+import { formatTotal, LINES, type PeriodLine, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
 const router = useRouter()
@@ -49,12 +49,10 @@ const columns = computed(() =>
     })),
 )
 
-// The total column's text: empty for a line without a total, a dash when a month is uncomputable.
-function totalText(line: PeriodLine): string {
-  if (!line.total || !figures.value) return ''
-  const total = line.total(figures.value.totals)
-  return total === undefined ? fr.period.table.empty : formatValue(line.kind, total)
-}
+const totals = computed(() => figures.value?.totals)
+
+// A section header row spans the label column, the Total column and the months.
+const headerSpan = computed(() => columns.value.length + 2)
 
 // Selection mode (F5): the container is the single Tab stop; the selected cell is its active descendant.
 // The rows in display order: the common lines, then per section its header row and its lines. The
@@ -189,6 +187,9 @@ watch(activeId, async () => {
             class="bg-background sticky top-0 left-0 z-30 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
             >{{ fr.period.table.label }}</TableHead
           >
+          <TableHead class="bg-background sticky top-0 z-20 max-md:w-24">{{
+            fr.period.table.total
+          }}</TableHead>
           <TableHead
             v-for="column in columns"
             :key="column.month"
@@ -208,9 +209,6 @@ watch(activeId, async () => {
               >{{ fr.period.estimated.badge }}</span
             >
           </TableHead>
-          <TableHead class="bg-background sticky top-0 z-20 snap-start">{{
-            fr.period.table.total
-          }}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -222,7 +220,7 @@ watch(activeId, async () => {
             role="row"
             :data-testid="`section-${section.id}`"
           >
-            <TableHead :colspan="columns.length + 2" class="bg-muted">
+            <TableHead :colspan="headerSpan" class="bg-muted">
               <button
                 type="button"
                 tabindex="-1"
@@ -252,6 +250,12 @@ watch(activeId, async () => {
                 class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
                 >{{ line.label }}</TableHead
               >
+              <TableCell
+                class="text-right font-medium tabular-nums max-md:w-24! max-md:snap-align-none"
+                role="gridcell"
+                data-testid="total"
+                >{{ totals ? formatTotal(line, totals) : '' }}</TableCell
+              >
               <PeriodCell
                 v-for="(column, colIndex) in columns"
                 :key="column.month"
@@ -262,12 +266,6 @@ watch(activeId, async () => {
                 @click="select(line.id, colIndex)"
                 @dblclick="onDblclick(line.id, colIndex)"
               />
-              <TableCell
-                class="text-right font-medium tabular-nums"
-                role="gridcell"
-                data-testid="total"
-                >{{ totalText(line) }}</TableCell
-              >
             </TableRow>
           </template>
         </template>

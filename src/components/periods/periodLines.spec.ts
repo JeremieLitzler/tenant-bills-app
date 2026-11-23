@@ -8,7 +8,7 @@ import { FIELD_CATALOGUE, type SectionName } from '@/domain/periodFile'
 import { fr } from '@/i18n/fr'
 
 import { validPeriodJson } from '@tests/helpers/periodFile'
-import { LINES, parseValue, SECTIONS } from './periodLines'
+import { formatTotal, LINES, parseValue, SECTIONS } from './periodLines'
 
 // Keys of a shown section that are deliberately not a table line, each with its reason.
 const NOT_A_LINE: Record<string, string> = {
@@ -70,5 +70,24 @@ describe('parseValue', () => {
     ['common.landlordOccupants', '  ', null],
   ])('%s typed "%s" is %j', (id, text, expected) => {
     expect(parseValue(line(id), text)).toBe(expected)
+  })
+})
+
+describe('formatTotal', () => {
+  const line = (id: string) => LINES.find((l) => l.id === id)!
+  const { totals } = computePeriodFigures(validPeriodJson() as never)
+
+  it('is empty for a line without a total', () => {
+    expect(formatTotal(line('internet.billedAmount'), totals)).toBe('')
+  })
+
+  it('shows a total as money', () => {
+    expect(formatTotal(line('common.tenantBillAdvance'), totals)).toContain('€')
+  })
+
+  it('shows a dash for an uncomputable total, never a partial sum', () => {
+    expect(
+      formatTotal(line('internet.tenantShare'), { ...totals, internetTenant: undefined }),
+    ).toBe('—')
   })
 })
