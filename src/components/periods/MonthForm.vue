@@ -163,7 +163,7 @@ function answerConfirmReading(yes: boolean) {
     <label class="flex flex-col gap-1">
       {{ fr.period.month.picker }}
       <select
-        class="disabled:bg-muted disabled:text-muted-foreground rounded border px-2 py-1 disabled:cursor-not-allowed"
+        class="rounded border px-2 py-1"
         data-testid="month-picker"
         :value="month"
         @change="
@@ -227,7 +227,7 @@ function answerConfirmReading(yes: boolean) {
           <label class="flex flex-col gap-1">
             {{ line.label }}
             <input
-              class="rounded border px-2 py-1"
+              class="disabled:bg-muted disabled:text-muted-foreground rounded border px-2 py-1 disabled:cursor-not-allowed"
               :class="{ 'ring-destructive ring-2': invalid.has(line.id) }"
               :data-testid="`field-${line.id}`"
               :type="line.kind === 'date' ? 'date' : 'text'"
