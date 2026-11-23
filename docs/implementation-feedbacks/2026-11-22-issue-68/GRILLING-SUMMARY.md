@@ -12,7 +12,7 @@ Code changes to make: a `withTotal(line, fn)` helper in `periodLines.ts` for the
 
 ## Later change (after the summary was approved)
 
-Each section's tenant share total moved from its `tenantShare` line to the section header row, in the Total column, so a closed section (on a phone) still shows it. The `tenantShare` lines keep their monthly values, and the advance line keeps the advances total. This supersedes Q3 (heat pump total on `billedAmount`): the heat pump total is on its header row too. On a phone the Total column is a full panel like a month.
+Each section's tenant share total moved from its `tenantShare` line to the section header row, in the Total column, so a closed section (on a phone) still shows it. The `tenantShare` lines keep their monthly values, and the advance line keeps the advances total. This supersedes Q3 (heat pump total on `billedAmount`): the heat pump total is on its header row too. On a phone the Total column is hidden, and each month panel of a section header row shows "Total annuel : <section total>" (the full-year total, not a running total).
 
 ## Decision index
 
