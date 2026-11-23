@@ -244,7 +244,7 @@ watch(activeId, async () => {
               <span
                 class="sticky left-52 block w-[calc(100cqw-13rem)] text-right md:hidden"
                 data-testid="year-total"
-                >{{ fr.period.table.yearTotal }} : {{ sectionTotal(section) }}</span
+                >{{ fr.period.table.total }} : {{ sectionTotal(section) }}</span
               >
             </TableHead>
           </TableRow>
