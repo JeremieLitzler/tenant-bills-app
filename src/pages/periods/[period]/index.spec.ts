@@ -61,6 +61,16 @@ beforeEach(() => {
 })
 
 describe('period page', () => {
+  it('has a back button to the home page', async () => {
+    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    const { wrapper, router } = await openPeriodPage()
+    await flushPromises()
+
+    await wrapper.get('[data-testid="period-back"]').trigger('click')
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+  })
+
   it('shows a loader, then the period name and its twelve months', async () => {
     let finish: (value: { json: unknown; sha: string }) => void = () => {}
     getPeriodFile.mockReturnValue(new Promise((resolve) => (finish = resolve)))

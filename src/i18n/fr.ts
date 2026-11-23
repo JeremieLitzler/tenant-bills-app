@@ -50,6 +50,7 @@ export const fr = {
   period: {
     loading: 'Chargement de la période…',
     notFound: 'Période introuvable.',
+    back: 'Retour',
     retry: 'Réessayer',
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
