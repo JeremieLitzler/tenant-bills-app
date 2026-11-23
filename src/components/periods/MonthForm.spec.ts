@@ -174,6 +174,52 @@ describe('Saisie du mois', () => {
     expect(field('electricity.tariffMode').element.value).toBe('Base')
   })
 
+  it('switches the subscription unit with one queued patch', async () => {
+    const { field } = await openForm()
+    await field('electricity.subscriptionUnit').setValue('Par jour')
+    await flushPromises()
+    expect(enqueuePatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        month: '2026-09',
+        field: 'electricity.subscriptionUnit',
+        value: 'day',
+      }),
+    )
+  })
+
+  describe('advance suggestion', () => {
+    const suggest = (w: Awaited<ReturnType<typeof openForm>>['wrapper']) =>
+      w.find('[data-testid="suggest-common.tenantBillAdvance"]')
+
+    it('queues the period advance in one click on a month with a 0 advance', async () => {
+      const { wrapper } = await openForm()
+      await suggest(wrapper).trigger('click')
+      await flushPromises()
+      expect(enqueuePatch).toHaveBeenCalledWith(
+        expect.objectContaining({ field: 'common.tenantBillAdvance', value: 70 }),
+      )
+    })
+
+    it('is hidden once an advance is typed and in a closed period', async () => {
+      const typed = await openForm((json) => {
+        json.months[0].common.tenantBillAdvance = 50
+      })
+      expect(suggest(typed.wrapper).exists()).toBe(false)
+      // Another period id: the period state is cached by id.
+      const closed = await openForm(
+        (json) => {
+          ;(json as Record<string, unknown>).closedOn = '2027-09-01'
+        },
+        '2026-09',
+        undefined,
+        undefined,
+        '2025-2026',
+      )
+      expect(suggest(closed.wrapper).exists()).toBe(false)
+      expect(closed.field('electricity.tariffMode').element.disabled).toBe(true)
+    })
+  })
+
   describe('apply dialog (Case 8)', () => {
     const dialog = () => document.body.querySelector('[role=alertdialog]')
     const button = (label: string) =>
