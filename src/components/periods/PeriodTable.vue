@@ -186,7 +186,7 @@ watch(activeId, async () => {
             class="bg-background sticky top-0 left-0 z-30 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
             >{{ fr.period.table.label }}</TableHead
           >
-          <TableHead class="bg-background sticky top-0 z-20 max-md:hidden">{{
+          <TableHead class="bg-background sticky top-0 z-20 snap-start">{{
             fr.period.table.total
           }}</TableHead>
           <TableHead
@@ -236,10 +236,10 @@ watch(activeId, async () => {
                 {{ section.label }}
               </button>
             </TableHead>
-            <TableHead class="bg-muted text-right tabular-nums max-md:hidden" data-testid="total">{{
+            <TableHead class="bg-muted text-right tabular-nums" data-testid="total">{{
               sectionTotal(section)
             }}</TableHead>
-            <!-- On a phone the Total column is hidden: each month panel carries the year total. -->
+            <!-- On a phone, each month panel also carries the year total. -->
             <TableCell v-for="column in columns" :key="column.month" class="bg-muted">
               <span class="md:hidden" data-testid="year-total"
                 >{{ fr.period.table.yearTotal }} : {{ sectionTotal(section) }}</span
@@ -259,7 +259,7 @@ watch(activeId, async () => {
                 >{{ line.label }}</TableHead
               >
               <TableCell
-                class="text-right font-medium tabular-nums max-md:hidden"
+                class="text-right font-medium tabular-nums"
                 role="gridcell"
                 data-testid="total"
                 >{{ totals ? formatTotal(line.total, line.kind, totals) : '' }}</TableCell
