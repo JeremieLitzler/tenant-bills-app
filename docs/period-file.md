@@ -125,7 +125,7 @@ When a key is typed, the form validates (an error, not a file problem): a `quant
 
 ### `heatPumpMaintenance`
 
-- `billedAmount` (not-inherited): the amount charged that month. When a month is initialized, the app fills it from `heatPumpInvoiceEstimate`: ROUND(annual / 12, 2) for the first eleven months and the remainder in the twelfth. The user can edit it, for example to the real invoice.
+- `billedAmount` (not-inherited): the amount charged that month. When a month is initialized, the app fills it from `heatPumpInvoiceEstimate`: ROUND(annual / 12, 2) for the first eleven months and the remainder in the twelfth. The user can edit it, for example to the real invoice. The tenant pays the whole bill, so the period total of the Total column sits on this line (the section has no `tenantShare` line).
 
 ## Closing a period
 

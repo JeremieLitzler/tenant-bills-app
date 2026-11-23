@@ -11,3 +11,7 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Past decisions
+
+Precedent: before asking the user a question, search `docs/implementation-feedbacks/*/GRILLING-SUMMARY.md` and `docs/grillings/*/GRILLING-SUMMARY.md` for the decision.
