@@ -34,7 +34,9 @@ if (import.meta.env.DEV) {
   </div>
   <div v-else class="flex flex-col gap-4">
     <div class="flex items-center gap-4">
-      <Button :as="RouterLink" to="/" data-testid="period-back">{{ fr.period.back }}</Button>
+      <Button :as="RouterLink" to="/" data-testid="period-back"
+        ><span aria-hidden="true">&lt;</span> {{ fr.period.back }}</Button
+      >
       <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
       <button
         type="button"
