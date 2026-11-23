@@ -74,20 +74,20 @@ describe('parseValue', () => {
 })
 
 describe('formatTotal', () => {
-  const line = (id: string) => LINES.find((l) => l.id === id)!
   const { totals } = computePeriodFigures(validPeriodJson() as never)
+  const section = (id: string) => SECTIONS.find((x) => x.id === id)!
 
-  it('is empty for a line without a total', () => {
-    expect(formatTotal(line('internet.billedAmount'), totals)).toBe('')
+  it('is empty without a total', () => {
+    expect(formatTotal(undefined, 'money', totals)).toBe('')
   })
 
   it('shows a total as money', () => {
-    expect(formatTotal(line('common.tenantBillAdvance'), totals)).toContain('€')
+    expect(formatTotal((t) => t.advancesReceived, 'money', totals)).toContain('€')
   })
 
   it('shows a dash for an uncomputable total, never a partial sum', () => {
     expect(
-      formatTotal(line('internet.tenantShare'), { ...totals, internetTenant: undefined }),
+      formatTotal(section('internet').total, 'money', { ...totals, internetTenant: undefined }),
     ).toBe('—')
   })
 })

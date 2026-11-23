@@ -227,7 +227,7 @@ Settled in `docs/grillings/2026-11-03-period-table-library/` (issue #9), after a
 
 The period table (F5) uses shadcn-vue's plain `Table` components (`src/components/ui/table/`), with rows built by our own code. No TanStack Table.
 
-- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month present in the file (up to twelve), plus a label column and, right after it, a read-only Total column (not sticky; empty on the lines without a total, "—" when a month is uncomputable). That is transposed from TanStack's row model, which expects one data object per row.
+- The table keeps the spreadsheet's orientation: one row per line of a section, one column per month present in the file (up to twelve), plus a label column and, right after it, a read-only Total column (not sticky, "—" when a month is uncomputable). The advance line carries the advances total; each section's tenant share total is on its header row, so a closed section still shows it. That is transposed from TanStack's row model, which expects one data object per row.
 - The shape is fixed (about 60 lines, up to 12 months). Sorting, filtering, pagination and row selection, TanStack's main features, go unused.
 - In the prototype, TanStack was harder for sections (two grouping features, a column that exists only to group by, then filtered out of every row) and simpler for nothing. A plain `<table>` with Tailwind only was no simpler than the shadcn-vue components either, so those stay for one table style across the app.
 
