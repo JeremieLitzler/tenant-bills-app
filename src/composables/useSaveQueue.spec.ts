@@ -15,7 +15,11 @@ class DrainError extends Error {
   }
 }
 
-vi.mock('@/sync/drainQueue', () => ({ drainQueue, DrainError }))
+vi.mock('@/sync/drainQueue', () => ({
+  drainQueue,
+  DrainError,
+  setEditedAfterCloseListener: vi.fn(),
+}))
 vi.mock('@/sync/patchQueue', () => ({ enqueuePatch, listPatches }))
 vi.mock('@/sync/periodsApi', () => ({ UnauthorizedError }))
 vi.mock('@/composables/pendingPatches', () => ({ setPendingCounts }))

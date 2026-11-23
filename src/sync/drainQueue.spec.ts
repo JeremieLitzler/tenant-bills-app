@@ -3,8 +3,8 @@ import { IDBFactory } from 'fake-indexeddb'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Patch } from '@/domain/applyPatch'
-import { DrainError, drainQueue, editedClosedPeriods } from '@/sync/drainQueue'
+import { type Patch, patchKey } from '@/domain/applyPatch'
+import { DrainError, drainQueue, setEditedAfterCloseListener } from '@/sync/drainQueue'
 import { enqueuePatch, listPatches } from '@/sync/patchQueue'
 import { UnauthorizedError } from '@/sync/periodsApi'
 
@@ -229,7 +229,10 @@ describe('drainQueue', () => {
   })
 
   // The other device writes the file between our GET and our PUT, `times` times.
-  function otherDeviceWritesFirst(times: number, edit: (json: ReturnType<typeof remoteFile>) => void) {
+  function otherDeviceWritesFirst(
+    times: number,
+    edit: (json: ReturnType<typeof remoteFile>) => void,
+  ) {
     const github = globalThis.fetch
     let left = times
     vi.stubGlobal(
@@ -284,9 +287,11 @@ describe('drainQueue', () => {
     const json = remoteFile()
     json.closedOn = '2027-10-11'
     remote.text = serialized(json)
+    const told = vi.fn()
+    setEditedAfterCloseListener(told)
     await enqueuePatch(cell('internet.billedAmount', 22))
     await drainQueue()
     expect(remoteFile().months[0].internet.billedAmount).toBe(22)
-    expect(editedClosedPeriods.has('2026-2027')).toBe(true)
+    expect(told).toHaveBeenCalledWith([patchKey(cell('internet.billedAmount', 22))])
   })
 })

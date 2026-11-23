@@ -7,6 +7,7 @@ import { computePeriodFigures } from '@/domain/periodFigures'
 import { validPeriodJson } from '@tests/helpers/periodFile'
 import PeriodTable from './PeriodTable.vue'
 import { LINES, SECTIONS } from './periodLines'
+import { editedAfterClose } from '@/composables/editedAfterClose'
 
 type Figures = ReturnType<typeof computePeriodFigures>
 
@@ -252,6 +253,19 @@ describe('period table is read-only', () => {
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/periods/2026-2027/months/2026-11')
     expect(router.currentRoute.value.query.field).toBe('common.landlordOccupants')
+  })
+})
+
+describe('period table cell edited after the close', () => {
+  const INTERNET = LINES.findIndex((line) => line.id === 'internet.billedAmount')
+  afterEach(() => editedAfterClose.clear())
+
+  it('flags only the cell whose patch was applied after the close', async () => {
+    await router.push('/periods/2026-2027')
+    editedAfterClose.add('2026-2027|2026-10|internet.billedAmount')
+    const w = await mountTable()
+    expect(w.findAll('[data-edited-after-close]')).toHaveLength(1)
+    expect(cellAt(w, INTERNET, 1).attributes('data-edited-after-close')).toBeDefined()
   })
 })
 
