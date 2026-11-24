@@ -91,6 +91,7 @@ export const fr = {
         'Cette action est irréversible : une période clôturée ne peut jamais être rouverte.',
       confirm: 'Clôturer',
       cancel: 'Annuler',
+      failed: 'Impossible de clôturer la période. Merci de réessayer.',
     },
     localCopy: 'Copie locale affichée.',
     refresh: {

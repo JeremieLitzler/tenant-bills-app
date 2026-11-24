@@ -55,7 +55,7 @@ watch(open, () => (billsReceived.value = false))
           <AlertDialogCancel as-child>
             <Button>{{ t.cancel }}</Button>
           </AlertDialogCancel>
-          <AlertDialogAction as-child @click="emit('confirm')">
+          <AlertDialogAction as-child @click="billsReceived && emit('confirm')">
             <Button accent data-testid="period-close-confirm" :disabled="!billsReceived">{{
               t.confirm
             }}</Button>

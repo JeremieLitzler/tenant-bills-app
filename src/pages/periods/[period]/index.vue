@@ -55,7 +55,7 @@ if (import.meta.env.DEV) {
         }}
       </button>
       <ClosePeriod
-        v-if="!period.file.value?.closedOn"
+        v-if="period.file.value && !period.file.value.closedOn && !period.isReadOnly.value"
         :disabled="!period.canClose.value"
         :months-without-advance="period.monthsWithoutAdvance.value"
         @confirm="period.close()"

@@ -351,7 +351,17 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
       return entry?.file && !entry.problems.length ? monthsWithoutAdvance(entry.file) : []
     }),
     // Final: an ordinary top-level patch dated today (local); no reopening exists (ADR 0006).
-    close: () => setCell(toValue(id), null, 'closedOn', new Date().toLocaleDateString('sv')),
+    close: async () => {
+      const now = new Date()
+      const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+        .map((n) => String(n).padStart(2, '0'))
+        .join('-')
+      try {
+        await setCell(toValue(id), null, 'closedOn', today)
+      } catch {
+        useToasts().notify({ level: 'error', message: fr.period.close.failed })
+      }
+    },
     indexesStillEstimated: (month: string) => indexesStillEstimated(toValue(id), month),
     clearStaleEstimates: (month: string) => clearStaleEstimates(toValue(id), month),
     confirmReading: (month: string) => confirmReading(toValue(id), month),
