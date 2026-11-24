@@ -5,6 +5,14 @@ import { computed } from 'vue'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { usePeriod } from '@/composables/usePeriods'
 import type { Figure } from '@/domain/figures/figureMath'
 import type { MonthFigures } from '@/domain/periodFigures'
@@ -25,17 +33,22 @@ const tenantShare = (month: MonthFigures, section: string) =>
     ? month.heatPumpMaintenance.bill
     : (month[section as 'internet'] as { tenantShare: Figure }).tenantShare
 
+// A read-only file can hold malformed entries: keep only the months that have a name.
+const columns = computed(() =>
+  (period.file.value?.months ?? []).flatMap((entry, index) => {
+    const figures = period.figures.value?.months[index]
+    return typeof entry?.month === 'string' && figures
+      ? [{ month: entry.month, label: monthLabel(entry.month), entry, figures }]
+      : []
+  }),
+)
+
 const sections = computed(() =>
   SECTIONS.filter((section) => section.id !== 'common').map((section) => ({
     id: section.id,
     label: section.label,
     total: totals.value ? formatTotal(section.total, 'money', totals.value) : '',
-    months: (period.file.value?.months ?? []).flatMap((entry, index) => {
-      const figures = period.figures.value?.months[index]
-      return typeof entry?.month === 'string' && figures
-        ? [{ label: monthLabel(entry.month), amount: money(tenantShare(figures, section.id)) }]
-        : []
-    }),
+    amounts: columns.value.map((column) => money(tenantShare(column.figures, section.id))),
   })),
 )
 
@@ -59,7 +72,7 @@ const direction = computed(() => {
   <div v-else-if="period.status.value === 'error' || period.status.value === 'misconfigured'">
     <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
   </div>
-  <div v-else class="flex max-w-xl flex-col gap-4" data-testid="settlement">
+  <div v-else class="flex flex-col gap-4" data-testid="settlement">
     <h1 class="text-2xl font-semibold">
       {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}
       <span v-if="!period.file.value?.closedOn" data-testid="settlement-provisional"
@@ -75,48 +88,99 @@ const direction = computed(() => {
       <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <p>{{ fr.period.readOnlyNotice }}</p>
     </div>
-    <section
-      v-for="section in sections"
-      :key="section.id"
-      :data-testid="`settlement-${section.id}`"
+    <Table
+      data-testid="settlement-table"
+      container-class="max-h-[calc(100vh-8rem)] overflow-auto scroll-pl-56 max-md:scroll-pl-52"
+      class="w-max min-w-full border-separate border-spacing-0"
     >
-      <h2 class="flex justify-between gap-2 font-medium">
-        <span>{{ section.label }}</span>
-        <span class="tabular-nums" data-testid="section-total">{{ section.total }}</span>
-      </h2>
-      <dl class="text-muted-foreground text-sm">
-        <div v-for="month in section.months" :key="month.label" class="flex justify-between gap-2">
-          <dt>{{ month.label }}</dt>
-          <dd class="tabular-nums">{{ month.amount }}</dd>
-        </div>
-      </dl>
-    </section>
-    <dl class="flex flex-col gap-1 border-t pt-3">
-      <div class="flex justify-between gap-2">
-        <dt>{{ fr.period.settlement.totalTenantShares }}</dt>
-        <dd class="tabular-nums" data-testid="total-tenant-shares">
-          {{ money(totals?.totalTenantShares) }}
-        </dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt>{{ fr.period.settlement.advancesReceived }}</dt>
-        <dd class="tabular-nums" data-testid="advances-received">
-          {{ money(totals?.advancesReceived) }}
-        </dd>
-      </div>
-      <div class="flex justify-between gap-2 font-semibold">
-        <dt>{{ fr.period.settlement.balance }}</dt>
-        <dd class="tabular-nums" data-testid="balance">{{ money(totals?.balance) }}</dd>
-      </div>
-    </dl>
-    <p class="text-lg font-semibold" data-testid="settlement-direction">
-      {{ direction ?? fr.period.table.empty }}
-    </p>
-    <p data-testid="next-advance">
-      {{ fr.period.settlement.nextAdvance }} : {{ money(totals?.nextAdvance) }}
-      <span class="text-muted-foreground text-sm"
-        >({{ fr.period.settlement.nextAdvanceAverage(money(totals?.averageAdvance)) }})</span
-      >
-    </p>
+      <TableHeader>
+        <TableRow>
+          <TableHead
+            class="bg-background sticky top-0 left-0 z-30 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ fr.period.table.label }}</TableHead
+          >
+          <TableHead class="bg-background sticky top-0 z-20">{{ fr.period.table.total }}</TableHead>
+          <TableHead
+            v-for="column in columns"
+            :key="column.month"
+            class="bg-background sticky top-0 z-20"
+            >{{ column.label }}</TableHead
+          >
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow
+          v-for="section in sections"
+          :key="section.id"
+          :data-testid="`settlement-${section.id}`"
+        >
+          <TableHead
+            scope="row"
+            class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ section.label }}</TableHead
+          >
+          <TableCell class="text-right font-medium tabular-nums" data-testid="section-total">{{
+            section.total
+          }}</TableCell>
+          <TableCell
+            v-for="(amount, index) in section.amounts"
+            :key="columns[index].month"
+            class="text-right tabular-nums"
+            >{{ amount }}</TableCell
+          >
+        </TableRow>
+        <TableRow class="bg-muted font-medium">
+          <TableHead
+            scope="row"
+            class="bg-muted sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ fr.period.settlement.totalTenantShares }}</TableHead
+          >
+          <TableCell class="text-right tabular-nums" data-testid="total-tenant-shares">{{
+            money(totals?.totalTenantShares)
+          }}</TableCell>
+          <TableCell :colspan="columns.length" />
+        </TableRow>
+        <TableRow>
+          <TableHead
+            scope="row"
+            class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ fr.period.settlement.advancesReceived }}</TableHead
+          >
+          <TableCell class="text-right tabular-nums" data-testid="advances-received">{{
+            money(totals?.advancesReceived)
+          }}</TableCell>
+          <TableCell
+            v-for="column in columns"
+            :key="column.month"
+            class="text-right tabular-nums"
+            >{{ money(column.entry.common.tenantBillAdvance) }}</TableCell
+          >
+        </TableRow>
+        <TableRow class="font-semibold">
+          <TableHead
+            scope="row"
+            class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ fr.period.settlement.balance }}</TableHead
+          >
+          <TableCell class="text-right tabular-nums" data-testid="balance">{{
+            money(totals?.balance)
+          }}</TableCell>
+          <TableCell :colspan="columns.length" data-testid="settlement-direction">{{
+            direction ?? fr.period.table.empty
+          }}</TableCell>
+        </TableRow>
+        <TableRow data-testid="next-advance">
+          <TableHead
+            scope="row"
+            class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
+            >{{ fr.period.settlement.nextAdvance }}</TableHead
+          >
+          <TableCell class="text-right tabular-nums">{{ money(totals?.nextAdvance) }}</TableCell>
+          <TableCell :colspan="columns.length" class="text-muted-foreground text-sm">{{
+            fr.period.settlement.nextAdvanceAverage(money(totals?.averageAdvance))
+          }}</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   </div>
 </template>

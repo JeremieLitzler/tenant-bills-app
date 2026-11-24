@@ -96,7 +96,7 @@ describe('Règlement', () => {
     const { wrapper, totals } = await openSettlement()
     const section = wrapper.get('[data-testid="settlement-heatPumpMaintenance"]')
     expect(section.get('[data-testid="section-total"]').text()).toBe(euros(60))
-    expect(section.findAll('dd')).toHaveLength(12)
+    expect(section.findAll('td')).toHaveLength(13)
     expect(totals.heatPumpMaintenanceTenant).toBe(60)
     expect(wrapper.get('[data-testid="total-tenant-shares"]').text()).toBe(
       euros(totals.totalTenantShares!),
