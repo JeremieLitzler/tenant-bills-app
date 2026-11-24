@@ -80,7 +80,7 @@ export const fr = {
       estimatedNotice:
         'Ce mois contient des index estimés, pas des relevés. Saisissez les index réels puis confirmez le relevé.',
       confirmReading: 'Confirmer le relevé réel',
-      suggestAdvance: 'Saisir {amount}',
+      suggestAdvance: 'Confirmer le paiement de {amount}',
     },
     estimated: {
       badge: 'Estimé',
