@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
@@ -22,6 +22,8 @@ if (import.meta.env.DEV) {
   window.setCell = period.setCell
   onBeforeUnmount(() => delete window.setCell)
 }
+// The settlement link sits beside the closing button; without that column it stands alone.
+const showsClosing = computed(() => !!period.closeChecks.value && !period.file.value?.closedOn)
 </script>
 
 <template>
@@ -75,6 +77,7 @@ if (import.meta.env.DEV) {
           </div>
         </div>
         <Button
+          v-if="!showsClosing"
           :as="RouterLink"
           :to="`/periods/${route.params.period}/settlement`"
           class="self-start"
@@ -107,12 +110,20 @@ if (import.meta.env.DEV) {
         class="flex flex-col items-start gap-4"
         data-testid="period-col-2"
       >
-        <ClosePeriod
-          v-if="period.file.value && !period.isReadOnly.value"
-          :disabled="!period.canClose.value"
-          :months-without-advance="period.monthsWithoutAdvance.value"
-          @confirm="period.close()"
-        />
+        <div class="flex flex-wrap items-center gap-4">
+          <ClosePeriod
+            v-if="period.file.value && !period.isReadOnly.value"
+            :disabled="!period.canClose.value"
+            :months-without-advance="period.monthsWithoutAdvance.value"
+            @confirm="period.close()"
+          />
+          <Button
+            :as="RouterLink"
+            :to="`/periods/${route.params.period}/settlement`"
+            data-testid="settlement-link"
+            >{{ fr.period.settlement.link }}</Button
+          >
+        </div>
         <CloseChecklist
           :checks="period.closeChecks.value"
           :incomplete-months="period.incompleteMonths.value"
