@@ -1,19 +1,27 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { validPeriodJson } from '@tests/helpers/periodFile'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 
+const closedOn = new Set<string>()
+const getPeriodFile = vi.fn(async (id: string) => ({
+  json: { ...validPeriodJson(id), ...(closedOn.has(id) ? { closedOn: '2026-09-12' } : {}) },
+  sha: 'sha',
+}))
+
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/periodsApi')>()),
   listPeriodIds,
+  getPeriodFile,
 }))
 
-// Mounts the whole app at /, with the real router, session and period state.
+// Mounts the whole app at /periods, with the real router, session and period state.
 async function mountApp() {
   document.cookie = 'gh_login=JeremieLitzler; Path=/'
   const { default: router } = await import('@/router')
   const { default: App } = await import('@/App.vue')
-  await router.push('/')
+  await router.push('/periods')
   await router.isReady()
   const wrapper = mount(App, { global: { plugins: [router] } })
   await flushPromises()
@@ -23,10 +31,11 @@ async function mountApp() {
 beforeEach(() => {
   vi.resetModules()
   listPeriodIds.mockReset()
+  closedOn.clear()
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
 })
 
-describe('PeriodList on the home page', () => {
+describe('PeriodList on the periods page', () => {
   it('shows each period identifier with a link to it', async () => {
     listPeriodIds.mockResolvedValue(['2025-2026', '2026-2027'])
 
@@ -38,6 +47,18 @@ describe('PeriodList on the home page', () => {
       '/periods/2025-2026',
       '/periods/2026-2027',
     ])
+  })
+
+  it('shows a closed period as closed and the others, two at once, as open', async () => {
+    closedOn.add('2025-2026')
+    listPeriodIds.mockResolvedValue(['2025-2026', '2026-2027', '2027-2028'])
+
+    const { wrapper } = await mountApp()
+
+    await vi.waitFor(() => {
+      const statuses = wrapper.findAll('[data-testid="period-status"]').map((s) => s.text())
+      expect(statuses).toEqual(['Clôturée', 'Ouverte', 'Ouverte'])
+    })
   })
 
   it('shows an empty list, not an error, when the periods folder is absent', async () => {
@@ -72,7 +93,7 @@ describe('PeriodList on the home page', () => {
     const { router } = await mountApp()
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/sign-in'))
-    expect(router.currentRoute.value.query.redirect).toBe('/')
+    expect(router.currentRoute.value.query.redirect).toBe('/periods')
   })
 })
 
