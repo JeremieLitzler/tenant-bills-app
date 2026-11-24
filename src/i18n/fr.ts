@@ -82,6 +82,16 @@ export const fr = {
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
     closedNotice: (date: string) => `Période clôturée le ${date}, en lecture seule.`,
+    close: {
+      button: 'Clôturer la période',
+      title: 'Clôturer la période ?',
+      noAdvance: "Mois dont l'avance sur la facture du locataire est à 0 :",
+      billsReceived: "Les factures d'eau de la période ont-elles été reçues et saisies ?",
+      irreversible:
+        'Cette action est irréversible : une période clôturée ne peut jamais être rouverte.',
+      confirm: 'Clôturer',
+      cancel: 'Annuler',
+    },
     localCopy: 'Copie locale affichée.',
     refresh: {
       button: 'Rafraîchir',

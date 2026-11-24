@@ -233,6 +233,58 @@ describe('period page', () => {
     })
   })
 
+  describe('closing the period (#84)', () => {
+    const MONTH_IDS = [
+      '2026-09', '2026-10', '2026-11', '2026-12', '2027-01', '2027-02',
+      '2027-03', '2027-04', '2027-05', '2027-06', '2027-07', '2027-08',
+    ] // prettier-ignore
+    const json = (advance = 70) => {
+      const file = periodJson()
+      file.months = MONTH_IDS.map((id, i) => {
+        const month = completeMonth(id)
+        month.common.tenantBillAdvance = i === 1 ? advance : 70
+        return month
+      })
+      return file
+    }
+    const body = (id: string) => document.body.querySelector<HTMLElement>(`[data-testid="${id}"]`)
+
+    it('is disabled while the period cannot be closed', async () => {
+      getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      expect(wrapper.get('[data-testid="period-close"]').attributes('disabled')).toBeDefined()
+    })
+
+    it('lists the 0-advance months, needs the tick, then writes closedOn as a top-level patch', async () => {
+      getPeriodFile.mockResolvedValue({ json: json(0), sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      await wrapper.get('[data-testid="period-close"]').trigger('click')
+      await flushPromises()
+
+      expect(body('period-close-no-advance')?.textContent).toContain('2026-10')
+      const confirm = body('period-close-confirm') as HTMLButtonElement
+      expect(confirm.disabled).toBe(true)
+      body('period-close-bills')!.click()
+      await flushPromises()
+      expect(confirm.disabled).toBe(false)
+      confirm.click()
+      await flushPromises()
+
+      expect(enqueuePatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          period: '2026-2027',
+          month: null,
+          field: 'closedOn',
+          value: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        }),
+      )
+      expect(wrapper.find('[data-testid="period-closed"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="period-close"]').exists()).toBe(false)
+    })
+  })
+
   describe('period table', () => {
     // September typed in full, October with only its main meter reading.
     function tableJson() {
