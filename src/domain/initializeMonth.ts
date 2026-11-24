@@ -58,7 +58,7 @@ export function initializeMonth(
     endDate: suggestedEndDate(startDate),
     tenantBillAdvance: 0,
   })
-  if (file.heatPumpInvoiceEstimate !== undefined) {
+  if (file.heatPumpInvoiceEstimate) {
     next.heatPumpMaintenance.billedAmount = splitHeatPumpAnnual(file.heatPumpInvoiceEstimate)[count]
   }
   if (count === MAX_MONTHS - 1) writeEstimate(next, previous, previousTwelfth)
