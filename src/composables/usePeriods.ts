@@ -10,7 +10,7 @@ import { useSaveQueue } from '@/composables/useSaveQueue'
 import { useSession } from '@/composables/useSession'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
-import { canCreateNewPeriod } from '@/domain/periodState'
+import { canClose, canCreateNewPeriod, monthsWithoutAdvance } from '@/domain/periodState'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
@@ -340,6 +340,18 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
       return monthCompleteness(last).complete ? 'available' : 'incomplete'
     }),
     initializeNextMonth: () => initializeNextMonth(toValue(id)),
+    // "Clôturer la période" (docs/period-file.md, "Closing a period"): enabled by the domain rule,
+    // and never for a read-only file.
+    canClose: computed(() => {
+      const entry = periodEntry.value
+      return !!entry?.file && !entry.problems.length && canClose(entry.file)
+    }),
+    monthsWithoutAdvance: computed(() => {
+      const entry = periodEntry.value
+      return entry?.file && !entry.problems.length ? monthsWithoutAdvance(entry.file) : []
+    }),
+    // Final: an ordinary top-level patch dated today (local); no reopening exists (ADR 0006).
+    close: () => setCell(toValue(id), null, 'closedOn', new Date().toLocaleDateString('sv')),
     indexesStillEstimated: (month: string) => indexesStillEstimated(toValue(id), month),
     clearStaleEstimates: (month: string) => clearStaleEstimates(toValue(id), month),
     confirmReading: (month: string) => confirmReading(toValue(id), month),

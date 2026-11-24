@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
+import ClosePeriod from '@/components/periods/ClosePeriod.vue'
 import ClosedNotice from '@/components/periods/ClosedNotice.vue'
 import PeriodSettings from '@/components/periods/PeriodSettings.vue'
 import PeriodTable from '@/components/periods/PeriodTable.vue'
@@ -53,6 +54,12 @@ if (import.meta.env.DEV) {
             : fr.period.refresh.button
         }}
       </button>
+      <ClosePeriod
+        v-if="!period.file.value?.closedOn"
+        :disabled="!period.canClose.value"
+        :months-without-advance="period.monthsWithoutAdvance.value"
+        @confirm="period.close()"
+      />
     </div>
     <div
       v-if="period.isReadOnly.value"
