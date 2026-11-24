@@ -37,7 +37,7 @@ if (import.meta.env.DEV) {
     <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
   </div>
   <div v-else class="flex flex-col gap-4">
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-4 md:grid-cols-[auto_1fr] md:gap-x-12">
       <div class="flex flex-col gap-4" data-testid="period-col-1">
         <div class="flex items-center gap-4">
           <Button :as="RouterLink" to="/" data-testid="period-back"

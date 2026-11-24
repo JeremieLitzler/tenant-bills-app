@@ -21,12 +21,16 @@ const t = fr.period.closeChecks
       <li
         v-for="(ok, key) in checks"
         :key="key"
-        class="flex items-center gap-2"
+        class="flex items-start gap-2"
         :data-testid="`close-check-${key}`"
         :data-ok="ok"
       >
-        <IconCircleCheck v-if="ok" class="text-theme-success size-4 shrink-0" aria-hidden="true" />
-        <IconCircleX v-else class="text-theme-error size-4 shrink-0" aria-hidden="true" />
+        <IconCircleCheck
+          v-if="ok"
+          class="text-theme-success mt-1 size-4 shrink-0"
+          aria-hidden="true"
+        />
+        <IconCircleX v-else class="text-theme-error mt-1 size-4 shrink-0" aria-hidden="true" />
         <span class="sr-only">{{ ok ? 'Oui' : 'Non' }} :</span>
         <div>
           {{ t[key as keyof typeof t] }}
