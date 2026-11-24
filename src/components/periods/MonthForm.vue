@@ -264,6 +264,7 @@ function answerConfirmReading(yes: boolean) {
           <Button
             v-if="suggestsAdvance(line)"
             type="button"
+            accent
             class="self-start"
             :data-testid="`suggest-${line.id}`"
             @click="setCell(month, line.id, file.monthlyTenantBillAdvance)"
