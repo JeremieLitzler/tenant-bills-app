@@ -11,6 +11,14 @@ beforeEach(() => {
 })
 
 describe('route guard', () => {
+  it('redirects /periods to the home page, which lists the periods', async () => {
+    const router = await loadRouter('JeremieLitzler')
+
+    await router.push('/periods')
+
+    expect(router.currentRoute.value.path).toBe('/')
+  })
+
   it('sends a signed-out visitor to the sign-in page, remembering the asked path', async () => {
     const router = await loadRouter()
 
