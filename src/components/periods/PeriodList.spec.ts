@@ -214,4 +214,11 @@ describe('PeriodList, "Nouvelle période"', () => {
     await button(wrapper).trigger('click')
     expect(wrapper.find('[data-testid="new-period-prefill-hint"]').exists()).toBe(true)
   })
+
+  it('says it is checking while the list loads, with the button disabled', async () => {
+    listPeriodIds.mockReturnValue(new Promise(() => {}))
+    const { wrapper } = await mountApp()
+    expect(wrapper.get('[data-testid="new-period-checking"]').text()).toContain('Vérification')
+    expect(button(wrapper).attributes('disabled')).toBeDefined()
+  })
 })
