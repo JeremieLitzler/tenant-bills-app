@@ -9,7 +9,7 @@ import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
 const pendingCountFor = vi.fn<(id: string) => number>(() => 0)
-const enqueuePatch = vi.fn(async (_patch: unknown) => {})
+const enqueuePatch = vi.fn<(patch: unknown) => Promise<void>>(async () => {})
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
