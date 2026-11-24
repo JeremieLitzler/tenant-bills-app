@@ -6,14 +6,22 @@ const listPeriodIds = vi.fn<() => Promise<string[]>>()
 
 const closedOn = new Set<string>()
 const getPeriodFile = vi.fn(async (id: string) => ({
-  json: { ...validPeriodJson(id), ...(closedOn.has(id) ? { closedOn: '2026-09-12' } : {}) },
+  json: {
+    ...validPeriodJson(id),
+    ...(closedOn.has(id) ? { closedOn: '2026-09-12' } : {}),
+    months: validPeriodJson(id).months.slice(0, monthCount),
+  },
   sha: 'sha',
 }))
+
+const putPeriodFile = vi.fn(async () => 'sha')
+let monthCount = 12
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/periodsApi')>()),
   listPeriodIds,
   getPeriodFile,
+  putPeriodFile,
 }))
 
 // Mounts the whole app at /, with the real router, session and period state.
@@ -30,6 +38,8 @@ async function mountApp() {
 
 beforeEach(() => {
   vi.resetModules()
+  monthCount = 12
+  putPeriodFile.mockClear()
   listPeriodIds.mockReset()
   closedOn.clear()
   document.cookie = 'gh_login=; Path=/; Max-Age=0'
@@ -108,5 +118,59 @@ describe('PeriodList with a misconfigured proxy', () => {
     expect(notice.attributes('role')).toBe('alert')
     expect(notice.get('a').attributes('href')).toBe('https://app.netlify.com/')
     expect(notice.text()).not.toMatch(/DATA_|MisconfiguredError/)
+  })
+})
+
+describe('PeriodList, "Nouvelle période"', () => {
+  const button = (w: Awaited<ReturnType<typeof mountApp>>['wrapper']) =>
+    w.get('[data-testid="new-period"]')
+
+  it('is allowed without a previous period', async () => {
+    listPeriodIds.mockResolvedValue([])
+    const { wrapper } = await mountApp()
+    expect(button(wrapper).attributes('disabled')).toBeUndefined()
+  })
+
+  it('is refused with the reason while the previous twelfth month does not exist', async () => {
+    monthCount = 11
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    const { wrapper } = await mountApp()
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-testid="new-period-reason"]').exists()).toBe(true),
+    )
+    expect(button(wrapper).attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-testid="new-period-reason"]').text()).toContain('douzième mois')
+  })
+
+  it('creates the period from the form and opens it', async () => {
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    const { wrapper, router } = await mountApp()
+    await vi.waitFor(() => expect(button(wrapper).attributes('disabled')).toBeUndefined())
+    await button(wrapper).trigger('click')
+    await wrapper.get('input[name="tenantName"]').setValue('Jane Smith')
+    await wrapper.get('input[name="monthlyTenantBillAdvance"]').setValue('80')
+    await wrapper.get('input[name="startDate"]').setValue('2027-09-15')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    const [id, , sha, message] = putPeriodFile.mock.calls[0] as unknown as string[]
+    expect([id, sha, message]).toEqual(['2027-2028', undefined, 'data(2027-2028): create period'])
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/periods/2027-2028'))
+  })
+
+  it('refuses an existing period with a toast, and does not open it', async () => {
+    const { PeriodExistsError } = await import('@/sync/periodsApi')
+    putPeriodFile.mockRejectedValueOnce(new PeriodExistsError())
+    listPeriodIds.mockResolvedValue([])
+    const { wrapper, router } = await mountApp()
+    await button(wrapper).trigger('click')
+    await wrapper.get('input[name="tenantName"]').setValue('Jane')
+    await wrapper.get('input[name="monthlyTenantBillAdvance"]').setValue('80')
+    await wrapper.get('input[name="startDate"]').setValue('2026-09-15')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="toast"]').text()).toContain('existe déjà')
+    expect(router.currentRoute.value.path).toBe('/')
   })
 })

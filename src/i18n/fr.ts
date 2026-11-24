@@ -49,6 +49,22 @@ export const fr = {
     empty: 'Aucune période pour le moment.',
     retry: 'Réessayer',
     error: 'Impossible de charger les périodes. Merci de réessayer.',
+    newPeriod: {
+      button: 'Nouvelle période',
+      refused:
+        "La période précédente n'a pas encore de douzième mois (estimé ou relevé) : impossible de créer la suivante.",
+      unknown:
+        'La période précédente est introuvable : impossible de vérifier si une nouvelle période peut être créée.',
+      tenantName: 'Nom du locataire',
+      monthlyTenantBillAdvance: 'Acompte mensuel de la facture du locataire (€)',
+      heatPumpInvoiceEstimate: 'Estimation annuelle de la facture de la pompe à chaleur (€)',
+      startDate: 'Date de début',
+      create: 'Créer',
+      cancel: 'Annuler',
+      invalid: 'Merci de vérifier les valeurs saisies.',
+      exists: (id: string) => `La période ${id} existe déjà : elle est laissée inchangée.`,
+      failed: 'Impossible de créer la période. Merci de réessayer.',
+    },
   },
   period: {
     loading: 'Chargement de la période…',

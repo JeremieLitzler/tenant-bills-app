@@ -14,6 +14,12 @@ export interface NewPeriodValues {
   startDate: string
 }
 
+// The period name: the start year and the next one (2025-09-15 gives 2025-2026).
+export function periodIdFromStart(startDate: string): string {
+  const year = Number(startDate.slice(0, 4))
+  return `${year}-${year + 1}`
+}
+
 export function newPeriodFile(id: string, values: NewPeriodValues): PeriodFile {
   const first = { month: values.startDate.slice(0, 7) } as Record<string, unknown>
   for (const section of Object.keys(FIELD_CATALOGUE)) first[section] = {}
