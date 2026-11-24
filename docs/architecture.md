@@ -123,6 +123,7 @@ usePeriod(id: MaybeRefOrGetter<string>, options?: { checkRemote?: boolean }): {
 - The computed figures are computed once per period, in a `computed()` over `src/domain/`. The table, the form and the settlement view only read them.
 - Views never write `file`. Every edit, estimate or close goes through the queue as a patch.
 - Each page asks for its period on setup and shows a loader while `status` is `loading`. The router has no loading step and there is no `<Suspense>` orchestrator. One page reads one period, so the sibling race of the reference project's ADR-013 does not arise.
+- Components call composables in setup, never in handlers: a composable that is not a singleton would break there.
 - The sync status is app-wide, because one `drainQueue()` drains one queue across all periods. The app shell shows the pending-count badge on every route, so progress stays visible when you move from one period to another.
 
 - The list comes from `listPeriodIds()` in `src/sync/periodsApi.ts`, which asks the proxy for `?path=periods`. A missing periods folder (GitHub 404) is an empty list, not an error. The list is shown by `src/components/periods/PeriodList.vue` on the home page `/`; each row (`PeriodListItem.vue`) loads its period with `usePeriod` to read `closedOn` (#80).

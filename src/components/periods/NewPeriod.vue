@@ -1,57 +1,55 @@
 <script setup lang="ts">
 // "Nouvelle période" (docs/scenarios.md, Case 5): the button, refused with its reason, and the form
 // of the four creation values. The advance is prefilled once, from the previous settlement.
-import { ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 import { Button } from '@/components/ui/button'
 import { useNewPeriod, usePeriods } from '@/composables/usePeriods'
 import { useToasts } from '@/composables/useToasts'
-import { periodIdFromStart } from '@/domain/newPeriod'
+import { checkNewPeriod, periodIdFromStart } from '@/domain/newPeriod'
 import { fr } from '@/i18n/fr'
 import { PeriodExistsError } from '@/sync/periodsApi'
 
 const t = fr.periods.newPeriod
 const router = useRouter()
-const { eligibility, suggestedAdvance } = useNewPeriod()
+const { notify } = useToasts()
+const periods = usePeriods()
+const { eligibility, suggestedAdvance, prefillUnavailable } = useNewPeriod()
 const open = ref(false)
 const busy = ref(false)
-const tenantName = ref('')
-const advance = ref('')
-const estimate = ref('0')
-const startDate = ref('')
+const form = reactive({
+  tenantName: '',
+  monthlyTenantBillAdvance: '',
+  heatPumpInvoiceEstimate: '0',
+  startDate: '',
+})
 
 watch(open, (isOpen) => {
-  if (isOpen)
-    advance.value = suggestedAdvance.value === undefined ? '' : String(suggestedAdvance.value)
+  if (isOpen) {
+    form.monthlyTenantBillAdvance =
+      suggestedAdvance.value === undefined ? '' : String(suggestedAdvance.value)
+  }
 })
 
 async function submit() {
-  const values = {
-    tenantName: tenantName.value.trim(),
-    monthlyTenantBillAdvance: Number(advance.value),
-    heatPumpInvoiceEstimate: Number(estimate.value),
-    startDate: startDate.value,
-  }
-  const validDate =
-    /^\d{4}-\d{2}-\d{2}$/.test(values.startDate) && !isNaN(Date.parse(values.startDate))
-  if (
-    !values.tenantName ||
-    !(values.monthlyTenantBillAdvance > 0) ||
-    !(values.heatPumpInvoiceEstimate >= 0) ||
-    !validDate
-  ) {
-    useToasts().notify({ level: 'error', message: t.invalid })
+  const checked = checkNewPeriod(form)
+  if ('invalid' in checked) {
+    notify({ level: 'error', message: t.invalid[checked.invalid] })
     return
   }
-  const id = periodIdFromStart(values.startDate)
+  const id = periodIdFromStart(checked.values.startDate)
   busy.value = true
   try {
-    await usePeriods().createPeriod(id, values)
+    if (await periods.previousBlocksNew(id)) {
+      notify({ level: 'warning', message: t.refused })
+      return
+    }
+    await periods.createPeriod(id, checked.values)
     await router.push(`/periods/${id}`)
   } catch (error) {
-    useToasts().notify({
+    notify({
       level: 'error',
       message: error instanceof PeriodExistsError ? t.exists(id) : t.failed,
     })
@@ -79,6 +77,9 @@ async function submit() {
       <IconTriangleAlert class="size-4 shrink-0" aria-hidden="true" />
       {{ eligibility === 'refused' ? t.refused : t.unknown }}
     </p>
+    <p v-if="eligibility === 'loading'" class="text-sm" data-testid="new-period-checking">
+      {{ t.checking }}
+    </p>
     <form
       v-if="open"
       class="flex flex-col gap-2 self-stretch"
@@ -86,27 +87,35 @@ async function submit() {
       @submit.prevent="submit"
     >
       <label class="flex flex-col"
-        >{{ t.tenantName }}<input v-model="tenantName" class="border px-2 py-1" name="tenantName"
+        >{{ t.tenantName
+        }}<input v-model="form.tenantName" class="rounded border px-2 py-1" name="tenantName"
       /></label>
       <label class="flex flex-col"
         >{{ t.monthlyTenantBillAdvance
         }}<input
-          v-model="advance"
-          class="border px-2 py-1"
+          v-model="form.monthlyTenantBillAdvance"
+          class="rounded border px-2 py-1"
           name="monthlyTenantBillAdvance"
           inputmode="decimal"
       /></label>
+      <p v-if="prefillUnavailable" class="text-sm" data-testid="new-period-prefill-hint">
+        {{ t.prefillUnavailable }}
+      </p>
       <label class="flex flex-col"
         >{{ t.heatPumpInvoiceEstimate
         }}<input
-          v-model="estimate"
-          class="border px-2 py-1"
+          v-model="form.heatPumpInvoiceEstimate"
+          class="rounded border px-2 py-1"
           name="heatPumpInvoiceEstimate"
           inputmode="decimal"
       /></label>
       <label class="flex flex-col"
         >{{ t.startDate
-        }}<input v-model="startDate" class="border px-2 py-1" name="startDate" type="date"
+        }}<input
+          v-model="form.startDate"
+          class="rounded border px-2 py-1"
+          name="startDate"
+          type="date"
       /></label>
       <div class="flex gap-2">
         <Button accent type="submit" :disabled="busy">{{ t.create }}</Button>
