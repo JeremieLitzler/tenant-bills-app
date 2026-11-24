@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import NewPeriod from '@/components/periods/NewPeriod.vue'
 import PeriodListItem from '@/components/periods/PeriodListItem.vue'
 import { Button } from '@/components/ui/button'
 import { usePeriods } from '@/composables/usePeriods'
@@ -37,5 +38,8 @@ onMounted(() => {
     <ul v-else class="flex flex-col gap-2">
       <PeriodListItem v-for="id in periods.periodIds.value" :key="id" :id="id" />
     </ul>
+    <NewPeriod
+      v-if="periods.listStatus.value === 'ready' || periods.listStatus.value === 'loading'"
+    />
   </section>
 </template>

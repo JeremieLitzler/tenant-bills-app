@@ -10,6 +10,7 @@ import { useSaveQueue } from '@/composables/useSaveQueue'
 import { useSession } from '@/composables/useSession'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
+import { canCreateNewPeriod } from '@/domain/periodState'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
@@ -349,6 +350,34 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
     setCell: (month: string | null, field: string, value: unknown) =>
       setCell(toValue(id), month, field, value),
   }
+}
+
+// "Nouvelle période" (docs/period-file.md, "Closing a period"): the latest period is the previous
+// one. `refused` means its twelfth month does not exist yet; `unknown` that it could not be loaded,
+// so nothing is allowed on a guess. `suggestedAdvance` is the previous settlement's next advance as
+// shown now (estimated or actual), undefined when it cannot be computed.
+export function useNewPeriod() {
+  const previousId = computed(() => periodIds.value.at(-1))
+  watch(previousId, (id) => id && void loadPeriod(id), { immediate: true })
+  const entry = computed(() =>
+    previousId.value ? periodEntries.value[previousId.value] : undefined,
+  )
+  const eligibility = computed<'loading' | 'allowed' | 'refused' | 'unknown'>(() => {
+    if (listStatus.value === 'loading' || listStatus.value === 'idle') return 'loading'
+    if (listStatus.value !== 'ready') return 'unknown'
+    if (!previousId.value) return 'allowed'
+    if (!entry.value || entry.value.status === 'loading') return 'loading'
+    if (!entry.value.file) return 'unknown'
+    return canCreateNewPeriod(entry.value.file) ? 'allowed' : 'refused'
+  })
+  const suggestedAdvance = computed(() => {
+    try {
+      return entry.value?.file && computePeriodFigures(entry.value.file).totals.nextAdvance
+    } catch {
+      return undefined
+    }
+  })
+  return { eligibility, suggestedAdvance }
 }
 
 export function usePeriods() {
