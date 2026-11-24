@@ -352,6 +352,21 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
   }
 }
 
+// The year-before period of a new period id (docs/implementation-feedbacks/2026-11-24-issue-81,
+// after #110): true when it exists and has no twelfth month yet, so the new period is refused.
+async function previousBlocksNew(id: string): Promise<boolean> {
+  const previous = previousPeriodId(id)
+  if (!previous) return false
+  try {
+    const file = validatePeriodFile((await getPeriodFile(previous)).json).file
+    return !!file && !canCreateNewPeriod(file)
+  } catch (error) {
+    if (error instanceof NotFoundError) return false
+    expireOnUnauthorized(error)
+    throw error
+  }
+}
+
 // "Nouvelle période" (docs/period-file.md, "Closing a period"): the latest period is the previous
 // one. `refused` means its twelfth month does not exist yet; `unknown` that it could not be loaded,
 // so nothing is allowed on a guess. `suggestedAdvance` is the previous settlement's next advance as
@@ -370,6 +385,10 @@ export function useNewPeriod() {
     if (!entry.value.file) return 'unknown'
     return canCreateNewPeriod(entry.value.file) ? 'allowed' : 'refused'
   })
+  // The previous period is loaded but its next advance cannot be computed.
+  const prefillUnavailable = computed(
+    () => !!entry.value?.file && suggestedAdvance.value === undefined,
+  )
   const suggestedAdvance = computed(() => {
     try {
       return entry.value?.file && computePeriodFigures(entry.value.file).totals.nextAdvance
@@ -377,7 +396,7 @@ export function useNewPeriod() {
       return undefined
     }
   })
-  return { eligibility, suggestedAdvance }
+  return { eligibility, suggestedAdvance, prefillUnavailable }
 }
 
 export function usePeriods() {
@@ -386,6 +405,7 @@ export function usePeriods() {
     listStatus: readonly(listStatus),
     loadPeriodIds,
     createPeriod,
+    previousBlocksNew,
     drainQueued,
     // Reads the queue in IndexedDB into the counts; App.vue runs it on load, before any drain ends.
     loadPendingCounts: () => useSaveQueue().syncPendingCounts(),

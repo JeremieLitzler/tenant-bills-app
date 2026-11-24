@@ -6,3 +6,4 @@ Visual choices to reuse, so they are not decided again. Add a line when a choice
 - A message telling the user why something is refused or unavailable is a warning: `text-theme-warning text-sm` with the `IconTriangleAlert` icon (`size-4`), as in `PeriodListItem.vue` and `NewPeriod.vue`.
 - A page's content on desktop sits in a centred container: `mx-auto w-full max-w-3xl` (the home page). Wide pages, such as the period table, do not.
 - A button and the warning explaining why it is disabled are stacked and centred: `flex flex-col items-center`, with `text-center` on the message (`NewPeriod.vue`).
+- A text input is `rounded border px-2 py-1` (`MonthForm.vue`, `NewPeriod.vue`).

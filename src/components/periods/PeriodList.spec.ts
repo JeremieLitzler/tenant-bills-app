@@ -9,13 +9,14 @@ const getPeriodFile = vi.fn(async (id: string) => ({
   json: {
     ...validPeriodJson(id),
     ...(closedOn.has(id) ? { closedOn: '2026-09-12' } : {}),
-    months: validPeriodJson(id).months.slice(0, monthCount),
+    months: validPeriodJson(id).months.slice(0, elevenMonths.has(id) ? 11 : monthCount),
   },
   sha: 'sha',
 }))
 
 const putPeriodFile = vi.fn(async () => 'sha')
 let monthCount = 12
+const elevenMonths = new Set<string>()
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/sync/periodsApi')>()),
@@ -39,6 +40,7 @@ async function mountApp() {
 beforeEach(() => {
   vi.resetModules()
   monthCount = 12
+  elevenMonths.clear()
   putPeriodFile.mockClear()
   listPeriodIds.mockReset()
   closedOn.clear()
@@ -172,5 +174,44 @@ describe('PeriodList, "Nouvelle période"', () => {
 
     expect(wrapper.get('[data-testid="toast"]').text()).toContain('existe déjà')
     expect(router.currentRoute.value.path).toBe('/')
+  })
+
+  async function fillAndSubmit(
+    wrapper: Awaited<ReturnType<typeof mountApp>>['wrapper'],
+    date: string,
+    advance = '80',
+  ) {
+    await button(wrapper).trigger('click')
+    await wrapper.get('input[name="tenantName"]').setValue('Jane')
+    await wrapper.get('input[name="monthlyTenantBillAdvance"]').setValue(advance)
+    await wrapper.get('input[name="startDate"]').setValue(date)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+  }
+
+  it('names the wrong field in the toast', async () => {
+    listPeriodIds.mockResolvedValue([])
+    const { wrapper } = await mountApp()
+    await fillAndSubmit(wrapper, '2026-09-15', '0')
+    expect(wrapper.get('[data-testid="toast"]').text()).toContain('acompte mensuel')
+    expect(putPeriodFile).not.toHaveBeenCalled()
+  })
+
+  it('refuses when the period of the year before has no twelfth month', async () => {
+    elevenMonths.add('2025-2026')
+    listPeriodIds.mockResolvedValue(['2024-2025'])
+    const { wrapper } = await mountApp()
+    await vi.waitFor(() => expect(button(wrapper).attributes('disabled')).toBeUndefined())
+    await fillAndSubmit(wrapper, '2026-09-15')
+    expect(wrapper.get('[data-testid="toast"]').text()).toContain('douzième mois')
+    expect(putPeriodFile).not.toHaveBeenCalled()
+  })
+
+  it('hints that the advance cannot be suggested when the previous figures are incomplete', async () => {
+    listPeriodIds.mockResolvedValue(['2026-2027'])
+    const { wrapper } = await mountApp()
+    await vi.waitFor(() => expect(button(wrapper).attributes('disabled')).toBeUndefined())
+    await button(wrapper).trigger('click')
+    expect(wrapper.find('[data-testid="new-period-prefill-hint"]').exists()).toBe(true)
   })
 })
