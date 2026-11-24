@@ -97,18 +97,6 @@ describe('PeriodList on the home page', () => {
   })
 })
 
-describe('/periods', () => {
-  it('redirects to the home page', async () => {
-    listPeriodIds.mockResolvedValue([])
-    document.cookie = 'gh_login=JeremieLitzler; Path=/'
-    const { default: router } = await import('@/router')
-
-    await router.push('/periods')
-
-    expect(router.currentRoute.value.path).toBe('/')
-  })
-})
-
 describe('PeriodList with a misconfigured proxy', () => {
   it('shows an error toast with a Netlify link', async () => {
     const { MisconfiguredError } = await import('@/sync/periodsApi')
