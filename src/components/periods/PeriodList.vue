@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
-
+import PeriodListItem from '@/components/periods/PeriodListItem.vue'
 import { Button } from '@/components/ui/button'
 import { usePeriods } from '@/composables/usePeriods'
 import { fr } from '@/i18n/fr'
@@ -14,7 +13,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Minimal list shown on the home page: F7 (#34) builds the real period management page. -->
   <section class="flex flex-col gap-4">
     <h2 class="text-xl font-semibold">{{ fr.periods.title }}</h2>
     <p v-if="periods.listStatus.value === 'loading'" data-testid="periods-loading">
@@ -37,9 +35,7 @@ onMounted(() => {
       {{ fr.periods.empty }}
     </p>
     <ul v-else class="flex flex-col gap-2">
-      <li v-for="id in periods.periodIds.value" :key="id">
-        <RouterLink :to="`/periods/${id}`" class="underline">{{ id }}</RouterLink>
-      </li>
+      <PeriodListItem v-for="id in periods.periodIds.value" :key="id" :id="id" />
     </ul>
   </section>
 </template>

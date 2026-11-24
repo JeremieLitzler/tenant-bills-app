@@ -42,6 +42,8 @@ export const fr = {
   },
   periods: {
     title: 'Périodes',
+    open: 'Ouverte',
+    closed: 'Clôturée',
     loading: 'Chargement des périodes…',
     empty: 'Aucune période pour le moment.',
     retry: 'Réessayer',
