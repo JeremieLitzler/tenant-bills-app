@@ -10,7 +10,7 @@ import { useSaveQueue } from '@/composables/useSaveQueue'
 import { useSession } from '@/composables/useSession'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
-import { canClose, canCreateNewPeriod, monthsWithoutAdvance } from '@/domain/periodState'
+import { canClose, canCreateNewPeriod, closeChecks, monthsWithoutAdvance } from '@/domain/periodState'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
@@ -345,6 +345,12 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
     canClose: computed(() => {
       const entry = periodEntry.value
       return !!entry?.file && !entry.problems.length && canClose(entry.file)
+    }),
+    // The five conditions with their state, once the twelfth month exists (undefined before).
+    closeChecks: computed(() => {
+      const entry = periodEntry.value
+      if (!entry?.file || entry.file.months.length < MAX_MONTHS) return undefined
+      return { ...closeChecks(entry.file), notReadOnly: !entry.problems.length }
     }),
     monthsWithoutAdvance: computed(() => {
       const entry = periodEntry.value

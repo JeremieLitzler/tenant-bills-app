@@ -249,6 +249,34 @@ describe('period page', () => {
     }
     const body = (id: string) => document.body.querySelector<HTMLElement>(`[data-testid="${id}"]`)
 
+    it('shows the state of the five checks from the twelfth month on, in the second column', async () => {
+      const partial = json()
+      Object.assign(partial.months[5].common, { estimated: true })
+      delete (partial.months[3].common as Record<string, unknown>).endDate
+      getPeriodFile.mockResolvedValue({ json: partial, sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      const state = (key: string) =>
+        wrapper
+          .get(`[data-testid="period-col-2"] [data-testid="close-check-${key}"]`)
+          .attributes('data-ok')
+      expect(
+        ['notClosed', 'twelveMonths', 'allComplete', 'noneEstimated', 'notReadOnly'].map(state),
+      ).toEqual(['true', 'true', 'false', 'false', 'true'])
+      expect(
+        wrapper.get('[data-testid="period-col-1"]').find('[data-testid="period-close"]').exists(),
+      ).toBe(false)
+    })
+
+    it('shows no checklist before the twelfth month exists', async () => {
+      const short = json()
+      short.months = short.months.slice(0, 3)
+      getPeriodFile.mockResolvedValue({ json: short, sha: 's' })
+      const { wrapper } = await openPeriodPage()
+      await flushPromises()
+      expect(wrapper.find('[data-testid="close-checks"]').exists()).toBe(false)
+    })
+
     it('is disabled while the period cannot be closed', async () => {
       getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
       const { wrapper } = await openPeriodPage()

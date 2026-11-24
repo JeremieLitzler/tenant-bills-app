@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
+import CloseChecklist from '@/components/periods/CloseChecklist.vue'
 import ClosePeriod from '@/components/periods/ClosePeriod.vue'
 import ClosedNotice from '@/components/periods/ClosedNotice.vue'
 import PeriodSettings from '@/components/periods/PeriodSettings.vue'
@@ -36,67 +37,78 @@ if (import.meta.env.DEV) {
     <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
   </div>
   <div v-else class="flex flex-col gap-4">
-    <div class="flex items-center gap-4">
-      <Button :as="RouterLink" to="/" data-testid="period-back"
-        ><span aria-hidden="true">&lt;</span> {{ fr.period.back }}</Button
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="flex flex-col gap-4" data-testid="period-col-1">
+        <div class="flex items-center gap-4">
+          <Button :as="RouterLink" to="/" data-testid="period-back"
+            ><span aria-hidden="true">&lt;</span> {{ fr.period.back }}</Button
+          >
+          <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
+          <button
+            type="button"
+            class="rounded border px-3 py-1 disabled:opacity-50"
+            data-testid="period-refresh"
+            :disabled="!period.canRefresh.value"
+            @click="period.refresh()"
+          >
+            {{
+              period.refreshStatus.value === 'refreshing'
+                ? fr.period.refresh.refreshing
+                : fr.period.refresh.button
+            }}
+          </button>
+        </div>
+        <div
+          v-if="period.isReadOnly.value"
+          role="status"
+          data-testid="period-read-only"
+          class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
+        >
+          <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div>
+            <p>{{ fr.period.readOnlyNotice }}</p>
+            <ul class="list-disc pl-6">
+              <li v-for="problem in period.problems.value" :key="problem">
+                {{ fr.period.problems[problem] }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <ClosedNotice v-if="period.file.value?.closedOn" :closed-on="period.file.value.closedOn" />
+        <Button
+          v-if="period.nextMonth.value === 'available'"
+          accent
+          class="self-start"
+          data-testid="initialize-month"
+          @click="period.initializeNextMonth()"
+        >
+          {{ fr.period.initializeMonth.button }}
+        </Button>
+        <div
+          v-else-if="period.nextMonth.value === 'incomplete'"
+          role="status"
+          data-testid="initialize-month-incomplete"
+          class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
+        >
+          <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <p>{{ fr.period.initializeMonth.incomplete }}</p>
+        </div>
+        <PeriodSettings :period-id="route.params.period" />
+      </div>
+      <div
+        v-if="period.closeChecks.value && !period.file.value?.closedOn"
+        class="flex flex-col items-start gap-4"
+        data-testid="period-col-2"
       >
-      <h1 class="text-2xl font-semibold">{{ period.file.value?.periodName }}</h1>
-      <button
-        type="button"
-        class="rounded border px-3 py-1 disabled:opacity-50"
-        data-testid="period-refresh"
-        :disabled="!period.canRefresh.value"
-        @click="period.refresh()"
-      >
-        {{
-          period.refreshStatus.value === 'refreshing'
-            ? fr.period.refresh.refreshing
-            : fr.period.refresh.button
-        }}
-      </button>
-      <ClosePeriod
-        v-if="period.file.value && !period.file.value.closedOn && !period.isReadOnly.value"
-        :disabled="!period.canClose.value"
-        :months-without-advance="period.monthsWithoutAdvance.value"
-        @confirm="period.close()"
-      />
-    </div>
-    <div
-      v-if="period.isReadOnly.value"
-      role="status"
-      data-testid="period-read-only"
-      class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
-    >
-      <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
-      <div>
-        <p>{{ fr.period.readOnlyNotice }}</p>
-        <ul class="list-disc pl-6">
-          <li v-for="problem in period.problems.value" :key="problem">
-            {{ fr.period.problems[problem] }}
-          </li>
-        </ul>
+        <ClosePeriod
+          v-if="period.file.value && !period.isReadOnly.value"
+          :disabled="!period.canClose.value"
+          :months-without-advance="period.monthsWithoutAdvance.value"
+          @confirm="period.close()"
+        />
+        <CloseChecklist :checks="period.closeChecks.value" />
       </div>
     </div>
-    <ClosedNotice v-if="period.file.value?.closedOn" :closed-on="period.file.value.closedOn" />
-    <Button
-      v-if="period.nextMonth.value === 'available'"
-      accent
-      class="self-start"
-      data-testid="initialize-month"
-      @click="period.initializeNextMonth()"
-    >
-      {{ fr.period.initializeMonth.button }}
-    </Button>
-    <div
-      v-else-if="period.nextMonth.value === 'incomplete'"
-      role="status"
-      data-testid="initialize-month-incomplete"
-      class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
-    >
-      <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
-      <p>{{ fr.period.initializeMonth.incomplete }}</p>
-    </div>
-    <PeriodSettings :period-id="route.params.period" />
     <PeriodTable :period-id="route.params.period" />
   </div>
 </template>
