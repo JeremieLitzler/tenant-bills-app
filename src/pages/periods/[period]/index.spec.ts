@@ -9,6 +9,7 @@ import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
 const getPeriodFile = vi.fn<(id: string) => Promise<{ json: unknown; sha: string } | undefined>>()
 const getPeriodSha = vi.fn<(id: string) => Promise<string>>()
 const pendingCountFor = vi.fn<(id: string) => number>(() => 0)
+const enqueuePatch = vi.fn(async (_patch: unknown) => {})
 const listPeriodIds = vi.fn<() => Promise<string[]>>()
 
 vi.mock('@/sync/periodsApi', async (importOriginal) => ({
@@ -30,7 +31,7 @@ vi.mock('@/sync/periodCopies', () => ({
   readPeriodCopy: async () => undefined,
 }))
 vi.mock('@/sync/patchQueue', () => ({
-  enqueuePatch: async () => {},
+  enqueuePatch,
   listPatches: async () => [],
 }))
 
@@ -52,6 +53,7 @@ async function openPeriodPage(path = '/periods/2026-2027') {
 beforeEach(() => {
   vi.resetModules()
   getPeriodFile.mockReset()
+  enqueuePatch.mockClear()
   getPeriodSha.mockReset()
   pendingCountFor.mockReset()
   pendingCountFor.mockReturnValue(0)
@@ -125,6 +127,41 @@ describe('period page', () => {
     const open = await openPeriodPage()
     await flushPromises()
     expect(open.wrapper.find('[data-testid="period-closed"]').exists()).toBe(false)
+  })
+
+  it('edits the monthly tenant bill advance in the settings panel, saved as a top-level patch (#83)', async () => {
+    getPeriodFile.mockResolvedValue({ json: periodJson(), sha: 's' })
+    const { wrapper } = await openPeriodPage()
+    await flushPromises()
+    const input = wrapper.get<HTMLInputElement>('[data-testid="setting-monthlyTenantBillAdvance"]')
+    expect(input.element.value).toBe('70')
+
+    await input.setValue('0')
+    await input.trigger('blur')
+    expect(wrapper.find('[data-testid="setting-invalid"]').exists()).toBe(true)
+
+    await input.setValue('75,5')
+    await input.trigger('blur')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="setting-invalid"]').exists()).toBe(false)
+    expect(input.element.value).toBe('75.5')
+    expect(enqueuePatch).toHaveBeenCalledTimes(1)
+    expect(enqueuePatch).toHaveBeenCalledWith({
+      period: '2026-2027',
+      month: null,
+      field: 'monthlyTenantBillAdvance',
+      value: 75.5,
+    })
+  })
+
+  it('locks the settings panel in a closed period (#83)', async () => {
+    getPeriodFile.mockResolvedValue({ json: periodJson({ closedOn: '2027-09-01' }), sha: 's' })
+    const { wrapper } = await openPeriodPage()
+    await flushPromises()
+    expect(
+      wrapper.get<HTMLInputElement>('[data-testid="setting-monthlyTenantBillAdvance"]').element
+        .disabled,
+    ).toBe(true)
   })
 
   it('shows the months and a read-only notice for a file breaking a validation rule', async () => {

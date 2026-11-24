@@ -90,6 +90,11 @@ export const fr = {
       updated: "La période a été mise à jour avec les modifications de l'autre appareil.",
       failed: 'Impossible de rafraîchir la période. Merci de réessayer.',
     },
+    settings: {
+      title: 'Paramètres de la période',
+      monthlyTenantBillAdvance: 'Acompte mensuel de la facture du locataire (€)',
+      invalid: "L'acompte mensuel doit être supérieur à 0.",
+    },
     initializeMonth: {
       button: 'Initialiser le mois suivant',
       incomplete: 'Complétez le dernier mois pour initialiser le suivant.',
