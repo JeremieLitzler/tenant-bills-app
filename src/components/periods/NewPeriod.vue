@@ -62,7 +62,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col items-center gap-2">
     <Button
       v-if="!open"
       :disabled="eligibility !== 'allowed'"
@@ -73,7 +73,7 @@ async function submit() {
     </Button>
     <p
       v-if="eligibility === 'refused' || eligibility === 'unknown'"
-      class="text-theme-warning flex items-center gap-1 text-sm"
+      class="text-theme-warning flex items-center gap-1 text-center text-sm"
       data-testid="new-period-reason"
     >
       <IconTriangleAlert class="size-4 shrink-0" aria-hidden="true" />
@@ -81,7 +81,7 @@ async function submit() {
     </p>
     <form
       v-if="open"
-      class="flex flex-col gap-2"
+      class="flex flex-col gap-2 self-stretch"
       data-testid="new-period-form"
       @submit.prevent="submit"
     >
