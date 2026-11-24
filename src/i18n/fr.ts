@@ -83,7 +83,7 @@ export const fr = {
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
     settlement: {
       link: 'Consulter la situation comptable',
-      title: 'Règlement',
+      title: 'Situation comptable',
       provisional: 'provisoire',
       advancesReceived: 'Acomptes reçus',
       totalTenantShares: 'Total des parts du locataire',

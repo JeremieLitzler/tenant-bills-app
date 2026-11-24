@@ -64,7 +64,7 @@ beforeEach(() => {
   getPeriodFile.mockReset()
 })
 
-describe('Règlement', () => {
+describe('Situation comptable', () => {
   it('is labelled provisoire while the period is open, not once closed', async () => {
     const open = await openSettlement()
     expect(open.wrapper.get('[data-testid="settlement-provisional"]').text()).toContain(

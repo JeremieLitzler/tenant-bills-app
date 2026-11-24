@@ -163,7 +163,7 @@ const direction = computed(() => {
             >{{ money(column.entry.common.tenantBillAdvance) }}</TableCell
           >
         </TableRow>
-        <TableRow class="font-semibold">
+        <TableRow class="text-lg font-semibold [&>*]:border-t-2 [&>*]:border-current">
           <TableHead
             scope="row"
             class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
@@ -176,7 +176,7 @@ const direction = computed(() => {
             direction ?? fr.period.table.empty
           }}</TableCell>
         </TableRow>
-        <TableRow data-testid="next-advance">
+        <TableRow data-testid="next-advance" class="text-lg font-semibold">
           <TableHead
             scope="row"
             class="bg-background sticky left-0 z-10 w-56 min-w-56 max-md:w-52 max-md:min-w-52 max-md:whitespace-normal"
