@@ -8,7 +8,8 @@ const SIGN_IN_PATH = '/sign-in'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
+  // The period list lives on `/`.
+  routes: [...routes, { path: '/periods', redirect: '/' }],
 })
 
 // The only place holding the redirect rules. A signed-out visitor goes to the sign-in page,

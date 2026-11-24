@@ -39,8 +39,8 @@ describe('route guard', () => {
   it('sends a signed-in visitor away from the sign-in page, to the asked path or home', async () => {
     const router = await loadRouter('JeremieLitzler')
 
-    await router.push('/sign-in?redirect=%2Fperiods')
-    expect(router.currentRoute.value.fullPath).toBe('/periods')
+    await router.push('/sign-in?redirect=%2Fperiods%2F2026-2027')
+    expect(router.currentRoute.value.fullPath).toBe('/periods/2026-2027')
 
     await router.push('/sign-in')
     expect(router.currentRoute.value.path).toBe('/')
