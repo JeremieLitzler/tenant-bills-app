@@ -9,3 +9,5 @@ Visual choices to reuse, so they are not decided again. Add a line when a choice
 - A text input is `rounded border px-2 py-1` (`MonthForm.vue`, `NewPeriod.vue`).
 - A disabled text input is greyed out with `disabled:opacity-50` (`PeriodSettings.vue`), the same look as a disabled button.
 - An invalid value typed in an input is told right under it by the same warning (`text-theme-warning flex items-center gap-1 text-sm` with `IconTriangleAlert`, `size-4`), and nothing is saved (`PeriodSettings.vue`).
+- The period page header is a two-column grid on desktop (`md:grid-cols-2`), one column on mobile with column 1 above column 2; the wide period table sits in its own row below (`pages/periods/[period]/index.vue`).
+- A checklist line is an `IconCircleCheck` (`text-theme-success`) or `IconCircleX` (`text-theme-error`) at `size-4` before its label (`CloseChecklist.vue`).

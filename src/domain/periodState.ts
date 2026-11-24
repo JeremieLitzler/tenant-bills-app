@@ -35,12 +35,26 @@ export function periodStatus(
   return 'ongoing'
 }
 
+// The file-based conditions of closing, one flag each, for the checklist. The fifth condition (the
+// file is not read-only) belongs to the loaded entry, not to the file.
+export interface CloseChecks {
+  notClosed: boolean
+  twelveMonths: boolean
+  allComplete: boolean
+  noneEstimated: boolean
+}
+
+export function closeChecks(file: ReadonlyPeriodFile): CloseChecks {
+  return {
+    notClosed: !file.closedOn,
+    twelveMonths: hasAllMonths(file),
+    allComplete: file.months.every((m) => monthCompleteness(m).complete),
+    noneEstimated: file.months.every((m) => !m.common.estimated),
+  }
+}
+
 export function canClose(file: ReadonlyPeriodFile): boolean {
-  return (
-    !file.closedOn &&
-    hasAllMonths(file) &&
-    file.months.every((m) => monthCompleteness(m).complete && !m.common.estimated)
-  )
+  return Object.values(closeChecks(file)).every(Boolean)
 }
 
 // For the confirmation; it never blocks the close.

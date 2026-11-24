@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { canClose, canCreateNewPeriod, monthsWithoutAdvance, periodStatus } from './periodState'
+import {
+  canClose,
+  closeChecks,
+  canCreateNewPeriod,
+  monthsWithoutAdvance,
+  periodStatus,
+} from './periodState'
 import type { PeriodFile } from './periodFile'
 import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
 
@@ -69,6 +75,21 @@ describe('canClose', () => {
   })
   it('is refused once closed', () => {
     expect(canClose(period(12, { closedOn: '2027-10-11' }))).toBe(false)
+  })
+})
+
+describe('closeChecks', () => {
+  it('flags each condition separately', () => {
+    const file = period(11, { closedOn: '2027-10-11' })
+    delete file.months[3].common.endDate
+    file.months[4].common.estimated = true
+    expect(closeChecks(file)).toEqual({
+      notClosed: false,
+      twelveMonths: false,
+      allComplete: false,
+      noneEstimated: false,
+    })
+    expect(Object.values(closeChecks(period())).every(Boolean)).toBe(true)
   })
 })
 
