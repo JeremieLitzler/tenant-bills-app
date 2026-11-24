@@ -8,8 +8,7 @@ import { fr } from '@/i18n/fr'
 const props = defineProps<{ id: string }>()
 
 // Closed is read from the file (docs/period-file.md), so each row loads its period.
-// shortcut: one full load per row; a status without a per-file fetch is planned in a new issue
-// (docs/implementation-feedbacks/2026-11-24-issue-80/NEW-ISSUE-status-without-fetch.md).
+// shortcut: one full load per row; a status without a per-file fetch is planned in #184.
 const { file, status } = usePeriod(() => props.id)
 </script>
 
