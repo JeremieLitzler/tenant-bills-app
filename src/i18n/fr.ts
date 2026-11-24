@@ -84,6 +84,8 @@ export const fr = {
     closedNotice: (date: string) => `Période clôturée le ${date}, en lecture seule.`,
     closeChecks: {
       title: 'Conditions de clôture',
+      yes: 'Oui',
+      no: 'Non',
       notClosed: "La période n'est pas déjà clôturée",
       twelveMonths: 'La période compte douze mois',
       allComplete: 'Chaque mois est complet',

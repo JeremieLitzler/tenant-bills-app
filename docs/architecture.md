@@ -113,7 +113,11 @@ usePeriod(id: MaybeRefOrGetter<string>, options?: { checkRemote?: boolean }): {
   setCell(month: string | null, field: string, value: unknown): Promise<void>  // enqueues a patch (ADR 0010), applies it to the loaded copy, drains; null month for a top-level value; throws when the period is not ready, read-only or closed
   initializeNextMonth(): void                        // copies the last month into a new one, one patch carrying the whole month (ADR 0007)
   estimateReadings(): void                           // the twelfth month's estimate, written as patches
-  close(): void                                      // "Clôturer la période", written as a patch
+  close(): Promise<void>                             // "Clôturer la période": a top-level `closedOn` patch dated today (local); a failure is told by a toast
+  canClose: boolean                                  // the five checks below all hold (and the file is not read-only)
+  closeChecks: { notClosed, twelveMonths, allComplete, noneEstimated, notReadOnly: boolean } | undefined  // undefined until the twelfth month exists
+  incompleteMonths: { month: string, sections: SectionName[] }[]  // the months failing `allComplete`, with their incomplete sections
+  monthsWithoutAdvance: string[]                     // listed by the closing confirmation, never blocking
 }
 ```
 

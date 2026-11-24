@@ -31,7 +31,7 @@ const t = fr.period.closeChecks
           aria-hidden="true"
         />
         <IconCircleX v-else class="text-theme-error mt-1 size-4 shrink-0" aria-hidden="true" />
-        <span class="sr-only">{{ ok ? 'Oui' : 'Non' }} :</span>
+        <span class="sr-only">{{ ok ? t.yes : t.no }} :</span>
         <div>
           {{ t[key as keyof typeof t] }}
           <ul
