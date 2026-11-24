@@ -15,3 +15,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ### Past decisions
 
 Precedent: before asking the user a question, search `docs/implementation-feedbacks/*/GRILLING-SUMMARY.md` and `docs/grillings/*/GRILLING-SUMMARY.md` for the decision.
+
+### Design system
+
+Visual choices already made (disabled state, warnings...): read `docs/design-system.md` before styling, and add each new choice there.

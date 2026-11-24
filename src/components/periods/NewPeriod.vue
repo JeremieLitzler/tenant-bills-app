@@ -4,6 +4,7 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 import { Button } from '@/components/ui/button'
 import { useNewPeriod, usePeriods } from '@/composables/usePeriods'
 import { useToasts } from '@/composables/useToasts'
@@ -72,8 +73,10 @@ async function submit() {
     </Button>
     <p
       v-if="eligibility === 'refused' || eligibility === 'unknown'"
+      class="text-theme-warning flex items-center gap-1 text-sm"
       data-testid="new-period-reason"
     >
+      <IconTriangleAlert class="size-4 shrink-0" aria-hidden="true" />
       {{ eligibility === 'refused' ? t.refused : t.unknown }}
     </p>
     <form
