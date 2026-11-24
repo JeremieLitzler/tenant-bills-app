@@ -52,6 +52,13 @@ declare module 'vue-router/auto-routes' {
       { month: ParamValue<false>, period: ParamValue<false> },
       | never
     >,
+    '/periods/[period]/settlement': RouteRecordInfo<
+      '/periods/[period]/settlement',
+      '/periods/:period/settlement',
+      { period: ParamValue<true> },
+      { period: ParamValue<false> },
+      | never
+    >,
     '/sign-in': RouteRecordInfo<
       '/sign-in',
       '/sign-in',
@@ -95,6 +102,14 @@ declare module 'vue-router/auto-routes' {
         | never
       pathParamNames:
         | 'month'
+    }
+    'src/pages/periods/[period]/settlement.vue': {
+      routes:
+        | '/periods/[period]/settlement'
+      views:
+        | never
+      pathParamNames:
+        | never
     }
     'src/pages/sign-in.vue': {
       routes:
