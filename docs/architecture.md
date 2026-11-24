@@ -87,8 +87,14 @@ usePeriods(): {
   pendingCount: Readonly<Ref<number>>                // whole queue, shown in the app shell
   syncState: Readonly<Ref<'idle' | 'saving' | 'offline' | 'error'>>
   pendingCountFor(id: string): number                // gates "Rafraîchir" on one period
-  createPeriod(id: string, values: NewPeriodValues): Promise<void>  // tenantName, advance, heat pump estimate, start date; prefills from the previous period
+  createPeriod(id: string, values: NewPeriodValues): Promise<void>  // tenantName, advance, heat pump estimate, start date
   clear(): void                                      // drops in-memory periods, keeps the queue
+}
+
+// "Nouvelle période": eligibility and the advance prefill, from the latest period in the list.
+useNewPeriod(): {
+  eligibility: Readonly<Ref<'loading' | 'allowed' | 'refused' | 'unknown'>>  // refused: no twelfth month yet; unknown: previous period not loadable
+  suggestedAdvance: Readonly<Ref<number | undefined>>  // the previous settlement's next advance, estimated or actual
 }
 
 // One period, called by a page on setup with the [period] route param.
