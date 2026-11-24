@@ -4,6 +4,8 @@
 import { computed } from 'vue'
 
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
+import { RouterLink } from 'vue-router'
+
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -73,12 +75,17 @@ const direction = computed(() => {
     <Button data-testid="period-retry" @click="period.retry()">{{ fr.period.retry }}</Button>
   </div>
   <div v-else class="flex flex-col gap-4" data-testid="settlement">
-    <h1 class="text-2xl font-semibold">
-      {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}
-      <span v-if="!period.file.value?.closedOn" data-testid="settlement-provisional"
-        >({{ fr.period.settlement.provisional }})</span
+    <div class="flex flex-wrap items-center gap-4">
+      <Button :as="RouterLink" :to="`/periods/${periodId}`" data-testid="settlement-back"
+        ><span aria-hidden="true">&lt;</span> {{ fr.period.back }}</Button
       >
-    </h1>
+      <h1 class="text-2xl font-semibold">
+        {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}
+        <span v-if="!period.file.value?.closedOn" data-testid="settlement-provisional"
+          >({{ fr.period.settlement.provisional }})</span
+        >
+      </h1>
+    </div>
     <div
       v-if="period.isReadOnly.value"
       role="status"
