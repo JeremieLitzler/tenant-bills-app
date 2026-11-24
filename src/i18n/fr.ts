@@ -85,6 +85,10 @@ export const fr = {
       link: 'Consulter la situation comptable',
       title: 'Situation comptable',
       provisional: 'provisoire',
+      estimated: 'Régularisation estimée',
+      final: (date: string) => `définitive, clôturée le ${date}`,
+      octoberBanner:
+        "Le décompte définitif viendra en octobre, avec les factures d'eau. Prévenez le locataire.",
       advancesReceived: 'Acomptes reçus',
       totalTenantShares: 'Total des parts du locataire',
       balance: 'Solde',

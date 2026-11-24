@@ -18,6 +18,7 @@ import {
 import { usePeriod } from '@/composables/usePeriods'
 import type { Figure } from '@/domain/figures/figureMath'
 import type { MonthFigures } from '@/domain/periodFigures'
+import { settlementState } from '@/domain/periodState'
 import { fr } from '@/i18n/fr'
 
 import { formatTotal, formatValue, monthLabel, SECTIONS } from './periodLines'
@@ -54,6 +55,10 @@ const sections = computed(() =>
   })),
 )
 
+const state = computed(() =>
+  period.file.value ? settlementState(period.file.value) : 'provisional',
+)
+
 const direction = computed(() => {
   const t = totals.value
   if (!t || t.settlementAmount === undefined) return undefined
@@ -81,8 +86,14 @@ const direction = computed(() => {
       >
       <h1 class="text-2xl font-semibold">
         {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}
-        <span v-if="!period.file.value?.closedOn" data-testid="settlement-provisional"
-          >({{ fr.period.settlement.provisional }})</span
+        <span data-testid="settlement-state"
+          >({{
+            state === 'final'
+              ? fr.period.settlement.final(formatValue('date', period.file.value!.closedOn!))
+              : state === 'estimated'
+                ? fr.period.settlement.estimated
+                : fr.period.settlement.provisional
+          }})</span
         >
       </h1>
     </div>
@@ -94,6 +105,15 @@ const direction = computed(() => {
     >
       <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <p>{{ fr.period.readOnlyNotice }}</p>
+    </div>
+    <div
+      v-if="state === 'read'"
+      role="status"
+      data-testid="october-banner"
+      class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
+    >
+      <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <p>{{ fr.period.settlement.octoberBanner }}</p>
     </div>
     <Table
       data-testid="settlement-table"

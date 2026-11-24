@@ -65,14 +65,34 @@ beforeEach(() => {
 })
 
 describe('Situation comptable', () => {
-  it('is labelled provisoire while the period is open, not once closed', async () => {
-    const open = await openSettlement()
-    expect(open.wrapper.get('[data-testid="settlement-provisional"]').text()).toContain(
-      'provisoire',
+  it('is labelled provisoire before the twelfth month exists, with no banner', async () => {
+    const { wrapper } = await openSettlement(undefined, { complete: false })
+    expect(wrapper.get('[data-testid="settlement-state"]').text()).toContain('provisoire')
+    expect(wrapper.find('[data-testid="october-banner"]').exists()).toBe(false)
+  })
+
+  it('says Régularisation estimée while the twelfth month is estimated', async () => {
+    const { wrapper } = await openSettlement((json) => {
+      ;(json.months[11].common as { estimated?: boolean }).estimated = true
+    })
+    expect(wrapper.get('[data-testid="settlement-state"]').text()).toContain(
+      'Régularisation estimée',
     )
-    open.wrapper.unmount()
-    const closed = await openSettlement((json) => (json.closedOn = '2027-09-05'))
-    expect(closed.wrapper.find('[data-testid="settlement-provisional"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="next-advance"]').text()).toContain('€')
+    expect(wrapper.find('[data-testid="october-banner"]').exists()).toBe(false)
+  })
+
+  it('shows the October banner once August is read and the period is open', async () => {
+    const { wrapper } = await openSettlement()
+    expect(wrapper.get('[data-testid="october-banner"]').text()).toContain('octobre')
+  })
+
+  it('is final with its closing date and no banner once closed', async () => {
+    const { wrapper } = await openSettlement((json) => (json.closedOn = '2027-09-05'))
+    expect(wrapper.get('[data-testid="settlement-state"]').text()).toContain(
+      'définitive, clôturée le 05/09/2027',
+    )
+    expect(wrapper.find('[data-testid="october-banner"]').exists()).toBe(false)
   })
 
   it('says the landlord owes the tenant when the advances exceed the shares', async () => {

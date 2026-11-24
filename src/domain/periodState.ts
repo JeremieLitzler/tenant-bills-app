@@ -67,3 +67,16 @@ export function monthsWithoutAdvance(file: ReadonlyPeriodFile): string[] {
 export function canCreateNewPeriod(previousFile: ReadonlyPeriodFile | undefined): boolean {
   return previousFile === undefined || hasAllMonths(previousFile)
 }
+
+// How far the settlement can be trusted (ADR 0006): provisional until the twelfth month exists,
+// estimated while its indexes are estimates, read once its reading date is typed (the water bills
+// are still due), final once closed.
+export type SettlementState = 'provisional' | 'estimated' | 'read' | 'final'
+
+export function settlementState(file: ReadonlyPeriodFile): SettlementState {
+  if (file.closedOn) return 'final'
+  const twelfth = hasAllMonths(file) ? file.months[MAX_MONTHS - 1] : undefined
+  if (!twelfth) return 'provisional'
+  if (twelfth.common.estimated) return 'estimated'
+  return twelfth.common.endDate ? 'read' : 'provisional'
+}
