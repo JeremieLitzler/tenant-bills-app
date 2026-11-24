@@ -81,6 +81,19 @@ export const fr = {
     error: 'Impossible de charger la période. Merci de réessayer.',
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
+    settlement: {
+      link: 'Voir le règlement',
+      title: 'Règlement',
+      provisional: 'provisoire',
+      advancesReceived: 'Acomptes reçus',
+      totalTenantShares: 'Total des parts du locataire',
+      balance: 'Solde',
+      tenantOwes: (amount: string) => `Le locataire doit au bailleur ${amount}`,
+      landlordOwes: (amount: string) => `Le bailleur doit au locataire ${amount}`,
+      nextAdvance: 'Prochain acompte mensuel',
+      nextAdvanceAverage: (average: string) => `moyenne exacte : ${average}`,
+      total: 'Total',
+    },
     closedNotice: (date: string) => `Période clôturée le ${date}, en lecture seule.`,
     closeChecks: {
       title: 'Conditions de clôture',

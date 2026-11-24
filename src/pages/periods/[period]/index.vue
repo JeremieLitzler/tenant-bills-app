@@ -74,6 +74,13 @@ if (import.meta.env.DEV) {
             </ul>
           </div>
         </div>
+        <Button
+          :as="RouterLink"
+          :to="`/periods/${route.params.period}/settlement`"
+          class="self-start"
+          data-testid="settlement-link"
+          >{{ fr.period.settlement.link }}</Button
+        >
         <ClosedNotice v-if="period.file.value?.closedOn" :closed-on="period.file.value.closedOn" />
         <Button
           v-if="period.nextMonth.value === 'available'"
