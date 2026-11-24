@@ -106,7 +106,10 @@ if (import.meta.env.DEV) {
           :months-without-advance="period.monthsWithoutAdvance.value"
           @confirm="period.close()"
         />
-        <CloseChecklist :checks="period.closeChecks.value" />
+        <CloseChecklist
+          :checks="period.closeChecks.value"
+          :incomplete-months="period.incompleteMonths.value"
+        />
       </div>
     </div>
     <PeriodTable :period-id="route.params.period" />

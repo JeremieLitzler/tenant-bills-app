@@ -266,6 +266,9 @@ describe('period page', () => {
       expect(
         wrapper.get('[data-testid="period-col-1"]').find('[data-testid="period-close"]').exists(),
       ).toBe(false)
+      expect(wrapper.get('[data-testid="close-check-incomplete-months"]').text()).toBe(
+        'décembre 2026 : Commun',
+      )
     })
 
     it('shows no checklist before the twelfth month exists', async () => {
@@ -291,7 +294,7 @@ describe('period page', () => {
       await wrapper.get('[data-testid="period-close"]').trigger('click')
       await flushPromises()
 
-      expect(body('period-close-no-advance')?.textContent).toContain('2026-10')
+      expect(body('period-close-no-advance')?.textContent).toContain('octobre 2026')
       const confirm = body('period-close-confirm') as HTMLButtonElement
       expect(confirm.disabled).toBe(true)
       body('period-close-bills')!.click()
