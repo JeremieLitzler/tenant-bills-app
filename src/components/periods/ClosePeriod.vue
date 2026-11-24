@@ -47,11 +47,11 @@ watch(open, () => (billsReceived.value = false))
               <li v-for="month in monthsWithoutAdvance" :key="month">{{ monthLabel(month) }}</li>
             </ul>
           </div>
-          <label class="flex items-start gap-2">
+          <label class="flex items-center gap-2">
             <input
               v-model="billsReceived"
               type="checkbox"
-              class="mt-[5px] shrink-0"
+              class="shrink-0"
               data-testid="period-close-bills"
             />
             {{ t.billsReceived }}
