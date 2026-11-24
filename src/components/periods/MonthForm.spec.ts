@@ -469,6 +469,21 @@ describe('MonthForm collapsible sections', () => {
       expect(inputs.every((input) => input.classes('disabled:bg-muted'))).toBe(true)
     })
 
+    it('disables the tariff mode and subscription unit switches in a closed period', async () => {
+      const { wrapper } = await openForm(
+        (json) => {
+          ;(json as Record<string, unknown>).closedOn = '2027-09-01'
+        },
+        '2026-09',
+        undefined,
+        undefined,
+        'closed',
+      )
+      const selects = wrapper.findAll('select[data-testid^="field-"]')
+      expect(selects).toHaveLength(2)
+      expect(selects.every((s) => s.attributes('disabled') !== undefined)).toBe(true)
+    })
+
     it('offers neither notice nor confirmation in a closed period', async () => {
       const { wrapper } = await openForm(
         (json) => {
