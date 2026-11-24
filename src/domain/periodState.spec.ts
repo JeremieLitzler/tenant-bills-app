@@ -6,6 +6,7 @@ import {
   canCreateNewPeriod,
   monthsWithoutAdvance,
   periodStatus,
+  settlementState,
 } from './periodState'
 import type { PeriodFile } from './periodFile'
 import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
@@ -121,5 +122,27 @@ describe('canCreateNewPeriod', () => {
     estimated.months[11].common.estimated = true
     expect(canCreateNewPeriod(estimated)).toBe(true)
     expect(canCreateNewPeriod(period(12))).toBe(true)
+  })
+})
+
+describe('settlementState', () => {
+  it('is provisional before the twelfth month exists', () => {
+    expect(settlementState(period(11))).toBe('provisional')
+  })
+  it('is estimated while the twelfth month is estimated', () => {
+    const file = period()
+    file.months[11].common.estimated = true
+    expect(settlementState(file)).toBe('estimated')
+  })
+  it('is read once the twelfth month has its reading date and the period is open', () => {
+    expect(settlementState(period())).toBe('read')
+  })
+  it('is provisional for a twelfth month without reading date nor estimate', () => {
+    const file = period()
+    delete file.months[11].common.endDate
+    expect(settlementState(file)).toBe('provisional')
+  })
+  it('is final once closed', () => {
+    expect(settlementState(period(12, { closedOn: '2027-10-11' }))).toBe('final')
   })
 })
