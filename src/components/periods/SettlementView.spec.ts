@@ -1,5 +1,6 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { computePeriodFigures } from '@/domain/periodFigures'
 import { completeMonth, validPeriodJson } from '@tests/helpers/periodFile'
@@ -25,6 +26,12 @@ vi.mock('@/sync/drainQueue', async (importOriginal) => ({
 let nextYear = 2030
 const nextPeriodId = () => `${nextYear}-${++nextYear}`
 
+// The back button is a router link.
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [{ path: '/:p(.*)*', component: { template: '<i />' } }],
+})
+
 const euros = (value: number) => formatValue('money', value)
 
 // A period of twelve complete months: the tenant owes 20 € of internet a month.
@@ -46,7 +53,7 @@ async function openSettlement(
   }
   edit(json)
   getPeriodFile.mockResolvedValue({ json, sha: 's' })
-  const wrapper = mount(SettlementView, { props: { periodId } })
+  const wrapper = mount(SettlementView, { props: { periodId }, global: { plugins: [router] } })
   await flushPromises()
   return { wrapper, totals: computePeriodFigures(json as never).totals }
 }
@@ -110,13 +117,26 @@ describe('Règlement', () => {
     expect(wrapper.get('[data-testid="next-advance"]').text()).toContain('—')
   })
 
+  it('has a back button to the period', async () => {
+    const { wrapper } = await openSettlement()
+    expect(wrapper.get('[data-testid="settlement-back"]').attributes('href')).toMatch(
+      /^\/periods\/20\d\d-20\d\d$/,
+    )
+  })
+
   it('shows the loader, then the not-found state', async () => {
     getPeriodFile.mockReturnValue(new Promise(() => {}))
-    const loading = mount(SettlementView, { props: { periodId: nextPeriodId() } })
+    const loading = mount(SettlementView, {
+      props: { periodId: nextPeriodId() },
+      global: { plugins: [router] },
+    })
     expect(loading.find('[data-testid="period-loading"]').exists()).toBe(true)
     const { NotFoundError } = await import('@/sync/periodsApi')
     getPeriodFile.mockRejectedValue(new NotFoundError())
-    const missing = mount(SettlementView, { props: { periodId: nextPeriodId() } })
+    const missing = mount(SettlementView, {
+      props: { periodId: nextPeriodId() },
+      global: { plugins: [router] },
+    })
     await flushPromises()
     expect(missing.find('[data-testid="period-not-found"]').exists()).toBe(true)
   })
