@@ -16,7 +16,7 @@ withDefaults(defineProps<{ accent?: boolean; warning?: boolean; as?: string | Co
     :is="as"
     :class="
       cn(
-        'focus-visible:outline-foreground rounded-md px-3 py-1.5 focus-visible:outline-2 focus-visible:outline-offset-2',
+        'focus-visible:outline-foreground rounded-md px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2',
         warning
           ? 'bg-theme-warning ring-theme-warning/60 text-white hover:ring-2 hover:ring-offset-2 focus-visible:ring-2 focus-visible:ring-offset-2'
           : accent
