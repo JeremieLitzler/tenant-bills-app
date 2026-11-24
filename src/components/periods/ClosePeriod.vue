@@ -17,6 +17,8 @@ import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { fr } from '@/i18n/fr'
 
+import { monthLabel } from './periodLines'
+
 defineProps<{ disabled: boolean; monthsWithoutAdvance: string[] }>()
 const emit = defineEmits<{ confirm: [] }>()
 
@@ -42,7 +44,7 @@ watch(open, () => (billsReceived.value = false))
           <div v-if="monthsWithoutAdvance.length" data-testid="period-close-no-advance">
             <p>{{ t.noAdvance }}</p>
             <ul class="list-disc pl-6">
-              <li v-for="month in monthsWithoutAdvance" :key="month">{{ month }}</li>
+              <li v-for="month in monthsWithoutAdvance" :key="month">{{ monthLabel(month) }}</li>
             </ul>
           </div>
           <label class="flex items-start gap-2">

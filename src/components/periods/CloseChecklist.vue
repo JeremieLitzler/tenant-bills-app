@@ -1,10 +1,16 @@
 <script setup lang="ts">
 // The state of each condition of closing a period, shown once the twelfth month exists.
+import type { SectionName } from '@/domain/periodFile'
 import IconCircleCheck from '@/components/icons/IconCircleCheck.vue'
 import IconCircleX from '@/components/icons/IconCircleX.vue'
 import { fr } from '@/i18n/fr'
 
-defineProps<{ checks: Record<string, boolean> }>()
+import { monthLabel } from './periodLines'
+
+defineProps<{
+  checks: Record<string, boolean>
+  incompleteMonths: { month: string; sections: string[] }[]
+}>()
 const t = fr.period.closeChecks
 </script>
 
@@ -22,7 +28,19 @@ const t = fr.period.closeChecks
         <IconCircleCheck v-if="ok" class="text-theme-success size-4 shrink-0" aria-hidden="true" />
         <IconCircleX v-else class="text-theme-error size-4 shrink-0" aria-hidden="true" />
         <span class="sr-only">{{ ok ? 'Oui' : 'Non' }} :</span>
-        {{ t[key as keyof typeof t] }}
+        <div>
+          {{ t[key as keyof typeof t] }}
+          <ul
+            v-if="key === 'allComplete' && !ok"
+            class="list-disc pl-6 text-sm"
+            data-testid="close-check-incomplete-months"
+          >
+            <li v-for="m in incompleteMonths" :key="m.month">
+              {{ monthLabel(m.month) }} :
+              {{ m.sections.map((s) => fr.period.table.sections[s as SectionName]).join(', ') }}
+            </li>
+          </ul>
+        </div>
       </li>
     </ul>
   </section>

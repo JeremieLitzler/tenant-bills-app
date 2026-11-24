@@ -10,7 +10,12 @@ import { useSaveQueue } from '@/composables/useSaveQueue'
 import { useSession } from '@/composables/useSession'
 import { misconfiguredToast, useToasts } from '@/composables/useToasts'
 import { newPeriodFile, type NewPeriodValues } from '@/domain/newPeriod'
-import { canClose, canCreateNewPeriod, closeChecks, monthsWithoutAdvance } from '@/domain/periodState'
+import {
+  canClose,
+  canCreateNewPeriod,
+  closeChecks,
+  monthsWithoutAdvance,
+} from '@/domain/periodState'
 import { serializePeriodFile } from '@/domain/serializePeriodFile'
 import { fr } from '@/i18n/fr'
 import { applyPatch, MONTH_FIELD } from '@/domain/applyPatch'
@@ -19,7 +24,7 @@ import { initializeMonth } from '@/domain/initializeMonth'
 import { MAX_MONTHS } from '@/domain/monthConstants'
 import { monthCompleteness } from '@/domain/monthCompleteness'
 import { computePeriodFigures, type PeriodFigures } from '@/domain/periodFigures'
-import type { MonthEntry, PeriodFile } from '@/domain/periodFile'
+import type { MonthEntry, PeriodFile, SectionName } from '@/domain/periodFile'
 import { type PeriodFileProblem, validatePeriodFile } from '@/domain/validatePeriodFile'
 import {
   getPeriodFile,
@@ -351,6 +356,22 @@ export function usePeriod(id: MaybeRefOrGetter<string>, { checkRemote = false } 
       const entry = periodEntry.value
       if (!entry?.file || entry.file.months.length < MAX_MONTHS) return undefined
       return { ...closeChecks(entry.file), notReadOnly: !entry.problems.length }
+    }),
+    // The months failing "Chaque mois est complet", with their incomplete sections.
+    incompleteMonths: computed(() => {
+      const entry = periodEntry.value
+      if (!entry?.file || entry.problems.length) return []
+      return entry.file.months.flatMap((m) => {
+        const { sections, complete } = monthCompleteness(m)
+        return complete
+          ? []
+          : [
+              {
+                month: m.month,
+                sections: Object.keys(sections).filter((s) => !sections[s as SectionName]),
+              },
+            ]
+      })
     }),
     monthsWithoutAdvance: computed(() => {
       const entry = periodEntry.value

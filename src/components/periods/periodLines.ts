@@ -258,3 +258,13 @@ export function inputMode(kind: LineKind): 'numeric' | 'decimal' | undefined {
   if (kind === 'int') return 'numeric'
   return kind === 'text' || kind === 'date' ? undefined : 'decimal'
 }
+
+// "2026-09" as "septembre 2026". Read in UTC so the local time zone cannot shift the month.
+export function monthLabel(month: string): string {
+  const [year, number] = month.split('-').map(Number)
+  return new Date(Date.UTC(year, number - 1, 1)).toLocaleDateString('fr-FR', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}

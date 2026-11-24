@@ -21,22 +21,12 @@ import { patchKey } from '@/domain/applyPatch'
 import { fr } from '@/i18n/fr'
 
 import PeriodCell from './PeriodCell.vue'
-import { formatTotal, LINES, type PeriodLine, SECTIONS } from './periodLines'
+import { formatTotal, LINES, monthLabel, type PeriodLine, SECTIONS } from './periodLines'
 
 const props = defineProps<{ periodId: string }>()
 const router = useRouter()
 const { file, figures } = usePeriod(() => props.periodId)
 const { isOpen, setOpen, openQuery, toQuery, open } = useOpenSections()
-
-// "2026-09" as "septembre 2026". Read in UTC so the local time zone cannot shift the month.
-function monthLabel(month: string): string {
-  const [year, number] = month.split('-').map(Number)
-  return new Date(Date.UTC(year, number - 1, 1)).toLocaleDateString('fr-FR', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  })
-}
 
 // A read-only file can hold malformed entries: show only those with a month.
 const columns = computed(() =>
