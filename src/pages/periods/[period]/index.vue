@@ -5,6 +5,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import IconTriangleAlert from '@/components/icons/IconTriangleAlert.vue'
 
 import ClosedNotice from '@/components/periods/ClosedNotice.vue'
+import PeriodSettings from '@/components/periods/PeriodSettings.vue'
 import PeriodTable from '@/components/periods/PeriodTable.vue'
 import { Button } from '@/components/ui/button'
 import { usePeriod } from '@/composables/usePeriods'
@@ -88,6 +89,7 @@ if (import.meta.env.DEV) {
       <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <p>{{ fr.period.initializeMonth.incomplete }}</p>
     </div>
+    <PeriodSettings :period-id="route.params.period" />
     <PeriodTable :period-id="route.params.period" />
   </div>
 </template>
