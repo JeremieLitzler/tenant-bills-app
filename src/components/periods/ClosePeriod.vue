@@ -51,7 +51,7 @@ watch(open, () => (billsReceived.value = false))
             <input
               v-model="billsReceived"
               type="checkbox"
-              class="mt-1.5 shrink-0"
+              class="mt-[5px] shrink-0"
               data-testid="period-close-bills"
             />
             {{ t.billsReceived }}
