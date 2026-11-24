@@ -48,7 +48,12 @@ watch(open, () => (billsReceived.value = false))
             </ul>
           </div>
           <label class="flex items-start gap-2">
-            <input v-model="billsReceived" type="checkbox" data-testid="period-close-bills" />
+            <input
+              v-model="billsReceived"
+              type="checkbox"
+              class="mt-1.5 shrink-0"
+              data-testid="period-close-bills"
+            />
             {{ t.billsReceived }}
           </label>
           <p class="font-semibold">{{ t.irreversible }}</p>
