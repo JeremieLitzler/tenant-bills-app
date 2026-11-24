@@ -66,6 +66,10 @@ describe('initializeMonth', () => {
     expect(initializeMonth(file([first], 154))!.heatPumpMaintenance.billedAmount).toBe(12.83)
   })
 
+  it('leaves the heat pump section empty when the estimate is 0', () => {
+    expect(initializeMonth(file([first], 0))!.heatPumpMaintenance).toEqual({})
+  })
+
   it('offers no next month after the twelfth', () => {
     const twelve = Array.from({ length: 12 }, (_, i) => month(`m${i}`))
     expect(initializeMonth(file(twelve))).toBeUndefined()
