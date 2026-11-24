@@ -82,7 +82,7 @@ export const fr = {
     readOnlyNotice:
       "Cette période est ouverte en lecture seule : l'application ne la modifiera jamais.",
     settlement: {
-      link: 'Voir le règlement',
+      link: 'Consulter la situation comptable',
       title: 'Règlement',
       provisional: 'provisoire',
       advancesReceived: 'Acomptes reçus',
