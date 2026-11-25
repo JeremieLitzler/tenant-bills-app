@@ -87,8 +87,8 @@ export const fr = {
       provisional: 'provisoire',
       estimated: 'Régularisation estimée',
       final: (date: string) => `définitive, clôturée le ${date}`,
-      octoberBanner:
-        "Le décompte définitif viendra en octobre, avec les factures d'eau. Prévenez le locataire.",
+      twelfthMonthBanner:
+        "Le décompte définitif viendra environ un mois après le dernier relevé, avec les factures d'eau. Prévenez le locataire.",
       advancesReceived: 'Acomptes reçus',
       totalTenantShares: 'Total des parts du locataire',
       balance: 'Solde',

@@ -28,10 +28,36 @@ Each period is one JSON file in the data repo `JeremieLitzler/tenant-bills-data`
 
 The status is computed, never stored (ADR 0008):
 
-- `draft`: the period was created from a previous one that is not yet closed.
+- `draft`: the period was created from a previous one that is not yet closed and has only its first month. It becomes `ongoing` as soon as its second month exists, even if the previous period is still open (intended rule, not implemented yet: see the ticket for `periodStatus`).
 - `ongoing`: the period has no previous period still open and has at least one month.
 - `ending`: the twelfth month is initialized and the next period is drafted.
 - `closed`: `closedOn` is present.
+
+The settlement state is a second, independent machine, computed from the same file (`settlementState`). It shares only `closedOn` with the status:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "periodStatus" as PS {
+        [*] --> draft : created from an open period
+        [*] --> ongoing : no previous period still open
+        draft --> ongoing : second month exists
+        ongoing --> ending : twelfth month exists and next period drafted
+        ongoing --> closed : closedOn set
+        ending --> closed : closedOn set
+    }
+
+    state "settlementState" as SS {
+        [*] --> provisional : fewer than twelve months
+        provisional --> estimated : twelfth month estimated
+        estimated --> read : reading date typed
+        provisional --> read : reading date typed
+        provisional --> final : closedOn set
+        estimated --> final : closedOn set
+        read --> final : closedOn set
+    }
+```
 
 ## A month entry
 

@@ -59,6 +59,14 @@ const state = computed(() =>
   period.file.value ? settlementState(period.file.value) : 'provisional',
 )
 
+const stateLabel = computed(() => {
+  const closedOn = period.file.value?.closedOn
+  if (closedOn) return fr.period.settlement.final(formatValue('date', closedOn))
+  return state.value === 'estimated'
+    ? fr.period.settlement.estimated
+    : fr.period.settlement.provisional
+})
+
 const direction = computed(() => {
   const t = totals.value
   if (!t || t.settlementAmount === undefined) return undefined
@@ -86,15 +94,7 @@ const direction = computed(() => {
       >
       <h1 class="text-2xl font-semibold">
         {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}
-        <span data-testid="settlement-state"
-          >({{
-            state === 'final'
-              ? fr.period.settlement.final(formatValue('date', period.file.value!.closedOn!))
-              : state === 'estimated'
-                ? fr.period.settlement.estimated
-                : fr.period.settlement.provisional
-          }})</span
-        >
+        <span data-testid="settlement-state">({{ stateLabel }})</span>
       </h1>
     </div>
     <div
@@ -109,11 +109,11 @@ const direction = computed(() => {
     <div
       v-if="state === 'read'"
       role="status"
-      data-testid="october-banner"
+      data-testid="twelfth-month-banner"
       class="border-theme-warning bg-theme-warning/10 text-foreground flex items-start gap-3 rounded-lg border p-3"
     >
       <IconTriangleAlert class="text-theme-warning mt-0.5 size-5 shrink-0" aria-hidden="true" />
-      <p>{{ fr.period.settlement.octoberBanner }}</p>
+      <p>{{ fr.period.settlement.twelfthMonthBanner }}</p>
     </div>
     <Table
       data-testid="settlement-table"
