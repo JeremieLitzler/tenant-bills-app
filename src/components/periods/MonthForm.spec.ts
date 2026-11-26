@@ -158,6 +158,13 @@ describe('Saisie du mois', () => {
     )
   })
 
+  it('links to the settlement of the same period', async () => {
+    const { wrapper } = await openForm()
+    expect(wrapper.get('[data-testid="settlement-link"]').attributes('href')).toMatch(
+      /^\/periods\/20\d\d-20\d\d\/settlement$/,
+    )
+  })
+
   it('says so when the month is not in the period', async () => {
     const { wrapper } = await openForm(() => {}, '2030-01')
     expect(wrapper.find('[data-testid="month-not-found"]').exists()).toBe(true)

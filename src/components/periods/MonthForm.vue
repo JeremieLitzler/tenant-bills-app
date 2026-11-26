@@ -147,16 +147,21 @@ function answerConfirmReading(yes: boolean) {
     @submit.prevent
   >
     <!-- Stays in view while the form scrolls. -->
-    <Button
-      :as="RouterLink"
-      accent
-      :to="{ path: `/periods/${periodId}`, query: openQuery }"
-      class="sticky top-2 z-10 inline-flex items-center gap-2 self-start"
-      data-testid="to-table"
-    >
-      <span aria-hidden="true">&lt;</span>
-      {{ fr.period.month.toTable }}
-    </Button>
+    <div class="sticky top-2 z-10 flex flex-wrap items-center gap-2 self-start">
+      <Button
+        :as="RouterLink"
+        accent
+        :to="{ path: `/periods/${periodId}`, query: openQuery }"
+        class="inline-flex items-center gap-2"
+        data-testid="to-table"
+      >
+        <span aria-hidden="true">&lt;</span>
+        {{ fr.period.month.toTable }}
+      </Button>
+      <Button :as="RouterLink" :to="`/periods/${periodId}/settlement`" data-testid="settlement-link">
+        {{ fr.period.settlement.link }}
+      </Button>
+    </div>
     <h2 class="text-xl font-semibold">{{ fr.period.month.title }}</h2>
     <ClosedNotice v-if="file.closedOn" :closed-on="file.closedOn" />
     <div
