@@ -158,7 +158,11 @@ function answerConfirmReading(yes: boolean) {
         <span aria-hidden="true">&lt;</span>
         {{ fr.period.month.toTable }}
       </Button>
-      <Button :as="RouterLink" :to="`/periods/${periodId}/settlement`" data-testid="settlement-link">
+      <Button
+        :as="RouterLink"
+        :to="`/periods/${periodId}/settlement`"
+        data-testid="settlement-link"
+      >
         {{ fr.period.settlement.link }}
       </Button>
     </div>
