@@ -144,6 +144,13 @@ describe('Situation comptable', () => {
     )
   })
 
+  it('links to the form on the last month of the period', async () => {
+    const { wrapper } = await openSettlement()
+    expect(wrapper.get('[data-testid="settlement-to-form"]').attributes('href')).toMatch(
+      /^\/periods\/20\d\d-20\d\d\/months\/\d{4}-\d{2}$/,
+    )
+  })
+
   it('shows the loader, then the not-found state', async () => {
     getPeriodFile.mockReturnValue(new Promise(() => {}))
     const loading = mount(SettlementView, {

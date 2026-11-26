@@ -46,6 +46,9 @@ const columns = computed(() =>
   }),
 )
 
+// The form opens on the latest month: the one being filled in.
+const lastMonth = computed(() => columns.value.at(-1)?.month)
+
 const sections = computed(() =>
   SECTIONS.filter((section) => section.id !== 'common').map((section) => ({
     id: section.id,
@@ -91,6 +94,13 @@ const direction = computed(() => {
     <div class="flex flex-wrap items-center gap-4">
       <Button :as="RouterLink" :to="`/periods/${periodId}`" data-testid="settlement-back"
         ><span aria-hidden="true">&lt;</span> {{ fr.period.back }}</Button
+      >
+      <Button
+        v-if="lastMonth"
+        :as="RouterLink"
+        :to="`/periods/${periodId}/months/${lastMonth}`"
+        data-testid="settlement-to-form"
+        >{{ fr.period.settlement.toForm }}</Button
       >
       <h1 class="text-2xl font-semibold">
         {{ fr.period.settlement.title }} {{ period.file.value?.periodName }}

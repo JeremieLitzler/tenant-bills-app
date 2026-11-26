@@ -84,6 +84,7 @@ export const fr = {
     settlement: {
       link: 'Consulter la situation comptable',
       title: 'Situation comptable',
+      toForm: 'Saisie du mois',
       provisional: 'provisoire',
       estimated: 'Régularisation estimée',
       final: (date: string) => `définitive, clôturée le ${date}`,
